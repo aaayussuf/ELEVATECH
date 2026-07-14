@@ -8,8 +8,14 @@ export default function AdminProductsPage() {
   const create = async (e) => {
     e.preventDefault()
     setStatus({ type: null, msg: '' })
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setStatus({ type: 'err', msg: 'Please login as admin first.' })
+      return
+    }
+
     try {
-      const token = localStorage.getItem('token')
       await api.adminCreateProduct(token, {
         ...form,
         price: Number(form.price),
@@ -21,6 +27,7 @@ export default function AdminProductsPage() {
       setStatus({ type: 'err', msg: err.message })
     }
   }
+
 
   return (
     <div className="max-w-2xl space-y-6">
