@@ -3,7 +3,7 @@ import uuid
 from flask import Blueprint, jsonify, request, session
 
 from ..models import CartItem, Product
-from ...extensions import db
+from extensions import db
 
 
 cart_bp = Blueprint('cart_bp', __name__, url_prefix='/api')

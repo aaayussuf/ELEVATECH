@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 from ..models import Product, User
-from ...extensions import db
+from extensions import db
 
 
 

@@ -1,6 +1,6 @@
-from .extensions import db
-from .app.models import User, Category, Product
-from .app import create_app
+from extensions import db
+from app.models import User, Category, Product
+# from .app import create_app
 
 
 

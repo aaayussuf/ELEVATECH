@@ -29,7 +29,8 @@ def create_app():
     # Database
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "DATABASE_URL",
-        "postgresql+psycopg2://bxtech:bxtech@localhost:5432/bxtech"
+        # docker-compose-friendly default (when using service name `db`)
+        "postgresql+psycopg2://bxtech:bxtech@db:5432/bxtech",
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -48,9 +49,22 @@ def create_app():
     # Register routes
     init_routes(app)
 
-    # Seed database
+    # Seed database (handles initial DB startup delays when using docker-compose)
     with app.app_context():
-        seed_db_if_empty()
+        import time
+
+        last_exc = None
+        for _ in range(10):
+            try:
+                seed_db_if_empty()
+                last_exc = None
+                break
+            except Exception as e:
+                last_exc = e
+                time.sleep(1)
+
+        if last_exc is not None:
+            raise last_exc
 
     return app
 
