@@ -6,6 +6,9 @@ from app.models import User, Category, Product
 
 def seed_db_if_empty():
     # Called inside app_context by app.py
+    # If tables don't exist yet, create them before checking emptiness.
+    db.create_all()
+
     if User.query.first():
         return
 

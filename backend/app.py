@@ -29,9 +29,18 @@ def create_app():
     # Database
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "DATABASE_URL",
-        # docker-compose-friendly default (when using service name `db`)
-        "postgresql+psycopg2://bxtech:bxtech@db:5432/bxtech",
+        # Local dev default (so `python app.py` works outside docker-compose)
+        "postgresql+psycopg2://bxtech:bxtech@localhost:5432/bxtech",
     )
+
+    # If user has DATABASE_URL set to docker-compose host `db` but is running locally,
+    # automatically fall back to localhost.
+    db_host = os.getenv("DATABASE_HOST")
+    if db_host == "" or db_host is None:
+        db_host = None
+
+    if "@db:" in app.config["SQLALCHEMY_DATABASE_URI"]:
+        app.config["SQLALCHEMY_DATABASE_URI"] = app.config["SQLALCHEMY_DATABASE_URI"].replace("@db:", "@localhost:")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # JWT
