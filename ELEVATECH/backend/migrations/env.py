@@ -1,7 +1,7 @@
 import logging
 from logging.config import fileConfig
 
-from flask import current_app
+import os
 
 from alembic import context
 
@@ -9,27 +9,67 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 
+# Import Flask lazily only if we have an application context.
+try:
+    from flask import current_app  # type: ignore
+except Exception:  # pragma: no cover
+    current_app = None
+
+
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
 
-def get_engine():
-    try:
-        # this works with Flask-SQLAlchemy<3 and Alchemical
-        return current_app.extensions['migrate'].db.get_engine()
-    except (TypeError, AttributeError):
-        # this works with Flask-SQLAlchemy>=3
-        return current_app.extensions['migrate'].db.engine
-
-
 def get_engine_url():
-    try:
-        return get_engine().url.render_as_string(hide_password=False).replace(
-            '%', '%%')
-    except AttributeError:
-        return str(get_engine().url).replace('%', '%%')
+    # Prefer Flask-SQLAlchemy engine URL when running within app context.
+    if current_app is not None:
+        try:
+            ext = current_app.extensions.get('migrate')
+            if ext is not None and hasattr(ext, 'db'):
+                db_obj = ext.db
+                engine = None
+                try:
+                    engine = db_obj.get_engine()
+                except Exception:
+                    engine = getattr(db_obj, 'engine', None)
+                if engine is not None and hasattr(engine, 'url'):
+                    return engine.url.render_as_string(hide_password=False).replace('%', '%%')
+        except Exception:
+            pass
+
+    # Fallback: use DATABASE_URL from environment.
+    url = os.getenv('DATABASE_URL')
+    if not url:
+        # Last resort: allow alembic.ini to provide it.
+        url = config.get_main_option('sqlalchemy.url')
+    if not url:
+        raise RuntimeError("Could not determine database URL for Alembic. Set DATABASE_URL or sqlalchemy.url in alembic.ini")
+    return str(url).replace('%', '%%')
+
+
+def get_engine():
+    """Return a SQLAlchemy Engine for Alembic online migrations."""
+
+    # Prefer Flask-SQLAlchemy engine when available.
+    if current_app is not None:
+        try:
+            ext = current_app.extensions.get("migrate")
+            if ext is not None and hasattr(ext, "db"):
+                db = ext.db
+                try:
+                    return db.get_engine()
+                except Exception:
+                    return db.engine
+        except Exception:
+            pass
+
+    # Fallback for CLI usage.
+    from sqlalchemy import create_engine
+
+    return create_engine(config.get_main_option("sqlalchemy.url"))
+
 
 
 # add your model's MetaData object here
@@ -37,7 +77,22 @@ def get_engine_url():
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 config.set_main_option('sqlalchemy.url', get_engine_url())
-target_db = current_app.extensions['migrate'].db
+
+# Ensure SQLAlchemy models are loaded so Alembic can see the correct schema
+# (required when running migrations from the CLI).
+try:
+    from app.models import *  # noqa: F401,F403
+except Exception:
+    # If models fail to import, migrations will error out later with a clearer message.
+    pass
+
+# For standalone runs, current_app may be missing; fallback to app metadata.
+if current_app is not None and hasattr(current_app, 'extensions'):
+    target_db = current_app.extensions['migrate'].db
+else:
+    # Flask-SQLAlchemy stores metadata on BaseModel's metadata
+    from app.models.product import Product
+    target_db = Product.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -90,7 +145,11 @@ def run_migrations_online():
                 directives[:] = []
                 logger.info('No changes in schema detected.')
 
-    conf_args = current_app.extensions['migrate'].configure_args
+    if current_app is not None:
+        conf_args = current_app.extensions["migrate"].configure_args
+    else:
+        conf_args = {}
+
     if conf_args.get("process_revision_directives") is None:
         conf_args["process_revision_directives"] = process_revision_directives
 
