@@ -157,6 +157,9 @@ def seed_database():
         },
     ]
 
+    def slugify(name: str) -> str:
+        return "".join(ch.lower() if ch.isalnum() else "-" for ch in name).strip("-")
+
     for item in products:
         # idempotency by name
         existing = Product.query.filter_by(name=item["name"]).first()
@@ -171,6 +174,7 @@ def seed_database():
         product = Product(
             id=item["id"],
             name=item["name"],
+            slug=slugify(item["name"]),
             description=item["description"],
             price=item["price"],
             quantity=item.get("quantity", 0),

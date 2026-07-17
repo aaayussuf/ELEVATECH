@@ -5,8 +5,28 @@ load_dotenv()
 
 
 class Config:
+    # Stripe keys / webhook secret are optional until Stripe is enabled
+    STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+    STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+    STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+    STRIPE_SUCCESS_URL = os.getenv(
+        "STRIPE_SUCCESS_URL",
+        "http://localhost:5173/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+    )
+    STRIPE_CANCEL_URL = os.getenv(
+        "STRIPE_CANCEL_URL",
+        "http://localhost:5173/checkout/cancel",
+    )
+    STRIPE_CURRENCY = os.getenv("STRIPE_CURRENCY", "KES")
+
+    FRONTEND_URL = os.getenv(
+        "FRONTEND_URL",
+        "http://localhost:3000"
+    )
+
 
     SECRET_KEY = os.getenv("SECRET_KEY")
+
 
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 

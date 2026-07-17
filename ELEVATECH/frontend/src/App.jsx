@@ -8,7 +8,10 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Checkout from "./pages/Checkout";
+import CheckoutSuccess from "./pages/checkout-success";
+import CheckoutCancel from "./pages/checkout-cancel";
 import About from "./pages/About";
+
 
 import Dashboard from "./pages/account/Dashboard";
 import AccountProfile from "./pages/account/Profile";
@@ -47,7 +50,10 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/checkout" element={<Checkout />} />
+      <Route path="/checkout/success" element={<CheckoutSuccess />} />
+      <Route path="/checkout/cancel" element={<CheckoutCancel />} />
       <Route path="/about" element={<About />} />
+
 
       <Route path="/*" element={<ProtectedAccountRoutes />} />
     </Routes>

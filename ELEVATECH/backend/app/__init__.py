@@ -13,6 +13,10 @@ from app.routes.products import products_bp
 from app.routes.admin_products import admin_products_bp
 from app.routes.addresses import addresses_bp
 from app.routes.wishlist import wishlist_bp
+from app.routes.payments import payments_bp
+from app.routes.checkout import checkout_bp
+
+
 
 
 def create_app():
@@ -37,8 +41,11 @@ def create_app():
 
     # Step 5 — Register the Blueprint
     app.register_blueprint(wishlist_bp)
+    app.register_blueprint(payments_bp)
+    app.register_blueprint(checkout_bp)
 
     @app.route("/api/products")
+
     def get_products():
         products = Product.query.all()
         return jsonify([p.to_dict() for p in products])
