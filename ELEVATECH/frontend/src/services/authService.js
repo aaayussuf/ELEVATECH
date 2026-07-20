@@ -1,38 +1,65 @@
-import axios from "axios";
+const API_URL = "http://127.0.0.1:5000/api/auth";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "/api";
+const authService = {
+  async login(credentials) {
+    const response = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(credentials),
+    });
 
-function withAuth(token) {
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-}
+    const data = await response.json();
 
-async function login({ email, password }) {
-  const res = await axios.post(`${API_BASE}/auth/login`, { email, password });
-  // expected: { token, user }
-  return res.data;
-}
+    if (!response.ok) {
+      throw new Error(data.message || "Login failed");
+    }
 
-async function logout(token) {
-  // backend might require POST /api/auth/logout; we keep it ready
-  try {
-    await axios.post(`${API_BASE}/auth/logout`, {}, withAuth(token));
-  } catch {
-    // ignore if endpoint not implemented yet
-  }
-}
+    return data;
+  },
 
-async function me(token) {
-  const res = await axios.get(`${API_BASE}/auth/me`, withAuth(token));
-  return res.data;
-}
+  async register(userData) {
+    const response = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
 
-export default {
-  login,
-  logout,
-  me,
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Registration failed");
+    }
+
+    return data;
+  },
+
+  async me(token) {
+    const response = await fetch(`${API_URL}/profile`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to fetch profile");
+    }
+
+    return data;
+  },
+
+  async logout() {
+    // No backend logout endpoint.
+    // JWT logout is handled by removing the token locally.
+    return true;
+  },
 };
+
+export default authService;
 

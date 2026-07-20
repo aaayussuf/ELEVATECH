@@ -1,11 +1,14 @@
 import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import authService from "../services/authService";
 
 export default function Login() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/account/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +25,7 @@ export default function Login() {
       const token = data?.token;
       if (!token) throw new Error("No token returned");
       login(token);
-      navigate("/account/dashboard", { replace: true });
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Login failed");
     } finally {

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-export default function ProductCard({product}){
+export default function ProductCard({product, onAddToCart}){
 
 return(
 
@@ -27,7 +27,7 @@ View
 </button>
 </Link>
 
-<button>
+<button onClick={() => onAddToCart && onAddToCart(product)}>
 
 Add to Cart
 

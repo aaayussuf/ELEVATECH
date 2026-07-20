@@ -51,12 +51,12 @@ export default function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try {
-      if (token) await authService.logout(token);
+      await authService.logout();
     } finally {
       persistToken(null);
       setUser(null);
     }
-  }, [persistToken, token]);
+  }, [persistToken]);
 
   const value = useMemo(
     () => ({
@@ -66,7 +66,7 @@ export default function AuthProvider({ children }) {
       login: persistToken,
       logout,
     }),
-    [isLoading, login, logout, persistToken, token, user]
+    [token, user, isLoading, persistToken, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

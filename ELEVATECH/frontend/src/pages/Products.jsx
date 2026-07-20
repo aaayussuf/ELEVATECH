@@ -1,56 +1,95 @@
-import "../styles/products.css";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useContext, useEffect, useState } from "react";
 import ProductCard from "../components/ProductCard";
+import productService from "../services/productService";
+import { CartContext } from "../context/CartContext";
+import "../styles/products.css";
 
 export default function Products() {
+  const { addToCart } = useContext(CartContext);
 
-    const [products,setProducts]=useState([]);
-    const [search,setSearch]=useState("");
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    useEffect(()=>{
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
-        axios.get("http://localhost:5000/api/products")
-        .then(res=>setProducts(res.data))
-        .catch(console.error);
+  async function loadProducts() {
+    try {
+      setLoading(true);
+      setError("");
 
-    },[]);
+      const data = await productService.getProducts();
 
-    const filtered=products.filter(product=>{
+      // Support either:
+      // [ ... ]
+      // OR
+      // { products:[ ... ] }
+      if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        setProducts(data.products || []);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load products.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-        return product.name.toLowerCase().includes(search.toLowerCase());
+  function handleAddToCart(product) {
+    addToCart(product);
+    alert(`${product.name} added to cart.`);
+  }
 
-    });
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(search.toLowerCase())
+  );
 
-    return(
+  if (loading) {
+    return (
+      <div className="products-page">
+        <h2>Loading products...</h2>
+      </div>
+    );
+  }
 
-<div className="products-page">
+  if (error) {
+    return (
+      <div className="products-page">
+        <h2>{error}</h2>
+      </div>
+    );
+  }
 
-<h1>Products</h1>
+  return (
+    <div className="products-page">
+      <h1>Products</h1>
 
-<input
-type="text"
-placeholder="Search products..."
-value={search}
-onChange={(e)=>setSearch(e.target.value)}
-className="search-input"
-/>
+      <input
+        type="text"
+        placeholder="Search products..."
+        className="search-input"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-<div className="products-grid">
-
-{filtered.map(product=>(
-
-<ProductCard
-key={product.id}
-product={product}
-/>
-
-))}
-
-</div>
-
-</div>
-
-);
-
+      {filteredProducts.length === 0 ? (
+        <h3>No products found.</h3>
+      ) : (
+        <div className="products-grid">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={handleAddToCart}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
