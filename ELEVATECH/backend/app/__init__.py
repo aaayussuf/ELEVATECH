@@ -16,7 +16,7 @@ from app.routes.wishlist import wishlist_bp
 from app.routes.payments import payments_bp
 from app.routes.checkout import checkout_bp
 from app.routes.orders import orders_bp
-
+from app.routes.mpesa import mpesa_bp
 
 
 
@@ -45,6 +45,7 @@ def create_app():
     app.register_blueprint(payments_bp)
     app.register_blueprint(checkout_bp)
     app.register_blueprint(orders_bp)
+    app.register_blueprint(mpesa_bp)
 
     @app.route("/api/products")
 

@@ -8,8 +8,8 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Checkout from "./pages/Checkout";
-import CheckoutSuccess from "./pages/checkout-success";
-import CheckoutCancel from "./pages/checkout-cancel";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import About from "./pages/About";
 
 
@@ -50,8 +50,8 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/checkout" element={<Checkout />} />
-      <Route path="/checkout/success" element={<CheckoutSuccess />} />
-      <Route path="/checkout/cancel" element={<CheckoutCancel />} />
+      <Route path="/checkout/success" element={<PaymentSuccess />} />
+      <Route path="/checkout/cancel" element={<PaymentCancel />} />
       <Route path="/about" element={<About />} />
 
 

@@ -1,80 +1,222 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { CartContext } from "../context/CartContext";
 
 export default function Checkout() {
   const { token } = useContext(AuthContext);
-  const [orderId, setOrderId] = useState("");
+  const { cartItems } = useContext(CartContext);
+
+  const [paymentMethod, setPaymentMethod] = useState("Stripe");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handlePay(e) {
     e.preventDefault();
+
     setError("");
 
-    const id = Number(orderId);
-    if (!id) {
-      setError("Enter a valid order id");
+    if (!token) {
+      setError("Please login first.");
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      setError("Your cart is empty.");
+      return;
+    }
+
+    if (paymentMethod === "Mpesa" && phone.trim() === "") {
+      setError("Please enter your M-Pesa phone number.");
       return;
     }
 
     setLoading(true);
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE || ""}/api/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ order_id: id }),
-      });
 
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to create checkout session");
+    try {
+      // ===========================
+      // STEP 1: CREATE ORDER
+      // ===========================
+
+      const orderResponse = await fetch(
+        `${import.meta.env.VITE_API_BASE}/api/orders`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            payment_method: paymentMethod,
+            items: cartItems.map((item) => ({
+              product_id: item.id,
+              quantity: item.quantity,
+            })),
+          }),
+        }
+      );
+
+      const orderData = await orderResponse.json().catch(() => ({}));
+
+      if (!orderResponse.ok) {
+        throw new Error(orderData.message || "Failed to create order.");
       }
 
-      if (data?.url) {
-        window.location.href = data.url;
+      const orderId = orderData.order.id;
+
+      // ===========================
+      // STRIPE PAYMENT
+      // ===========================
+
+      if (paymentMethod === "Stripe") {
+        const stripeResponse = await fetch(
+          `${import.meta.env.VITE_API_BASE}/api/checkout`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              order_id: orderId,
+            }),
+          }
+        );
+
+        const stripeData = await stripeResponse.json().catch(() => ({}));
+
+        if (!stripeResponse.ok) {
+          throw new Error(
+            stripeData.error || "Failed to create Stripe Checkout."
+          );
+        }
+
+        if (!stripeData.url) {
+          throw new Error("Stripe Checkout URL not returned.");
+        }
+
+        window.location.href = stripeData.url;
         return;
       }
 
-      throw new Error("Missing checkout url in response");
+      // ===========================
+      // M-PESA PAYMENT
+      // ===========================
+
+      const mpesaResponse = await fetch(
+        `${import.meta.env.VITE_API_BASE}/api/mpesa/stkpush`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            order_id: orderId,
+            phone: phone,
+          }),
+        }
+      );
+
+      const mpesaData = await mpesaResponse.json().catch(() => ({}));
+
+      if (!mpesaResponse.ok) {
+        throw new Error(
+          mpesaData.error ||
+            mpesaData.message ||
+            "Failed to initiate M-Pesa payment."
+        );
+      }
+
+      alert(
+        mpesaData.CustomerMessage ||
+          "M-Pesa prompt sent successfully. Check your phone."
+      );
     } catch (err) {
-      setError(err?.message || "Payment initiation failed");
+      console.error(err);
+      setError(err.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ maxWidth: 520, margin: "40px auto", padding: 16 }}>
-      <h2 style={{ marginBottom: 8 }}>Checkout (Stripe)</h2>
-      <p style={{ color: "#666", marginTop: 0 }}>
-        This page initiates a Stripe Checkout Session for an existing order.
+    <div
+      style={{
+        maxWidth: 550,
+        margin: "40px auto",
+        padding: 20,
+      }}
+    >
+      <h2>Checkout</h2>
+
+      <p style={{ color: "#666" }}>
+        Choose your preferred payment method.
       </p>
 
-      <form onSubmit={handlePay} style={{ display: "grid", gap: 10 }}>
+      <form
+        onSubmit={handlePay}
+        style={{
+          display: "grid",
+          gap: 18,
+        }}
+      >
         <label>
-          Order ID
           <input
-            value={orderId}
-            onChange={(e) => setOrderId(e.target.value)}
-            placeholder="e.g. 1"
-            style={{ width: "100%", padding: 10, marginTop: 6 }}
-          />
+            type="radio"
+            value="Stripe"
+            checked={paymentMethod === "Stripe"}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+          />{" "}
+          Stripe
         </label>
+
+        <label>
+          <input
+            type="radio"
+            value="Mpesa"
+            checked={paymentMethod === "Mpesa"}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+          />{" "}
+          M-Pesa
+        </label>
+
+        {paymentMethod === "Mpesa" && (
+          <input
+            type="tel"
+            placeholder="2547XXXXXXXX"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            style={{
+              padding: 12,
+              width: "100%",
+            }}
+          />
+        )}
 
         <button
           type="submit"
           disabled={loading}
-          style={{ padding: 12, fontWeight: 900, cursor: loading ? "not-allowed" : "pointer" }}
+          style={{
+            padding: 12,
+            fontWeight: "bold",
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
         >
-          {loading ? "Creating session..." : "Pay with Stripe"}
+          {loading ? "Processing..." : "Pay Now"}
         </button>
 
-        {error ? <div style={{ color: "#b00020" }}>{error}</div> : null}
+        {error && (
+          <div
+            style={{
+              color: "red",
+              fontWeight: "bold",
+            }}
+          >
+            {error}
+          </div>
+        )}
       </form>
     </div>
   );
 }
-

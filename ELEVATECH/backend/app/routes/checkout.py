@@ -40,6 +40,7 @@ def create_checkout():
     stripe_currency = current_app.config.get("STRIPE_CURRENCY", "KES")
 
     session = create_checkout_session(
+        order_id=order.id,
         order=order,
         success_url=current_app.config.get("STRIPE_SUCCESS_URL"),
         cancel_url=current_app.config.get("STRIPE_CANCEL_URL"),

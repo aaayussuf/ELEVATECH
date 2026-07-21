@@ -38,7 +38,14 @@ def create_stk_push():
 
     data = request.get_json() or {}
 
-    phone = data.get("phone")
+    phone = str(data.get("phone", "")).strip()
+
+    if phone.startswith("07"):
+        phone = "254" + phone[1:]
+
+    if phone.startswith("+254"):
+        phone = phone[1:]
+
     order_id = data.get("order_id")
 
     if not phone:
@@ -47,10 +54,13 @@ def create_stk_push():
     if not order_id:
         return jsonify({"message": "Order id required"}), 400
 
-    order = Order.query.get(order_id)
+    order = db.session.get(Order, order_id)
 
     if not order:
         return jsonify({"message": "Order not found"}), 404
+
+    if order.status == "Paid":
+        return jsonify({"message": "Order already paid"}), 400
 
     response = stk_push(
         phone=phone,
@@ -61,16 +71,22 @@ def create_stk_push():
     payment = Payment(
         order_id=order.id,
         amount=order.total,
-        provider="Mpesa",
+        provider="M-Pesa",
         status="Pending",
         currency="KES",
-        transaction_id=response.get("CheckoutRequestID")
+        transaction_id=response.get("CheckoutRequestID"),
     )
 
     db.session.add(payment)
     db.session.commit()
 
-    return jsonify(response)
+    return jsonify({
+        "success": True,
+        "message": "STK Push sent successfully.",
+        "checkout_request_id": response.get("CheckoutRequestID"),
+        "merchant_request_id": response.get("MerchantRequestID"),
+        "response": response,
+    })
 
 
 @mpesa_bp.route("/callback", methods=["POST"])
@@ -92,20 +108,19 @@ def mpesa_callback():
 
         if not payment:
             return jsonify({
-                "message": "Payment not found"
-            }), 404
+                "ResultCode": 0,
+                "ResultDesc": "Payment not found"
+            })
 
         if result_code == 0:
 
             payment.status = "Completed"
-
             payment.verified_at = datetime.utcnow()
 
-            payment.transaction_id = checkout_id
+            order = db.session.get(Order, payment.order_id)
 
-            order = Order.query.get(payment.order_id)
-
-            order.status = "Paid"
+            if order:
+                order.status = "Paid"
 
         else:
 
@@ -120,7 +135,7 @@ def mpesa_callback():
 
     except Exception as e:
 
-        print(e)
+        print("M-Pesa Callback Error:", e)
 
         return jsonify({
             "ResultCode": 1,

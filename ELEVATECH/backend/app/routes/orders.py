@@ -28,12 +28,16 @@ def serialize_order(order):
                 "image": item.product.image,
                 "price": item.price,
                 "quantity": item.quantity,
-                "subtotal": item.price * item.quantity
+                "subtotal": item.price * item.quantity,
             }
             for item in order.items
-        ]
+        ],
     }
 
+
+# ======================================================
+# CREATE ORDER
+# ======================================================
 
 @orders_bp.route("", methods=["POST"])
 @jwt_required()
@@ -123,3 +127,50 @@ def create_order():
         "order": serialize_order(order)
     }), 201
 
+
+# ======================================================
+# GET ALL ORDERS FOR LOGGED-IN USER
+# ======================================================
+
+@orders_bp.route("", methods=["GET"])
+@jwt_required()
+def get_orders():
+
+    user_id = int(get_jwt_identity())
+
+    orders = (
+        Order.query
+        .filter_by(user_id=user_id)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
+
+    return jsonify([
+        serialize_order(order)
+        for order in orders
+    ])
+
+
+# ======================================================
+# GET SINGLE ORDER
+# ======================================================
+
+@orders_bp.route("/<int:order_id>", methods=["GET"])
+@jwt_required()
+def get_order(order_id):
+
+    user_id = int(get_jwt_identity())
+
+    order = Order.query.filter_by(
+        id=order_id,
+        user_id=user_id
+    ).first()
+
+    if not order:
+        return jsonify({
+            "message": "Order not found"
+        }), 404
+
+    return jsonify(
+        serialize_order(order)
+    )

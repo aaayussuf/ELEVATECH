@@ -43,7 +43,7 @@ def create_checkout_session(order_id, order=None, success_url=None, cancel_url=N
                 "price_data": {
                     "currency": currency.lower(),
                     "product_data": {"name": f"Order #{order.id}"},
-                    "unit_amount": int(order.total * 100),
+                    "unit_amount": round(float(order.total) * 100),
                 },
                 "quantity": 1,
             }
@@ -51,7 +51,9 @@ def create_checkout_session(order_id, order=None, success_url=None, cancel_url=N
         mode="payment",
         success_url=success_url,
         cancel_url=cancel_url,
-        metadata={"order_id": order.id},
+        metadata={
+            "order_id": str(order.id)
+        },
     )
 
     return session
