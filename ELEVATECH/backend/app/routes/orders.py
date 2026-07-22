@@ -35,6 +35,25 @@ def serialize_order(order):
     }
 
 
+def restore_order_inventory(order):
+    """
+    Restore stock when an order is cancelled or payment fails.
+    """
+
+    for item in order.items:
+
+        product = Product.query.get(item.product_id)
+
+        if not product:
+            continue
+
+        if product.track_inventory:
+            product.quantity += item.quantity
+
+        if product.sold >= item.quantity:
+            product.sold -= item.quantity
+
+
 # ======================================================
 # CREATE ORDER
 # ======================================================

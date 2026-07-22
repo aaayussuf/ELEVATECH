@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../context/AuthContext";
 
-export default function Orders() {
+export default function MyOrders() {
   const { token } = useContext(AuthContext);
 
   const [orders, setOrders] = useState([]);
@@ -119,11 +119,7 @@ export default function Orders() {
                 }}
               >
                 <img
-                  src={
-                    item.image?.startsWith("http")
-                      ? item.image
-                      : `${import.meta.env.VITE_API_BASE || ""}${item.image}`
-                  }
+                  src={`${import.meta.env.VITE_API_BASE || ""}${item.image}`}
                   alt={item.name}
                   width="90"
                   height="90"

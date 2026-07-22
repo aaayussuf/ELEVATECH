@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required
 from app.extensions import db
 from app.models.order import Order
 from app.models.payment import Payment
+from app.routes.orders import restore_order_inventory
 from app.services.mpesa_service import get_access_token, stk_push
 
 mpesa_bp = Blueprint(
@@ -125,6 +126,14 @@ def mpesa_callback():
         else:
 
             payment.status = "Failed"
+
+            order = db.session.get(Order, payment.order_id)
+
+            if order and order.status == "Pending":
+
+                restore_order_inventory(order)
+
+                order.status = "Cancelled"
 
         db.session.commit()
 

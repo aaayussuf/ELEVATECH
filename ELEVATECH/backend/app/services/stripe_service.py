@@ -13,6 +13,11 @@ def verify_webhook_event(payload: bytes, sig_header: str):
     """Verify Stripe webhook signature and return the decoded event."""
     # Stripe recommends using the webhook signing secret from config.
     webhook_secret = current_app.config["STRIPE_WEBHOOK_SECRET"]
+
+    print("=" * 60)
+    print("Webhook Secret:", repr(webhook_secret))
+    print("=" * 60)
+
     return stripe.Webhook.construct_event(
         payload=payload,
         sig_header=sig_header,

@@ -7,7 +7,13 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.extensions import db
 from app.models.order import Order
 from app.models.payment import Payment
-from app.services.stripe_service import create_checkout_session, verify_webhook_event
+
+from app.routes.orders import restore_order_inventory
+
+from app.services.stripe_service import (
+    create_checkout_session,
+    verify_webhook_event,
+)
 
 
 checkout_bp = Blueprint("checkout", __name__, url_prefix="/api/checkout")
@@ -77,77 +83,123 @@ def create_checkout():
 
 @checkout_bp.route("/webhook", methods=["POST"])
 def stripe_webhook():
-    """Stripe webhook handler. Verifies signature and updates order/payment."""
+    """Stripe webhook handler."""
 
     payload = request.get_data()
     sig_header = request.headers.get("Stripe-Signature")
+
     if not sig_header:
         return jsonify({"error": "Missing Stripe-Signature header"}), 400
 
     try:
         event = verify_webhook_event(payload, sig_header)
-    except stripe.error.SignatureVerificationError:
-        return jsonify({"error": "Invalid webhook signature"}), 400
+
+        # Strip v13+ renamed to_dict_recursive() -> _to_dict_recursive()
+        if hasattr(event, "_to_dict_recursive"):
+            event = event._to_dict_recursive()
+        else:
+            event = event.to_dict_recursive()
+
     except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+
+        print("=" * 60)
+        print("WEBHOOK EXCEPTION:", repr(e))
+        print("=" * 60)
+
         return jsonify({"error": str(e)}), 400
 
-    event_type = event.get("type")
-    data = event.get("data", {})
+    event_type = event["type"]
+    obj = event["data"]["object"]
 
-    if event_type in {"checkout.session.completed", "payment_intent.succeeded"}:
-        stripe_session_id = None
-        payment_intent_id = None
-        metadata = {}
+    # -----------------------------
+    # PAYMENT SUCCEEDED
+    # -----------------------------
+    if event_type in (
+        "checkout.session.completed",
+        "payment_intent.succeeded",
+    ):
 
-        if event_type == "checkout.session.completed":
-            session_obj = data.get("object", {})
-            stripe_session_id = session_obj.get("id")
-            payment_intent_id = session_obj.get("payment_intent")
-            metadata = session_obj.get("metadata") or {}
-            order_id = metadata.get("order_id")
-        else:
-            pi_obj = data.get("object", {})
-            payment_intent_id = pi_obj.get("id")
-            metadata = pi_obj.get("metadata") or {}
-            order_id = metadata.get("order_id")
+        metadata = obj.get("metadata", {})
+        order_id = metadata.get("order_id")
 
-        if not order_id:
-            return jsonify({"error": "Missing order_id in webhook metadata"}), 400
+        if order_id:
 
-        order = Order.query.filter_by(id=order_id).first()
-        if not order:
-            return jsonify({"error": "Order not found"}), 404
+            order = Order.query.get(int(order_id))
 
-        payment_q = Payment.query.filter_by(order_id=order.id, provider="stripe")
-        if stripe_session_id:
-            payment_q = payment_q.filter_by(stripe_session_id=stripe_session_id)
+            if order:
 
-        payment = payment_q.first()
+                payment = Payment.query.filter_by(
+                    order_id=order.id,
+                    provider="stripe",
+                ).first()
 
-        if not payment:
-            payment = Payment(
-                order_id=order.id,
-                amount=order.total,
-                provider="stripe",
-                status="Completed",
-                currency=current_app.config.get("STRIPE_CURRENCY", "KES"),
-                stripe_session_id=stripe_session_id,
-                stripe_payment_intent_id=payment_intent_id,
-                verified_at=datetime.utcnow(),
-                transaction_id=str(payment_intent_id) if payment_intent_id else None,
-            )
-            db.session.add(payment)
-        else:
-            payment.status = "Completed"
-            payment.stripe_payment_intent_id = payment_intent_id
-            if not payment.stripe_session_id and stripe_session_id:
-                payment.stripe_session_id = stripe_session_id
-            payment.verified_at = payment.verified_at or datetime.utcnow()
-            if payment_intent_id and not payment.transaction_id:
-                payment.transaction_id = str(payment_intent_id)
+                if payment:
 
-        order.status = "Paid"
-        db.session.commit()
+                    payment.status = "Completed"
+                    payment.verified_at = datetime.utcnow()
+
+                    if obj.get("payment_intent"):
+                        payment.transaction_id = obj["payment_intent"]
+
+                    if obj.get("id"):
+                        payment.stripe_session_id = obj["id"]
+
+                else:
+
+                    payment = Payment(
+                        order_id=order.id,
+                        amount=order.total,
+                        provider="stripe",
+                        status="Completed",
+                        currency=current_app.config.get(
+                            "STRIPE_CURRENCY",
+                            "KES",
+                        ),
+                        stripe_session_id=obj.get("id"),
+                        stripe_payment_intent_id=obj.get("payment_intent"),
+                        transaction_id=obj.get("payment_intent"),
+                        verified_at=datetime.utcnow(),
+                    )
+
+                    db.session.add(payment)
+
+                order.status = "Paid"
+
+                db.session.commit()
+
+    # -----------------------------
+    # PAYMENT FAILED / CANCELLED
+    # -----------------------------
+    elif event_type in (
+        "checkout.session.expired",
+        "payment_intent.payment_failed",
+    ):
+
+        metadata = obj.get("metadata", {})
+        order_id = metadata.get("order_id")
+
+        if order_id:
+
+            order = Order.query.get(int(order_id))
+
+            if order and order.status == "Pending":
+
+                restore_order_inventory(order)
+
+                order.status = "Cancelled"
+
+                payment = Payment.query.filter_by(
+                    order_id=order.id,
+                    provider="stripe",
+                ).first()
+
+                if payment:
+                    payment.status = "Failed"
+
+                db.session.commit()
 
     return jsonify({"received": True}), 200
 
