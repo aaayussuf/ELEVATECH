@@ -10,6 +10,7 @@ from app.models.payment import Payment
 
 from app.routes.orders import restore_order_inventory
 
+from app.services.email_service import send_order_confirmation
 from app.services.stripe_service import (
     create_checkout_session,
     retrieve_session,
@@ -190,6 +191,8 @@ def stripe_webhook():
                 order.status = "Paid"
 
                 db.session.commit()
+
+                send_order_confirmation(order.user, order)
 
     # -----------------------------
     # PAYMENT FAILED / CANCELLED

@@ -2,7 +2,7 @@ from flask import Flask, jsonify  # type: ignore
 from flask_cors import CORS  # type: ignore
 
 from config import Config
-from app.extensions import db, migrate, jwt
+from app.extensions import db, migrate, jwt, mail
 
 # Import models
 from app.models import User, Category, Product
@@ -17,7 +17,10 @@ from app.routes.payments import payments_bp
 from app.routes.checkout import checkout_bp
 from app.routes.orders import orders_bp
 from app.routes.mpesa import mpesa_bp
-
+from app.routes.admin_dashboard import admin_dashboard_bp
+from app.routes.admin_orders import admin_orders_bp
+from app.routes.upload import upload_bp
+from app.routes.categories import categories_bp
 
 
 def create_app():
@@ -34,6 +37,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    mail.init_app(app)
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(products_bp)
@@ -46,6 +50,10 @@ def create_app():
     app.register_blueprint(checkout_bp)
     app.register_blueprint(orders_bp)
     app.register_blueprint(mpesa_bp)
+    app.register_blueprint(admin_dashboard_bp)
+    app.register_blueprint(admin_orders_bp)
+    app.register_blueprint(upload_bp)
+    app.register_blueprint(categories_bp)
 
     @app.route("/api/products")
 
@@ -58,4 +66,3 @@ def create_app():
         return {"message": "Welcome to ELEVATECH API"}
 
     return app
-

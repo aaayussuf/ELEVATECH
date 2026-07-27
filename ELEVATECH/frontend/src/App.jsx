@@ -11,9 +11,12 @@ import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import About from "./pages/About";
+import AdminDashboard from "./pages/admin/Dashboard";
+import ProductList from "./pages/admin/ProductList";
+import CreateProduct from "./pages/admin/CreateProduct";
+import EditProduct from "./pages/admin/EditProduct";
 
-
-import Dashboard from "./pages/account/Dashboard";
+import AccountDashboard from "./pages/account/Dashboard";
 import AccountProfile from "./pages/account/Profile";
 import AccountOrders from "./pages/account/Orders";
 import OrderDetails from "./pages/account/OrderDetails";
@@ -26,7 +29,7 @@ function ProtectedAccountRoutes() {
     <ProtectedRoute>
       <Routes>
         <Route path="/account" element={<Navigate to="/account/dashboard" replace />} />
-        <Route path="/account/dashboard" element={<Dashboard />} />
+        <Route path="/account/dashboard" element={<AccountDashboard />} />
         <Route path="/account/profile" element={<AccountProfile />} />
         <Route path="/account/orders" element={<AccountOrders />} />
         <Route path="/account/orders/:id" element={<OrderDetails />} />
@@ -55,6 +58,10 @@ function App() {
       <Route path="/about" element={<About />} />
 
 
+      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/products" element={<ProtectedRoute><ProductList /></ProtectedRoute>} />
+      <Route path="/admin/products/create" element={<ProtectedRoute><CreateProduct /></ProtectedRoute>} />
+      <Route path="/admin/products/:id/edit" element={<ProtectedRoute><EditProduct /></ProtectedRoute>} />
       <Route path="/*" element={<ProtectedAccountRoutes />} />
     </Routes>
   );

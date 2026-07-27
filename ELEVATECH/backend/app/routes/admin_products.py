@@ -1,8 +1,10 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from sqlalchemy import or_
 
 from app.extensions import db
 from app.models.product import Product
+from app.utils.admin_required import admin_required
 
 admin_products_bp = Blueprint(
     "admin_products",
@@ -14,11 +16,18 @@ admin_products_bp = Blueprint(
 # LIST ALL PRODUCTS
 # ======================================================
 @admin_products_bp.route("", methods=["GET"])
+@jwt_required()
+@admin_required
 def list_products():
 
     search = request.args.get("search")
     featured = request.args.get("featured")
     active = request.args.get("active")
+    sort = request.args.get("sort", "newest")
+    category = request.args.get("category")
+
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
 
     query = Product.query
 
@@ -31,17 +40,76 @@ def list_products():
             )
         )
 
+    if category:
+        query = query.filter(
+            Product.category_id == category
+        )
+
     if featured == "true":
         query = query.filter(Product.featured.is_(True))
 
     if active == "true":
         query = query.filter(Product.active.is_(True))
 
-    products = query.order_by(Product.created_at.desc()).all()
+    if sort == "price":
+        query = query.order_by(Product.price.asc())
+    elif sort == "stock":
+        query = query.order_by(Product.quantity.asc())
+    elif sort == "name":
+        query = query.order_by(Product.name.asc())
+    else:
+        query = query.order_by(Product.created_at.desc())
+
+    pagination = query.paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False,
+    )
 
     return jsonify({
-        "count": len(products),
-        "products": [p.to_dict() for p in products]
+        "products": [
+            p.to_dict()
+            for p in pagination.items
+        ],
+        "page": pagination.page,
+        "pages": pagination.pages,
+        "total": pagination.total
+    })
+
+
+# ======================================================
+# PRODUCT STATS (for admin dashboard cards)
+# ======================================================
+@admin_products_bp.route("/stats", methods=["GET"])
+@jwt_required()
+@admin_required
+def product_stats():
+
+    total_products = Product.query.count()
+
+    featured_products = Product.query.filter(
+        Product.featured.is_(True)
+    ).count()
+
+    active_products = Product.query.filter(
+        Product.active.is_(True)
+    ).count()
+
+    low_stock = Product.query.filter(
+        Product.quantity > 0,
+        Product.quantity <= Product.low_stock
+    ).count()
+
+    out_of_stock = Product.query.filter(
+        Product.quantity == 0
+    ).count()
+
+    return jsonify({
+        "total_products": total_products,
+        "featured_products": featured_products,
+        "active_products": active_products,
+        "low_stock": low_stock,
+        "out_of_stock": out_of_stock
     })
 
 
@@ -49,6 +117,8 @@ def list_products():
 # GET SINGLE PRODUCT
 # ======================================================
 @admin_products_bp.route("/<int:id>", methods=["GET"])
+@jwt_required()
+@admin_required
 def get_product(id):
 
     product = Product.query.get_or_404(id)
@@ -60,9 +130,42 @@ def get_product(id):
 # CREATE PRODUCT
 # ======================================================
 @admin_products_bp.route("", methods=["POST"])
+@jwt_required()
+@admin_required
 def create_product():
 
     data = request.get_json()
+
+    # Validate required fields
+    required = [
+        "name",
+        "slug",
+        "price",
+        "category_id"
+    ]
+
+    for field in required:
+        if not data.get(field):
+            return jsonify({
+                "message": f"{field} is required"
+            }), 400
+
+    # Prevent duplicate slug
+    if Product.query.filter_by(
+        slug=data["slug"]
+    ).first():
+        return jsonify({
+            "message": "Slug already exists"
+        }), 400
+
+    # Prevent duplicate SKU
+    if data.get("sku"):
+        if Product.query.filter_by(
+            sku=data["sku"]
+        ).first():
+            return jsonify({
+                "message": "SKU already exists"
+            }), 400
 
     product = Product(
         name=data["name"],
@@ -105,6 +208,8 @@ def create_product():
 # UPDATE PRODUCT
 # ======================================================
 @admin_products_bp.route("/<int:id>", methods=["PUT"])
+@jwt_required()
+@admin_required
 def update_product(id):
 
     product = Product.query.get_or_404(id)
@@ -127,6 +232,8 @@ def update_product(id):
 # DELETE PRODUCT
 # ======================================================
 @admin_products_bp.route("/<int:id>", methods=["DELETE"])
+@jwt_required()
+@admin_required
 def delete_product(id):
 
     product = Product.query.get_or_404(id)
@@ -143,6 +250,8 @@ def delete_product(id):
 # UPDATE STOCK
 # ======================================================
 @admin_products_bp.route("/<int:id>/stock", methods=["PATCH"])
+@jwt_required()
+@admin_required
 def update_stock(id):
 
     product = Product.query.get_or_404(id)
@@ -163,6 +272,8 @@ def update_stock(id):
 # TOGGLE FEATURED
 # ======================================================
 @admin_products_bp.route("/<int:id>/featured", methods=["PATCH"])
+@jwt_required()
+@admin_required
 def toggle_featured(id):
 
     product = Product.query.get_or_404(id)
@@ -181,6 +292,8 @@ def toggle_featured(id):
 # TOGGLE ACTIVE STATUS
 # ======================================================
 @admin_products_bp.route("/<int:id>/status", methods=["PATCH"])
+@jwt_required()
+@admin_required
 def toggle_status(id):
 
     product = Product.query.get_or_404(id)
@@ -199,6 +312,8 @@ def toggle_status(id):
 # LOW STOCK PRODUCTS
 # ======================================================
 @admin_products_bp.route("/low-stock", methods=["GET"])
+@jwt_required()
+@admin_required
 def low_stock_products():
 
     products = Product.query.filter(
@@ -215,6 +330,8 @@ def low_stock_products():
 # FEATURED PRODUCTS
 # ======================================================
 @admin_products_bp.route("/featured", methods=["GET"])
+@jwt_required()
+@admin_required
 def featured_products():
 
     products = Product.query.filter(
