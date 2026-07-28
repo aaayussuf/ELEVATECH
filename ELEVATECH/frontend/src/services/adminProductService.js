@@ -1,50 +1,64 @@
 import api from "./api";
 
-async function listProducts(params = {}) {
-  const response = await api.get("/admin/products", { params });
-  return response.data;
-}
+const BASE = "/api/admin/products";
 
-async function getProduct(id) {
-  const response = await api.get(`/admin/products/${id}`);
-  return response.data;
-}
+const adminProductService = {
+  async listProducts(params = {}) {
+    const { data } = await api.get(BASE, { params });
+    return data;
+  },
 
-async function createProduct(data) {
-  const response = await api.post("/admin/products", data);
-  return response.data;
-}
+  async getProduct(id) {
+    const { data } = await api.get(`${BASE}/${id}`);
+    return data;
+  },
 
-async function updateProduct(id, data) {
-  const response = await api.put(`/admin/products/${id}`, data);
-  return response.data;
-}
+  async createProduct(product) {
+    const { data } = await api.post(BASE, product);
+    return data;
+  },
 
-async function deleteProduct(id) {
-  const response = await api.delete(`/admin/products/${id}`);
-  return response.data;
-}
+  async updateProduct(id, product) {
+    const { data } = await api.put(`${BASE}/${id}`, product);
+    return data;
+  },
 
-async function uploadImage(file) {
-  const formData = new FormData();
+  async deleteProduct(id) {
+    const { data } = await api.delete(`${BASE}/${id}`);
+    return data;
+  },
 
-  formData.append("file", file);
+  async updateStock(id, quantity) {
+    const { data } = await api.patch(`${BASE}/${id}/stock`, {
+      quantity,
+    });
 
-  const response = await api.post("/admin/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+    return data;
+  },
 
-  return response.data;
-}
+  async toggleFeatured(id) {
+    const { data } = await api.patch(
+      `${BASE}/${id}/featured`
+    );
 
-export default {
-  listProducts,
-  getProduct,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  uploadImage,
+    return data;
+  },
+
+  async toggleStatus(id) {
+    const { data } = await api.patch(
+      `${BASE}/${id}/status`
+    );
+
+    return data;
+  },
+
+  async getStats() {
+    const { data } = await api.get(
+      `${BASE}/stats`
+    );
+
+    return data;
+  }
 };
 
+export default adminProductService;

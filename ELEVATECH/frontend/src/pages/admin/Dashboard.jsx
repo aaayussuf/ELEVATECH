@@ -27,6 +27,12 @@ export default function Dashboard() {
           Dashboard
         </Link>
         <Link
+          to="/admin/customers"
+          className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm"
+        >
+          Customers
+        </Link>
+        <Link
           to="/admin/products"
           className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm"
         >

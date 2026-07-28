@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
+import TestUpload from "./pages/TestUpload";
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
@@ -12,6 +13,9 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import About from "./pages/About";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminOrders from "./pages/admin/Orders";
+import AdminCustomers from "./pages/admin/Customers";
+import CustomerDetails from "./pages/admin/CustomerDetails";
 import ProductList from "./pages/admin/ProductList";
 import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
@@ -47,6 +51,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/test-upload" element={<TestUpload />} />
       <Route path="/products" element={<Products />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/cart" element={<Cart />} />
@@ -59,6 +64,9 @@ function App() {
 
 
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/orders" element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
+      <Route path="/admin/customers" element={<ProtectedRoute><AdminCustomers /></ProtectedRoute>} />
+      <Route path="/admin/customers/:id" element={<ProtectedRoute><CustomerDetails /></ProtectedRoute>} />
       <Route path="/admin/products" element={<ProtectedRoute><ProductList /></ProtectedRoute>} />
       <Route path="/admin/products/create" element={<ProtectedRoute><CreateProduct /></ProtectedRoute>} />
       <Route path="/admin/products/:id/edit" element={<ProtectedRoute><EditProduct /></ProtectedRoute>} />

@@ -19,6 +19,7 @@ from app.routes.orders import orders_bp
 from app.routes.mpesa import mpesa_bp
 from app.routes.admin_dashboard import admin_dashboard_bp
 from app.routes.admin_orders import admin_orders_bp
+from app.routes.admin_customers import admin_customers_bp
 from app.routes.upload import upload_bp
 from app.routes.categories import categories_bp
 
@@ -52,6 +53,7 @@ def create_app():
     app.register_blueprint(mpesa_bp)
     app.register_blueprint(admin_dashboard_bp)
     app.register_blueprint(admin_orders_bp)
+    app.register_blueprint(admin_customers_bp)
     app.register_blueprint(upload_bp)
     app.register_blueprint(categories_bp)
 

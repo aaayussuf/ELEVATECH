@@ -2,6 +2,30 @@ from flask_mail import Message
 from app.extensions import mail
 
 
+def send_order_status_email(user, order):
+
+    msg = Message(
+        subject=f"ELEVATECH Order #{order.id}",
+        recipients=[user.email]
+    )
+
+    msg.body = f"""
+Hello {user.first_name},
+
+Your order status has changed.
+
+Order #{order.id}
+
+New Status
+
+{order.status}
+
+Thank you for shopping with ELEVATECH.
+"""
+
+    mail.send(msg)
+
+
 def send_order_confirmation(user, order):
     print("===== SENDING EMAIL =====")
     print("Recipient:", user.email)
