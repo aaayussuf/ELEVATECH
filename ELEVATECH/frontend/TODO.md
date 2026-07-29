@@ -1,27 +1,18 @@
-# Admin Product Restructuring — Task List
+# ProductForm UI Refactor - TODO
 
-- [x] Gather information & understand current structure
-- [x] Plan approved
-- [x] Step 1: Create `src/components/admin/ProductForm.jsx` — reusable form component
-- [x] Step 2: Create `src/pages/admin/CreateProduct.jsx` — create wrapper
-- [x] Step 3: Create `src/pages/admin/EditProduct.jsx` — edit wrapper
-- [x] Step 4: Rename `AdminDashboard.jsx` → `Dashboard.jsx` and update content
-- [x] Step 5: Update `src/App.jsx` — routes & imports
-- [x] Step 6: Delete old `src/pages/admin/AddProduct.jsx` & `AdminDashboard.jsx`
-- [x] Step 7: Verify everything works
+## Steps
 
-## Final Structure
-
-```
-src/
-├── components/
-│   └── admin/
-│       └── ProductForm.jsx      ← reusable form (Name, Price, Description, Category, Quantity, Brand, Upload Image, Save)
-├── pages/
-│   └── admin/
-│       ├── ProductList.jsx      ← search, table, pagination, delete, edit
-│       ├── CreateProduct.jsx    ← <ProductForm mode="create" />
-│       ├── EditProduct.jsx      ← <ProductForm mode="edit" />
-│       └── Dashboard.jsx        ← renamed from AdminDashboard
-```
+- [x] Step 1: Analyze current ProductForm.jsx and gather context
+- [x] Step 2: Create plan and get approval
+- [x] Step 3: Replace return JSX with new 3-column grid layout (ProductForm.jsx)
+  - [x] 3.1 Add outer wrapper with `max-w-7xl mx-auto p-6` and `<h1>` title
+  - [x] 3.2 Replace form layout with `grid grid-cols-1 lg:grid-cols-3 gap-6`
+  - [x] 3.3 Left column: Basic Information card (name, slug, brand, SKU, barcode)
+  - [x] 3.4 Left column: Pricing card (price, discount_price, cost_price)
+  - [x] 3.5 Left column: Inventory card (quantity, low_stock, track_inventory checkbox)
+  - [x] 3.6 Left column: Description card (textarea)
+  - [x] 3.7 Right column: Product Image card (ImageUploader)
+  - [x] 3.8 Right column: Category card (select dropdown)
+  - [x] 3.9 Right column: Status card (featured, active checkboxes + action buttons)
+- [x] Step 4: Verify file integrity
 

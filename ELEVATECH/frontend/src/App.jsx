@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminLayout from "./components/admin/layout/AdminLayout";
 
 import Home from "./pages/Home";
 import TestUpload from "./pages/TestUpload";
@@ -19,6 +20,7 @@ import CustomerDetails from "./pages/admin/CustomerDetails";
 import ProductList from "./pages/admin/ProductList";
 import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
+import AdminOrderDetails from "./pages/admin/orders/OrderDetails";
 
 import AccountDashboard from "./pages/account/Dashboard";
 import AccountProfile from "./pages/account/Profile";
@@ -63,13 +65,16 @@ function App() {
       <Route path="/about" element={<About />} />
 
 
-      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/orders" element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
-      <Route path="/admin/customers" element={<ProtectedRoute><AdminCustomers /></ProtectedRoute>} />
-      <Route path="/admin/customers/:id" element={<ProtectedRoute><CustomerDetails /></ProtectedRoute>} />
-      <Route path="/admin/products" element={<ProtectedRoute><ProductList /></ProtectedRoute>} />
-      <Route path="/admin/products/create" element={<ProtectedRoute><CreateProduct /></ProtectedRoute>} />
-      <Route path="/admin/products/:id/edit" element={<ProtectedRoute><EditProduct /></ProtectedRoute>} />
+      <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/orders" element={<AdminOrders />} />
+        <Route path="/admin/customers" element={<AdminCustomers />} />
+        <Route path="/admin/customers/:id" element={<CustomerDetails />} />
+        <Route path="/admin/products" element={<ProductList />} />
+        <Route path="/admin/products/create" element={<CreateProduct />} />
+        <Route path="/admin/products/:id/edit" element={<EditProduct />} />
+        <Route path="/admin/orders/:id" element={<AdminOrderDetails />} />
+      </Route>
       <Route path="/*" element={<ProtectedAccountRoutes />} />
     </Routes>
   );

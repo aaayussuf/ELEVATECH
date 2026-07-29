@@ -37,6 +37,17 @@ class Order(db.Model):
         cascade="all, delete-orphan"
     )
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "total": float(self.total),
+            "status": self.status,
+            "payment_method": self.payment_method,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "items": [item.to_dict() for item in self.items]
+        }
+
 
 class OrderItem(db.Model):
     __tablename__ = "order_items"
@@ -64,3 +75,11 @@ class OrderItem(db.Model):
         db.Float,
         nullable=False
     )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "product_id": self.product_id,
+            "quantity": self.quantity,
+            "price": float(self.price),
+        }

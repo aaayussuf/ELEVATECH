@@ -1,308 +1,609 @@
+// ═══════════════════════════════════════════════════════
+// Part 1 — Imports
+// ═══════════════════════════════════════════════════════
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import adminProductService from "../../services/adminProductService";
-import categoryService from "../../services/categoryService";
+import uploadService from "../../services/uploadService";
+import ImageUploader from "./ImageUploader";
 
-export default function ProductForm({ initialData = {}, onSubmit }) {
-  const navigate = useNavigate();
+// ═══════════════════════════════════════════════════════
+// Part 2 — Component
+// ═══════════════════════════════════════════════════════
+export default function ProductForm({
+    mode = "create",
+    productId = null
+}) {
 
-  const [form, setForm] = useState({
-    name: initialData.name || "",
-    slug: initialData.slug || "",
-    description: initialData.description || "",
-    price: initialData.price || "",
-    quantity: initialData.quantity || 0,
-    brand: initialData.brand || "",
-    category_id: initialData.category_id || "",
-    image: initialData.image || "",
-    image2: initialData.image2 || "",
-    image3: initialData.image3 || "",
-    image4: initialData.image4 || "",
-    featured: initialData.featured || false,
-    active: initialData.active ?? true,
-  });
+    const navigate = useNavigate();
 
-  const [categories, setCategories] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadingField, setUploadingField] = useState(null);
-  const [saving, setSaving] = useState(false);
+    // ═══════════════════════════════════════════════════
+    // Part 3 — State
+    // ═══════════════════════════════════════════════════
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
 
-  // List of common brands for the dropdown
-  const BRAND_OPTIONS = [
-    "HP",
-    "Lenovo",
-    "Dell",
-    "Apple",
-    "Logitech",
-    "Samsung",
-  ];
+    const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
+    const [form, setForm] = useState({
 
-  async function loadCategories() {
-    const data = await categoryService.getCategories();
-    setCategories(data);
-  }
+        name: "",
+        slug: "",
+        brand: "",
+        category_id: "",
 
-  function handleChange(e) {
-    const { name, value, type, checked } = e.target;
+        description: "",
+        short_description: "",
 
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  }
+        sku: "",
+        barcode: "",
 
-  function handleImageUpload(fieldName) {
-    return async function (e) {
-      const file = e.target.files[0];
+        price: "",
+        discount_price: "",
+        cost_price: "",
 
-      if (!file) return;
+        quantity: 0,
+        low_stock: 5,
 
-      try {
-        setUploading(true);
-        setUploadingField(fieldName);
+        track_inventory: true,
 
-        const result = await adminProductService.uploadImage(file);
+        image: "",
 
-        setForm((prev) => ({
-          ...prev,
-          [fieldName]: result.url,
-        }));
-      } catch (err) {
-        alert("Image upload failed.");
-      } finally {
-        setUploading(false);
-        setUploadingField(null);
-      }
-    };
-  }
+        featured: false,
+        active: true,
 
-  // Format price as KES
-  function formatPrice(value) {
-    const num = parseFloat(value);
-    if (isNaN(num)) return "";
-    return `KES ${num.toLocaleString("en-KE")}`;
-  }
+        weight: "",
+        color: "",
+        warranty: "",
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+        meta_title: "",
+        meta_description: ""
 
-    try {
-      setSaving(true);
+    });
 
-      await onSubmit(form);
+    // ═══════════════════════════════════════════════════
+    // Part 4 — Auto Slug
+    // ═══════════════════════════════════════════════════
+    function makeSlug(text) {
 
-      navigate("/admin/products");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to save product.");
-    } finally {
-      setSaving(false);
+        return text
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/[^\w-]+/g, "");
+
     }
-  }
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 bg-white p-6 rounded shadow"
-    >
-      <h2 className="text-2xl font-bold">
-        Product Information
-      </h2>
+    // ═══════════════════════════════════════════════════
+    // Part 5 — Input Handler
+    // ═══════════════════════════════════════════════════
+    function handleChange(e) {
 
-      <input
-        className="w-full border rounded p-2"
-        placeholder="Product Name"
-        name="name"
-        value={form.name}
-        onChange={handleChange}
-        required
-      />
+        const { name, value, type, checked } = e.target;
 
-      <input
-        className="w-full border rounded p-2"
-        placeholder="Slug"
-        name="slug"
-        value={form.slug}
-        onChange={handleChange}
-        required
-      />
+        setForm(prev => ({
 
-      <textarea
-        className="w-full border rounded p-2"
-        rows={5}
-        placeholder="Description"
-        name="description"
-        value={form.description}
-        onChange={handleChange}
-      />
+            ...prev,
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <input
-            type="number"
-            className="w-full border rounded p-2"
-            placeholder="Price"
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            required
-          />
-          {form.price && (
-            <p className="text-green-600 text-sm mt-1 font-medium">
-              {formatPrice(form.price)}
-            </p>
-          )}
-        </div>
+            [name]:
+                type === "checkbox"
+                    ? checked
+                    : value
 
-        <input
-          type="number"
-          className="border rounded p-2"
-          placeholder="Quantity"
-          name="quantity"
-          value={form.quantity}
-          onChange={handleChange}
-        />
-      </div>
+        }));
 
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Brand
-        </label>
-        <select
-          name="brand"
-          value={
-            BRAND_OPTIONS.includes(form.brand)
-              ? form.brand
-              : "Custom"
-          }
-          onChange={(e) => {
-            const val = e.target.value;
-            setForm((prev) => ({
-              ...prev,
-              brand: val === "Custom" ? "" : val,
+    }
+
+    // ═══════════════════════════════════════════════════
+    // Part 6 — Name Handler
+    //
+    //   When typing
+    //     Gaming Laptop HP Victus
+    //   it automatically becomes
+    //     gaming-laptop-hp-victus
+    // ═══════════════════════════════════════════════════
+    function handleName(e) {
+
+        const value = e.target.value;
+
+        setForm(prev => ({
+
+            ...prev,
+
+            name: value,
+
+            slug: makeSlug(value)
+
+        }));
+
+    }
+
+    // ═══════════════════════════════════════════════════
+    // Part 7 — Load Categories
+    // ═══════════════════════════════════════════════════
+    useEffect(() => {
+
+        async function loadCategories() {
+
+            try {
+
+                const res = await fetch("http://127.0.0.1:5000/api/categories");
+
+                const data = await res.json();
+
+                setCategories(data);
+
+            }
+
+            catch (err) {
+
+                console.error(err);
+
+            }
+
+        }
+
+        loadCategories();
+
+    }, []);
+
+    // Load product for edit mode
+    useEffect(() => {
+
+        if (mode !== "edit" || !productId) return;
+
+        async function loadProduct() {
+
+            try {
+
+                setLoading(true);
+
+                const data = await adminProductService.getProduct(productId);
+
+                setForm(prev => ({
+
+                    ...prev,
+
+                    ...data,
+
+                    // Ensure defaults for missing fields
+                    image: data.image || "",
+                    short_description: data.short_description || "",
+                    sku: data.sku || "",
+                    barcode: data.barcode || "",
+                    discount_price: data.discount_price || "",
+                    cost_price: data.cost_price || "",
+                    low_stock: data.low_stock ?? 5,
+                    track_inventory: data.track_inventory ?? true,
+                    weight: data.weight || "",
+                    color: data.color || "",
+                    warranty: data.warranty || "",
+                    meta_title: data.meta_title || "",
+                    meta_description: data.meta_description || ""
+
+                }));
+
+            }
+
+            catch (err) {
+
+                console.error(err);
+
+                setError("Failed to load product.");
+
+            }
+
+            finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+        loadProduct();
+
+    }, [mode, productId]);
+
+    // ═══════════════════════════════════════════════════
+    // Part 8 — Upload Image
+    //
+    //   Connects directly to your working Cloudinary
+    //   uploader.
+    // ═══════════════════════════════════════════════════
+    async function handleImage(file) {
+
+        try {
+
+            const url = await uploadService.uploadImage(file);
+
+            setForm(prev => ({
+
+                ...prev,
+
+                image: url
+
             }));
-          }}
-          className="w-full border rounded p-2"
-        >
-          <option value="">Select Brand</option>
-          {BRAND_OPTIONS.map((brand) => (
-            <option key={brand} value={brand}>
-              {brand}
-            </option>
-          ))}
-          <option value="Custom">Custom</option>
-        </select>
 
-        {!BRAND_OPTIONS.includes(form.brand) && form.brand !== "" && (
-          <input
-            className="w-full border rounded p-2 mt-2"
-            placeholder="Type custom brand"
-            name="brand"
-            value={form.brand}
-            onChange={handleChange}
-          />
-        )}
-      </div>
+        }
 
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Category
-        </label>
-        <select
-          name="category_id"
-          value={form.category_id}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-          required
-        >
-          <option value="">
-            Select Category
-          </option>
+        catch (err) {
 
-          {categories.map(category => (
-            <option
-              key={category.id}
-              value={category.id}
+            console.error(err);
+
+            alert("Image upload failed");
+
+        }
+
+    }
+
+    // ═══════════════════════════════════════════════════
+    // Submit Handler
+    // ═══════════════════════════════════════════════════
+    async function handleSubmit(e) {
+
+        e.preventDefault();
+
+        try {
+
+            setSaving(true);
+
+            // Convert numeric fields
+            const payload = {
+
+                ...form,
+
+                price: parseFloat(form.price) || 0,
+                discount_price: form.discount_price
+                    ? parseFloat(form.discount_price)
+                    : null,
+                cost_price: form.cost_price
+                    ? parseFloat(form.cost_price)
+                    : null,
+                quantity: parseInt(form.quantity, 10) || 0,
+                low_stock: parseInt(form.low_stock, 10) || 5,
+                category_id: form.category_id
+                    ? parseInt(form.category_id, 10)
+                    : null,
+                weight: form.weight
+                    ? parseFloat(form.weight)
+                    : null
+
+            };
+
+            if (mode === "edit") {
+
+                await adminProductService.updateProduct(productId, payload);
+
+            }
+
+            else {
+
+                await adminProductService.createProduct(payload);
+
+            }
+
+            navigate("/admin/products");
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            setError("Failed to save product.");
+
+        }
+
+        finally {
+
+            setSaving(false);
+
+        }
+
+    }
+
+    // ═══════════════════════════════════════════════════
+    // Loading state
+    // ═══════════════════════════════════════════════════
+    if (loading) {
+
+        return (
+
+            <div className="flex items-center justify-center p-12">
+
+                <p className="text-gray-500 text-lg">
+                    Loading product…
+                </p>
+
+            </div>
+
+        );
+
+    }
+
+    // ═══════════════════════════════════════════════════
+    // Render
+    // ═══════════════════════════════════════════════════
+    return (
+        <div className="max-w-7xl mx-auto p-6">
+            <h1 className="text-3xl font-bold mb-6">
+                {mode === "create" ? "Add Product" : "Edit Product"}
+            </h1>
+
+            {error && (
+                <div className="bg-red-100 text-red-700 p-3 rounded mb-6">
+                    {error}
+                </div>
+            )}
+
+            <form
+                onSubmit={handleSubmit}
+                className="grid grid-cols-1 lg:grid-cols-3 gap-6"
             >
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </div>
 
-      <div>
-        <label className="block font-medium mb-3">
-          Product Images
-        </label>
+                {/* LEFT COLUMN */}
+                <div className="lg:col-span-2 space-y-6">
 
-        {[
-          { label: "Main Image", field: "image" },
-          { label: "Second Image", field: "image2" },
-          { label: "Third Image", field: "image3" },
-          { label: "Fourth Image", field: "image4" },
-        ].map(({ label, field }) => (
-          <div key={field} className="mb-4">
-            <label className="block text-sm font-medium mb-1">
-              {label}
-            </label>
+                    {/* Basic Information */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Basic Information
+                        </h2>
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload(field)}
-            />
+                        <div className="space-y-4">
 
-            {uploading && uploadingField === field && (
-              <p className="text-blue-600 mt-2">
-                Uploading...
-              </p>
-            )}
+                            <input
+                                name="name"
+                                value={form.name}
+                                onChange={handleName}
+                                placeholder="Product Name"
+                                className="w-full border rounded-lg p-3"
+                                required
+                            />
 
-            {form[field] && (
-              <img
-                src={form[field]}
-                alt={label}
-                className="mt-2 w-48 rounded border"
-              />
-            )}
-          </div>
-        ))}
-      </div>
+                            <input
+                                name="slug"
+                                value={form.slug}
+                                onChange={handleChange}
+                                placeholder="Slug"
+                                className="w-full border rounded-lg p-3"
+                            />
 
-      <div className="flex gap-8">
-        <label>
-          <input
-            type="checkbox"
-            name="featured"
-            checked={form.featured}
-            onChange={handleChange}
-          />
+                            <input
+                                name="brand"
+                                value={form.brand}
+                                onChange={handleChange}
+                                placeholder="Brand"
+                                className="w-full border rounded-lg p-3"
+                            />
 
-          <span className="ml-2">Featured</span>
-        </label>
+                            <input
+                                name="sku"
+                                value={form.sku}
+                                onChange={handleChange}
+                                placeholder="SKU"
+                                className="w-full border rounded-lg p-3"
+                            />
 
-        <label>
-          <input
-            type="checkbox"
-            name="active"
-            checked={form.active}
-            onChange={handleChange}
-          />
+                            <input
+                                name="barcode"
+                                value={form.barcode}
+                                onChange={handleChange}
+                                placeholder="Barcode"
+                                className="w-full border rounded-lg p-3"
+                            />
 
-          <span className="ml-2">Active</span>
-        </label>
-      </div>
+                        </div>
+                    </div>
 
-      <button
-        disabled={saving}
-        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-      >
-        {saving ? "Saving..." : "Save Product"}
-      </button>
-    </form>
-  );
+                    {/* Pricing */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Pricing
+                        </h2>
+
+                        <div className="grid grid-cols-3 gap-4">
+
+                            <input
+                                type="number"
+                                name="price"
+                                value={form.price}
+                                onChange={handleChange}
+                                placeholder="Price"
+                                className="border rounded-lg p-3"
+                            />
+
+                            <input
+                                type="number"
+                                name="discount_price"
+                                value={form.discount_price}
+                                onChange={handleChange}
+                                placeholder="Discount Price"
+                                className="border rounded-lg p-3"
+                            />
+
+                            <input
+                                type="number"
+                                name="cost_price"
+                                value={form.cost_price}
+                                onChange={handleChange}
+                                placeholder="Cost Price"
+                                className="border rounded-lg p-3"
+                            />
+
+                        </div>
+                    </div>
+
+                    {/* Inventory */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Inventory
+                        </h2>
+
+                        <div className="grid grid-cols-2 gap-4">
+
+                            <input
+                                type="number"
+                                name="quantity"
+                                value={form.quantity}
+                                onChange={handleChange}
+                                placeholder="Quantity"
+                                className="border rounded-lg p-3"
+                            />
+
+                            <input
+                                type="number"
+                                name="low_stock"
+                                value={form.low_stock}
+                                onChange={handleChange}
+                                placeholder="Low Stock"
+                                className="border rounded-lg p-3"
+                            />
+
+                        </div>
+
+                        <label className="flex items-center gap-3 mt-4">
+                            <input
+                                type="checkbox"
+                                name="track_inventory"
+                                checked={form.track_inventory}
+                                onChange={handleChange}
+                            />
+                            Track Inventory
+                        </label>
+                    </div>
+
+                    {/* Description */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Description
+                        </h2>
+
+                        <textarea
+                            rows={8}
+                            name="description"
+                            value={form.description}
+                            onChange={handleChange}
+                            className="w-full border rounded-lg p-3"
+                            placeholder="Product Description"
+                        />
+                    </div>
+
+                </div>
+
+                {/* RIGHT COLUMN */}
+                <div className="space-y-6">
+
+                    {/* Product Image */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Product Image
+                        </h2>
+
+                        <ImageUploader
+                            value={form.image}
+                            onChange={(url) =>
+                                setForm(prev => ({ ...prev, image: url }))
+                            }
+                            label="Main Product Image"
+                        />
+                    </div>
+
+                    {/* Category */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Category
+                        </h2>
+
+                        <select
+                            name="category_id"
+                            value={form.category_id}
+                            onChange={handleChange}
+                            className="w-full border rounded-lg p-3"
+                            required
+                        >
+                            <option value="">
+                                Select Category
+                            </option>
+
+                            {categories.map(category => (
+
+                                <option
+                                    key={category.id}
+                                    value={category.id}
+                                >
+                                    {category.name}
+                                </option>
+
+                            ))}
+
+                        </select>
+                    </div>
+
+                    {/* Status */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Status
+                        </h2>
+
+                        <div className="space-y-4">
+
+                            <label className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    name="featured"
+                                    checked={form.featured}
+                                    onChange={handleChange}
+                                />
+                                Featured
+                            </label>
+
+                            <label className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    name="active"
+                                    checked={form.active}
+                                    onChange={handleChange}
+                                />
+                                Active
+                            </label>
+
+                        </div>
+
+                        <div className="flex gap-4 pt-6">
+
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                {saving
+                                    ? "Saving..."
+                                    : mode === "edit"
+                                        ? "Update Product"
+                                        : "Save Product"
+                                }
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => navigate("/admin/products")}
+                                className="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300"
+                            >
+                                Cancel
+                            </button>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+    );
+
 }
+

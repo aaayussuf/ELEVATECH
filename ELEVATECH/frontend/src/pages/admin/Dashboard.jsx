@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
+import StatCard from "../../components/admin/cards/StatCard";
+import DashboardCard from "../../components/admin/cards/DashboardCard";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -46,35 +48,41 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white shadow rounded p-4">
-          <p className="text-gray-500">Revenue</p>
-          <h2 className="text-2xl font-bold">KSh {stats.revenue}</h2>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title="Revenue"
+          value={`KSh ${stats.revenue.toLocaleString()}`}
+          subtitle="Total sales"
+          icon="💰"
+          color="green"
+        />
 
-        <div className="bg-white shadow rounded p-4">
-          <p className="text-gray-500">Orders</p>
-          <h2 className="text-2xl font-bold">{stats.total_orders}</h2>
-        </div>
+        <StatCard
+          title="Orders"
+          value={stats.total_orders}
+          subtitle="Total orders"
+          icon="📦"
+          color="blue"
+        />
 
-        <div className="bg-white shadow rounded p-4">
-          <p className="text-gray-500">Customers</p>
-          <h2 className="text-2xl font-bold">{stats.customers}</h2>
-        </div>
+        <StatCard
+          title="Customers"
+          value={stats.customers}
+          subtitle="Registered users"
+          icon="👥"
+          color="purple"
+        />
 
-        <Link
-          to="/admin/products"
-          className="bg-white shadow rounded p-4 hover:shadow-lg transition block"
-        >
-          <p className="text-gray-500">Products</p>
-          <h2 className="text-2xl font-bold">{stats.products}</h2>
-          <p className="text-blue-600 text-sm mt-1">Manage →</p>
-        </Link>
+        <StatCard
+          title="Products"
+          value={stats.products}
+          subtitle="In catalog"
+          icon="🛍️"
+          color="yellow"
+        />
       </div>
 
-      <div className="bg-white shadow rounded p-4">
-        <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
-
+      <DashboardCard title="Recent Orders">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b">
@@ -93,7 +101,7 @@ export default function Dashboard() {
             ))}
           </tbody>
         </table>
-      </div>
+      </DashboardCard>
     </div>
   );
 }

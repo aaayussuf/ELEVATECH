@@ -1,63 +1,78 @@
 from flask import Blueprint, jsonify, request
+
 from flask_jwt_extended import jwt_required
 
-from app.extensions import db
-from app.models.order import Order
 from app.utils.admin_required import admin_required
-from app.services.email_service import send_order_status_email
+from app.services.admin_order_service import (
+    get_all_orders,
+    get_order,
+    update_order_status,
+)
 
 admin_orders_bp = Blueprint(
     "admin_orders",
     __name__,
-    url_prefix="/api/admin/orders"
+    url_prefix="/api/admin/orders",
 )
-
-
-@admin_orders_bp.route("/<int:id>/status", methods=["PATCH"])
-@jwt_required()
-@admin_required
-def update_order_status(id):
-
-    data = request.get_json()
-
-    order = Order.query.get_or_404(id)
-
-    order.status = data["status"]
-
-    send_order_status_email(
-        order.user,
-        order
-    )
-
-    db.session.commit()
-
-    return jsonify({"message": "Status updated"})
 
 
 @admin_orders_bp.route("", methods=["GET"])
 @jwt_required()
 @admin_required
-def get_orders():
+def orders():
 
-    orders = (
-        Order.query
-        .order_by(Order.created_at.desc())
-        .all()
-    )
+    orders = get_all_orders()
 
-    results = []
+    return jsonify([
+        o.to_dict()
+        for o in orders
+    ])
 
-    for order in orders:
 
-        results.append({
-            "id": order.id,
-            "customer": f"{order.user.first_name} {order.user.last_name}",
-            "email": order.user.email,
-            "status": order.status,
-            "payment": order.payment_method,
-            "total": float(order.total),
-            "created_at": order.created_at.isoformat()
-        })
+@admin_orders_bp.route("/<int:order_id>", methods=["GET"])
+@jwt_required()
+@admin_required
+def order(order_id):
 
-    return jsonify(results)
+    order = get_order(order_id)
+
+    if not order:
+        return jsonify({
+            "message": "Order not found"
+        }), 404
+
+    return jsonify(order.to_dict())
+
+
+@admin_orders_bp.route("/<int:order_id>/status", methods=["PATCH"])
+@jwt_required()
+@admin_required
+def change_status(order_id):
+
+    data = request.get_json()
+
+    status = data.get("status")
+
+    allowed = [
+        "Pending",
+        "Processing",
+        "Paid",
+        "Shipped",
+        "Delivered",
+        "Cancelled",
+    ]
+
+    if status not in allowed:
+        return jsonify({
+            "message": "Invalid status"
+        }), 400
+
+    order = update_order_status(order_id, status)
+
+    if not order:
+        return jsonify({
+            "message": "Order not found"
+        }), 404
+
+    return jsonify(order.to_dict())
 

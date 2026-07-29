@@ -1,33 +1,29 @@
 import api from "./api";
 
-async function listOrders() {
+const BASE = "/api/admin/orders";
 
-    const response =
-        await api.get("/admin/orders");
+const adminOrderService = {
 
-    return response.data;
+  async getOrders() {
+    const { data } = await api.get(BASE);
+    return data;
+  },
 
-}
+  async getOrder(id) {
+    const { data } = await api.get(`${BASE}/${id}`);
+    return data;
+  },
 
-async function updateStatus(id, status) {
+  async updateStatus(id, status) {
+    const { data } = await api.patch(
+      `${BASE}/${id}/status`,
+      { status }
+    );
 
-    const response =
-        await api.patch(
-            `/admin/orders/${id}/status`,
-            {
-                status
-            }
-        );
-
-    return response.data;
-
-}
-
-export default {
-
-    listOrders,
-
-    updateStatus,
+    return data;
+  }
 
 };
+
+export default adminOrderService;
 
