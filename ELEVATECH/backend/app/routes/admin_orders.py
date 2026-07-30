@@ -41,7 +41,38 @@ def order(order_id):
             "message": "Order not found"
         }), 404
 
-    return jsonify(order.to_dict())
+    return jsonify({
+
+        "id": order.id,
+
+        "status": order.status,
+
+        "payment_method": order.payment_method,
+
+        "total": order.total,
+
+        "created_at": order.created_at.isoformat() if order.created_at else None,
+
+        "customer": {
+            "id": order.user.id,
+            "name": order.user.name,
+            "email": order.user.email,
+            "phone": order.user.phone
+        },
+
+        "items": [
+            {
+                "id": item.id,
+                "product_id": item.product_id,
+                "product_name": item.product.name,
+                "price": item.price,
+                "quantity": item.quantity,
+                "subtotal": item.price * item.quantity
+            }
+            for item in order.items
+        ]
+
+    })
 
 
 @admin_orders_bp.route("/<int:order_id>/status", methods=["PATCH"])

@@ -22,6 +22,7 @@ from app.routes.admin_orders import admin_orders_bp
 from app.routes.admin_customers import admin_customers_bp
 from app.routes.upload import upload_bp
 from app.routes.categories import categories_bp
+from app.routes.admin_categories import admin_categories_bp
 
 
 def create_app():
@@ -56,6 +57,7 @@ def create_app():
     app.register_blueprint(admin_customers_bp)
     app.register_blueprint(upload_bp)
     app.register_blueprint(categories_bp)
+    app.register_blueprint(admin_categories_bp)
 
     @app.route("/api/products")
 

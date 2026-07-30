@@ -41,6 +41,10 @@ class User(BaseModel):
         lazy=True
     )
 
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}"
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -59,3 +63,4 @@ class User(BaseModel):
             "phone": self.phone,
             "role": self.role,
         }
+

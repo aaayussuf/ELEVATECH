@@ -1,19 +1,31 @@
 from functools import wraps
 
 from flask import jsonify
-from flask_jwt_extended import get_jwt
+
+from flask_jwt_extended import (
+    verify_jwt_in_request,
+    get_jwt,
+)
 
 
-def admin_required(f):
-    """Decorator that checks the JWT claims for an admin role."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
+def admin_required(fn):
+    """
+    Require a valid JWT AND an admin role.
+    """
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+
+        # Verify JWT first
+        verify_jwt_in_request()
+
         claims = get_jwt()
 
         if claims.get("role") != "admin":
-            return jsonify({"message": "Admin access required"}), 403
+            return jsonify({
+                "message": "Admin access required"
+            }), 403
 
-        return f(*args, **kwargs)
+        return fn(*args, **kwargs)
 
-    return decorated_function
-
+    return wrapper

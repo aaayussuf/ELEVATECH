@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import adminProductService from "../../services/adminProductService";
+import DataTable from "../../components/admin/tables/DataTable";
 
 export default function ProductList() {
   const navigate = useNavigate();
@@ -50,7 +51,33 @@ export default function ProductList() {
     }
   }
 
-  if (loading) return <p className="p-6 text-lg">Loading products...</p>;
+  const columns = [
+    {
+      key: "image",
+      title: "Image",
+      render: (product) => (
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-12 h-12 rounded object-cover"
+        />
+      ),
+    },
+    {
+      key: "name",
+      title: "Product",
+    },
+    {
+      key: "price",
+      title: "Price",
+      render: (p) =>
+        `KSh ${Number(p.price).toLocaleString()}`,
+    },
+    {
+      key: "quantity",
+      title: "Stock",
+    },
+  ];
 
   return (
     <div className="p-6">
@@ -83,115 +110,53 @@ export default function ProductList() {
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
-      {products.length === 0 ? (
-        <p>No products found.</p>
-      ) : (
-        <>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse bg-white shadow rounded">
-              <thead>
-                <tr className="border-b bg-gray-50">
-                  <th className="text-left py-3 px-4">Image</th>
-                  <th className="text-left py-3 px-4">Name</th>
-                  <th className="text-left py-3 px-4">Price</th>
-                  <th className="text-left py-3 px-4">Stock</th>
-                  <th className="text-left py-3 px-4">Category</th>
-                  <th className="text-left py-3 px-4">Status</th>
-                  <th className="text-left py-3 px-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((product) => (
-                  <tr key={product.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4">
-                      {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
-                          No img
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 font-medium">{product.name}</td>
-                    <td className="py-3 px-4">
-                      KSh {product.price?.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={
-                          product.quantity === 0
-                            ? "text-red-600 font-semibold"
-                            : product.quantity <= product.low_stock
-                            ? "text-yellow-600 font-semibold"
-                            : ""
-                        }
-                      >
-                        {product.quantity}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">{product.category || "—"}</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-semibold ${
-                          product.active
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {product.active ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            navigate(`/admin/products/${product.id}/edit`)
-                          }
-                          className="text-blue-600 hover:underline text-sm"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="text-red-600 hover:underline text-sm"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <DataTable
+        columns={columns}
+        data={products}
+        loading={loading}
+        emptyMessage="No products found."
+        actions={(product) => (
+          <div className="flex gap-2">
+            <button
+              onClick={() =>
+                navigate(`/admin/products/${product.id}/edit`)
+              }
+              className="text-blue-600 hover:underline text-sm"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => handleDelete(product.id)}
+              className="text-red-600 hover:underline text-sm"
+            >
+              Delete
+            </button>
           </div>
+        )}
+      />
 
-          {/* Pagination */}
-          <div className="flex justify-center items-center gap-4 mt-6">
-            <button
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        </>
+      {/* Pagination */}
+      {products.length > 0 && (
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span>
+            Page {page} of {totalPages}
+          </span>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
   );
 }
-

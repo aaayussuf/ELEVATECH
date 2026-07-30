@@ -21,6 +21,7 @@ import ProductList from "./pages/admin/ProductList";
 import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
 import AdminOrderDetails from "./pages/admin/orders/OrderDetails";
+import AdminCategories from "./pages/admin/Categories";
 
 import AccountDashboard from "./pages/account/Dashboard";
 import AccountProfile from "./pages/account/Profile";
@@ -73,6 +74,7 @@ function App() {
         <Route path="/admin/products" element={<ProductList />} />
         <Route path="/admin/products/create" element={<CreateProduct />} />
         <Route path="/admin/products/:id/edit" element={<EditProduct />} />
+        <Route path="/admin/categories" element={<AdminCategories />} />
         <Route path="/admin/orders/:id" element={<AdminOrderDetails />} />
       </Route>
       <Route path="/*" element={<ProtectedAccountRoutes />} />

@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import adminOrderService from "../../../services/adminOrderService";
+import CustomerCard from "../../../components/admin/orders/CustomerCard";
+import OrderItems from "../../../components/admin/orders/OrderItems";
+import OrderSummary from "../../../components/admin/orders/OrderSummary";
+import OrderStatus from "../../../components/admin/orders/OrderStatus";
 
 export default function OrderDetails() {
 
@@ -25,18 +29,24 @@ export default function OrderDetails() {
     if (!order)
         return <h2 className="p-6">Loading...</h2>;
 
-    return (
+return (
+        <div className="space-y-6 p-6">
+            <h1 className="text-3xl font-bold">Order #{order.id}</h1>
 
-        <div className="p-6">
+            <CustomerCard customer={order.customer} />
 
-            <h1 className="text-3xl font-bold mb-6">
+            <hr />
 
-                Order #{order.id}
+            <OrderItems items={order.items} />
 
-            </h1>
+            <hr />
 
+            <OrderSummary order={order} />
+
+            <hr />
+
+            <OrderStatus order={order} onUpdated={setOrder} />
         </div>
-
     );
 
 }

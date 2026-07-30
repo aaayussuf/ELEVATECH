@@ -8,13 +8,24 @@ class Category(BaseModel):
 
     name = db.Column(
         db.String(100),
+        nullable=False,
+        unique=True
+    )
+
+    slug = db.Column(
+        db.String(120),
         unique=True,
-        nullable=False
+        index=True
     )
 
     description = db.Column(db.Text)
 
     image = db.Column(db.String(255))
+
+    active = db.Column(
+        db.Boolean,
+        default=True
+    )
 
     products = db.relationship(
         "Product",
@@ -23,9 +34,21 @@ class Category(BaseModel):
     )
 
     def to_dict(self):
+
         return {
+
             "id": self.id,
+
             "name": self.name,
+
+            "slug": self.slug,
+
             "description": self.description,
+
             "image": self.image,
+
+            "active": self.active,
+
+            "products": len(self.products)
+
         }

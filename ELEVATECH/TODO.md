@@ -1,9 +1,9 @@
-# Implementation Steps
+# Task Progress
 
-## Backend
-- [x] Step 1: Add GET /api/admin/customers/<id> endpoint in admin_customers.py
-- [x] Step 2: Add getCustomer(id) in adminCustomerService.js
-- [x] Step 3: Create CustomerDetails.jsx page
-- [x] Step 4: Add route for /admin/customers/:id in App.jsx
-- [x] Step 5: Add View button in Customers.jsx
+## Update admin order endpoint to return richer response
 
+- [x] Read and understand all relevant files
+- [x] Plan approved
+- [x] Step 1: Add `name` property to User model
+- [x] Step 2: Update `order` endpoint in `admin_orders.py` to return richer JSON response
+- [x] Done
