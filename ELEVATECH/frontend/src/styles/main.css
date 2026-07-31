@@ -1,85 +1,15 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+@import "tailwindcss";
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
 }
 
-body{
-    font-family:Arial,Helvetica,sans-serif;
-    background:#f5f7fb;
-}
-
-.navbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:20px 60px;
-    background:#0f172a;
-}
-
-.logo a{
-    color:white;
-    font-size:30px;
-    text-decoration:none;
-    font-weight:bold;
-}
-
-.nav-links{
-    display:flex;
-    gap:25px;
-}
-
-.nav-links a{
-    color:white;
-    text-decoration:none;
-}
-
-.hero{
-    padding:120px 40px;
-    text-align:center;
-    background:#2563eb;
-    color:white;
-}
-
-.hero button{
-    margin-top:20px;
-    padding:15px 35px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-}
-
-.search-container{
-    padding:40px;
-    text-align:center;
-}
-
-.search-container input{
-    width:60%;
-    padding:15px;
-    border-radius:10px;
-    border:1px solid #ddd;
-}
-
-.categories{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:20px;
-    padding:50px;
-}
-
-.category-card{
-    background:white;
-    padding:40px;
-    border-radius:15px;
-    text-align:center;
-    box-shadow:0 5px 20px rgba(0,0,0,.1);
-}
-
-.footer{
-    background:#0f172a;
-    color:white;
-    text-align:center;
-    padding:30px;
-    margin-top:60px;
+body {
+  margin: 0;
+  background: #07101D;
+  color: white;
+  font-family: Inter, Arial, sans-serif;
 }

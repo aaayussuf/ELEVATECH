@@ -5,6 +5,7 @@ from slugify import slugify
 from app.extensions import db
 from app.models.category import Category
 from app.utils.admin_required import admin_required
+from app.services.cloudinary_service import upload_image
 
 admin_categories_bp = Blueprint(
     "admin_categories",
@@ -77,24 +78,32 @@ def get_category(id):
 @admin_required
 def create_category():
 
-    data = request.get_json()
+    name = request.form.get("name")
+    description = request.form.get("description")
+    active = request.form.get("active", "true").lower() == "true"
+
+    image_url = request.form.get("image_url")
+
+    if not image_url:
+
+        image = request.files.get("image")
+
+        if image:
+            result = upload_image(
+                image,
+                folder="categories"
+            )
+            image_url = result["secure_url"]
 
     category = Category(
-
-        name=data["name"],
-
-        slug=slugify(data["name"]),
-
-        description=data.get("description"),
-
-        image=data.get("image"),
-
-        active=data.get("active", True)
-
+        name=name,
+        slug=slugify(name),
+        description=description,
+        image=image_url,
+        active=active,
     )
 
     db.session.add(category)
-
     db.session.commit()
 
     return jsonify(category.to_dict()), 201
@@ -109,17 +118,28 @@ def update_category(id):
 
     category = Category.query.get_or_404(id)
 
-    data = request.get_json()
+    category.name = request.form.get("name")
+    category.slug = slugify(category.name)
+    category.description = request.form.get("description")
+    category.active = (
+        request.form.get("active", "true").lower() == "true"
+    )
 
-    category.name = data["name"]
+    image_url = request.form.get("image_url")
 
-    category.slug = slugify(data["name"])
+    if image_url:
+        category.image = image_url
 
-    category.description = data.get("description")
+    else:
 
-    category.image = data.get("image")
+        image = request.files.get("image")
 
-    category.active = data.get("active", True)
+        if image:
+            result = upload_image(
+                image,
+                folder="categories"
+            )
+            category.image = result["secure_url"]
 
     db.session.commit()
 
