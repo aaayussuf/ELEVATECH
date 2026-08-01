@@ -1,4 +1,4 @@
-from flask import Flask, jsonify  # type: ignore
+from flask import Flask  # type: ignore
 from flask_cors import CORS  # type: ignore
 
 from config import Config
@@ -23,6 +23,8 @@ from app.routes.admin_customers import admin_customers_bp
 from app.routes.upload import upload_bp
 from app.routes.categories import categories_bp
 from app.routes.admin_categories import admin_categories_bp
+from app.routes.admin_coupons import admin_coupons_bp
+from app.routes.reviews import reviews_bp
 
 
 def create_app():
@@ -58,12 +60,8 @@ def create_app():
     app.register_blueprint(upload_bp)
     app.register_blueprint(categories_bp)
     app.register_blueprint(admin_categories_bp)
-
-    @app.route("/api/products")
-
-    def get_products():
-        products = Product.query.all()
-        return jsonify([p.to_dict() for p in products])
+    app.register_blueprint(admin_coupons_bp)
+    app.register_blueprint(reviews_bp)
 
     @app.route("/")
     def home():

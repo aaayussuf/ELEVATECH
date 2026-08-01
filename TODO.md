@@ -1,8 +1,18 @@
-# TODO - Backend Order Status Update
+# Coupon Service — Implementation TODO
 
-- [x] Step 1: Read existing files to understand current code
-- [x] Step 2: Get user approval on plan
-- [x] Step 3: Edit `backend/app/services/admin_order_service.py` - add `from app.extensions import db` and `update_order_status()` function
-- [x] Step 4: Edit `backend/app/routes/admin_orders.py` - update imports and replace `/status` endpoint
-- [x] Step 5: Verify changes are correct
+## Step 1 — Create the coupon service
+- [x] Create `frontend/src/services/adminCouponService.js`
+- [x] Base path: `/api/admin/coupons` (matches backend blueprint + all other admin services)
+
+## Step 2 — Connect the Coupons page
+- [x] Replace `frontend/src/pages/admin/Coupons.jsx`
+- [x] Load coupons via `adminCouponService.listCoupons()`
+- [x] Table with code, description, discount, min amount, usage, expiry, status, actions
+- [x] Create / Edit modal form
+- [x] Delete with confirmation
+- [x] Active/Inactive toggle
+
+## Follow-up
+- [x] Files created and routes confirmed in `App.jsx` and `Sidebar.jsx`
+- [ ] Verify page loads in dev (`npm run dev` in `ELEVATECH/frontend`)
 

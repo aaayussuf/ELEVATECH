@@ -50,6 +50,9 @@ export default function ProductForm({
         track_inventory: true,
 
         image: "",
+        image2: "",
+        image3: "",
+        image4: "",
 
         featured: false,
         active: true,
@@ -170,6 +173,9 @@ export default function ProductForm({
 
                     // Ensure defaults for missing fields
                     image: data.image || "",
+                    image2: data.image2 || "",
+                    image3: data.image3 || "",
+                    image4: data.image4 || "",
                     short_description: data.short_description || "",
                     sku: data.sku || "",
                     barcode: data.barcode || "",
@@ -508,8 +514,36 @@ export default function ProductForm({
                             onChange={(url) =>
                                 setForm(prev => ({ ...prev, image: url }))
                             }
-                            label="Main Product Image"
+                            label="Main Image"
                         />
+
+                        <div className="mt-6 space-y-6">
+
+                            <ImageUploader
+                                value={form.image2}
+                                onChange={(url) =>
+                                    setForm(prev => ({ ...prev, image2: url }))
+                                }
+                                label="Image 2"
+                            />
+
+                            <ImageUploader
+                                value={form.image3}
+                                onChange={(url) =>
+                                    setForm(prev => ({ ...prev, image3: url }))
+                                }
+                                label="Image 3"
+                            />
+
+                            <ImageUploader
+                                value={form.image4}
+                                onChange={(url) =>
+                                    setForm(prev => ({ ...prev, image4: url }))
+                                }
+                                label="Image 4"
+                            />
+
+                        </div>
                     </div>
 
                     {/* Category */}

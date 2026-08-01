@@ -28,10 +28,22 @@ def get_products():
         )
 
     # ---------------- Category ----------------
+
     category = request.args.get("category")
 
     if category:
-        query = query.join(Product.category).filter_by(name=category)
+
+        if category.isdigit():
+
+            query = query.filter(
+                Product.category_id == int(category)
+            )
+
+        else:
+
+            query = query.join(Product.category).filter_by(
+                name=category
+            )
 
     # ---------------- Brand ----------------
     brand = request.args.get("brand")

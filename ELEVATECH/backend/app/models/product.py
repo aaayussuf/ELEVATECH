@@ -82,6 +82,13 @@ class Product(BaseModel):
         lazy=True
     )
 
+    reviews_relation = db.relationship(
+        "Review",
+        backref="product",
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+
     # -----------------------------
     # Helper Methods
     # -----------------------------
@@ -162,9 +169,13 @@ class Product(BaseModel):
 
             "meta_description": self.meta_description,
 
-            "rating": self.rating,
+            "rating": round(
+                sum(r.rating for r in self.reviews_relation) /
+                len(self.reviews_relation),
+                1
+            ) if self.reviews_relation else 0,
 
-            "reviews": self.reviews,
+            "reviews": len(self.reviews_relation),
 
             "sold": self.sold,
 

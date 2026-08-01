@@ -1,12 +1,30 @@
 const API_BASE = "http://127.0.0.1:5000/api/products";
 
 const productService = {
-  async getProducts() {
-    const response = await fetch(API_BASE);
+  async getProducts(filters = {}) {
+
+    const params = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+
+      if (
+        value !== "" &&
+        value !== null &&
+        value !== undefined
+      ) {
+        params.append(key, value);
+      }
+
+    });
+
+    const response = await fetch(
+      `${API_BASE}?${params.toString()}`
+    );
+
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Unable to load products");
+      throw new Error(data.message);
     }
 
     return data;
@@ -47,4 +65,3 @@ const productService = {
 };
 
 export default productService;
-

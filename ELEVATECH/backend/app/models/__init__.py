@@ -5,3 +5,7 @@ from .order import Order, OrderItem
 from .address import Address
 from .wishlist import Wishlist
 from .payment import Payment
+from .review import Review
+from .coupon import Coupon
+
+

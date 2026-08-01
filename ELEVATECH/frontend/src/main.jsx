@@ -6,13 +6,16 @@ import "./styles/main.css";
 
 import AuthProvider from "./context/AuthContext";
 import CartProvider from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <AuthProvider>
-      <CartProvider>
-        <App />
-      </CartProvider>
+      <WishlistProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </WishlistProvider>
     </AuthProvider>
   </BrowserRouter>
 );

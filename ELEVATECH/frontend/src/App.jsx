@@ -24,6 +24,7 @@ import AdminOrderDetails from "./pages/admin/orders/OrderDetails";
 import AdminCategories from "./pages/admin/Categories";
 import CreateCategory from "./pages/admin/CreateCategory";
 import EditCategory from "./pages/admin/EditCategory";
+import Coupons from "./pages/admin/Coupons";
 
 import AccountDashboard from "./pages/account/Dashboard";
 import AccountProfile from "./pages/account/Profile";
@@ -58,7 +59,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/test-upload" element={<TestUpload />} />
       <Route path="/products" element={<Products />} />
-      <Route path="/product/:id" element={<ProductDetails />} />
+      <Route path="/product/:slug" element={<ProductDetails />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -79,6 +80,7 @@ function App() {
         <Route path="/admin/categories" element={<AdminCategories />} />
         <Route path="/admin/categories/new" element={<CreateCategory />} />
         <Route path="/admin/categories/:id/edit" element={<EditCategory />} />
+        <Route path="/admin/coupons" element={<Coupons />} />
         <Route path="/admin/orders/:id" element={<AdminOrderDetails />} />
       </Route>
       <Route path="/*" element={<ProtectedAccountRoutes />} />

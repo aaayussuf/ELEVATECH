@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import api from "../../services/api";
 import StatCard from "../../components/admin/cards/StatCard";
 import DashboardCard from "../../components/admin/cards/DashboardCard";
+import SalesChart from "../../components/admin/charts/SalesChart";
+import TopProducts from "../../components/admin/TopProducts";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -15,6 +17,9 @@ export default function Dashboard() {
   }, []);
 
   if (!stats) return <p>Loading...</p>;
+
+  const change = stats.revenue_change_percent ?? 0;
+  const increasing = change >= 0;
 
   return (
     <div className="p-6">
@@ -48,6 +53,7 @@ export default function Dashboard() {
         </Link>
       </div>
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Revenue"
@@ -59,7 +65,7 @@ export default function Dashboard() {
 
         <StatCard
           title="Orders"
-          value={stats.total_orders}
+          value={stats.orders}
           subtitle="Total orders"
           icon="📦"
           color="blue"
@@ -82,6 +88,40 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* Revenue Trend */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <DashboardCard title="Revenue This Week">
+          <p className="text-3xl font-bold">
+            KSh {Number(stats.revenue_this_week || 0).toLocaleString()}
+          </p>
+
+          <p
+            className={`mt-2 text-lg font-semibold ${
+              increasing ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {increasing ? "▲" : "▼"} {Math.abs(change)}%
+          </p>
+
+          <p className="text-sm text-gray-400 mt-1">
+            Compared with last week
+          </p>
+        </DashboardCard>
+      </div>
+
+      {/* Sales Chart */}
+      <div className="mb-8">
+        <DashboardCard title="Sales Chart">
+          <SalesChart data={stats.sales_chart} />
+        </DashboardCard>
+      </div>
+
+      {/* Top Products */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <TopProducts products={stats.top_products} />
+      </div>
+
+      {/* Recent Orders */}
       <DashboardCard title="Recent Orders">
         <table className="w-full border-collapse">
           <thead>
