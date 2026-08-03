@@ -24,6 +24,7 @@ from app.routes.upload import upload_bp
 from app.routes.categories import categories_bp
 from app.routes.admin_categories import admin_categories_bp
 from app.routes.admin_coupons import admin_coupons_bp
+from app.routes.coupons import coupons_bp
 from app.routes.reviews import reviews_bp
 
 
@@ -61,6 +62,7 @@ def create_app():
     app.register_blueprint(categories_bp)
     app.register_blueprint(admin_categories_bp)
     app.register_blueprint(admin_coupons_bp)
+    app.register_blueprint(coupons_bp)
     app.register_blueprint(reviews_bp)
 
     @app.route("/")

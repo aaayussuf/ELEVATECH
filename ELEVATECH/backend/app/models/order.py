@@ -25,6 +25,22 @@ class Order(db.Model):
         default="Cash"
     )
 
+    # Coupon
+    coupon_id = db.Column(
+        db.Integer,
+        db.ForeignKey("coupons.id"),
+        nullable=True,
+    )
+
+    coupon_code = db.Column(
+        db.String(50)
+    )
+
+    discount = db.Column(
+        db.Float,
+        default=0
+    )
+
     created_at = db.Column(
         db.DateTime,
         default=datetime.utcnow
@@ -35,6 +51,12 @@ class Order(db.Model):
         backref="order",
         lazy=True,
         cascade="all, delete-orphan"
+    )
+
+    coupon = db.relationship(
+        "Coupon",
+        backref="orders",
+        lazy=True
     )
 
     def to_dict(self):
