@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import adminCouponService from "../../services/adminCouponService";
 
 const EMPTY_FORM = {
@@ -176,12 +177,12 @@ export default function Coupons() {
             Create and manage discount coupons for your store.
           </p>
         </div>
-        <button
-          onClick={openCreate}
+<Link
+          to="/admin/coupons/new"
           className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700"
         >
           + New Coupon
-        </button>
+        </Link>
       </div>
 
       {error && (

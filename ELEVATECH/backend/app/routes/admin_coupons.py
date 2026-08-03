@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask import Blueprint, jsonify, request
+from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.coupon import Coupon
@@ -52,11 +53,26 @@ def create_coupon():
 
     )
 
-    db.session.add(coupon)
+    try:
+        db.session.add(coupon)
+        db.session.commit()
 
-    db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({
+            "message": "Coupon code already exists."
+        }), 400
 
     return jsonify(coupon.to_dict()), 201
+
+
+@admin_coupons_bp.route("/<int:id>", methods=["GET"])
+@admin_required
+def get_coupon(id):
+
+    coupon = Coupon.query.get_or_404(id)
+
+    return jsonify(coupon.to_dict())
 
 
 @admin_coupons_bp.route("/<int:id>", methods=["PUT"])
@@ -113,4 +129,3 @@ def delete_coupon(id):
         "message": "Coupon deleted"
 
     })
-

@@ -1,38 +1,20 @@
 import api from "./api";
 
-const BASE = "/api/admin/categories";
-
 const adminCategoryService = {
-  async listCategories(params = {}) {
-    const { data } = await api.get(BASE, { params });
-    return data;
-  },
 
-  async getCategory(id) {
-    const { data } = await api.get(`${BASE}/${id}`);
-    return data;
-  },
+    async listCategories(params) {
 
-  async createCategory(category) {
-    const { data } = await api.post(BASE, category);
-    return data;
-  },
+        const { data } = await api.get(
+            "/api/admin/categories",
+            {
+                params,
+            }
+        );
 
-  async updateCategory(id, category) {
-    const { data } = await api.put(`${BASE}/${id}`, category);
-    return data;
-  },
+        return data;
 
-  async deleteCategory(id) {
-    const { data } = await api.delete(`${BASE}/${id}`);
-    return data;
-  },
+    }
 
-  async toggleStatus(id) {
-    const { data } = await api.patch(`${BASE}/${id}/status`);
-    return data;
-  },
 };
 
 export default adminCategoryService;
-

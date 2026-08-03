@@ -1,28 +1,59 @@
 import api from "./api";
 
-const BASE = "/api/admin/coupons";
-
 const adminCouponService = {
-  async listCoupons() {
-    const { data } = await api.get(BASE);
-    return data;
-  },
 
-  async createCoupon(coupon) {
-    const { data } = await api.post(BASE, coupon);
-    return data;
-  },
+    async listCoupons() {
 
-  async updateCoupon(id, coupon) {
-    const { data } = await api.put(`${BASE}/${id}`, coupon);
-    return data;
-  },
+        const { data } = await api.get(
+            "/api/admin/coupons"
+        );
 
-  async deleteCoupon(id) {
-    const { data } = await api.delete(`${BASE}/${id}`);
-    return data;
-  },
+        return data;
+
+    },
+
+    async getCoupon(id) {
+
+        const { data } = await api.get(
+            `/api/admin/coupons/${id}`
+        );
+
+        return data;
+
+    },
+
+    async createCoupon(coupon) {
+
+        const { data } = await api.post(
+            "/api/admin/coupons",
+            coupon
+        );
+
+        return data;
+
+    },
+
+    async updateCoupon(id, coupon) {
+
+        const { data } = await api.put(
+            `/api/admin/coupons/${id}`,
+            coupon
+        );
+
+        return data;
+
+    },
+
+    async deleteCoupon(id) {
+
+        const { data } = await api.delete(
+            `/api/admin/coupons/${id}`
+        );
+
+        return data;
+
+    }
+
 };
 
 export default adminCouponService;
-
