@@ -14,10 +14,10 @@ const adminOrderService = {
     return data;
   },
 
-  async updateStatus(id, status) {
+  async updateOrder(id, values) {
     const { data } = await api.patch(
-      `${BASE}/${id}/status`,
-      { status }
+      `${BASE}/${id}`,
+      values
     );
 
     return data;
@@ -26,4 +26,3 @@ const adminOrderService = {
 };
 
 export default adminOrderService;
-

@@ -63,8 +63,6 @@ class Product(BaseModel):
     # Rating
     rating = db.Column(db.Float, default=0)
 
-    reviews = db.Column(db.Integer, default=0)
-
     sold = db.Column(db.Integer, default=0)
 
     views = db.Column(db.Integer, default=0)
@@ -82,10 +80,9 @@ class Product(BaseModel):
         lazy=True
     )
 
-    reviews_relation = db.relationship(
+    reviews = db.relationship(
         "Review",
-        backref="product",
-        lazy=True,
+        back_populates="product",
         cascade="all, delete-orphan"
     )
 
@@ -170,12 +167,12 @@ class Product(BaseModel):
             "meta_description": self.meta_description,
 
             "rating": round(
-                sum(r.rating for r in self.reviews_relation) /
-                len(self.reviews_relation),
+                sum(r.rating for r in self.reviews) /
+                len(self.reviews),
                 1
-            ) if self.reviews_relation else 0,
+            ) if self.reviews else 0,
 
-            "reviews": len(self.reviews_relation),
+            "reviews": len(self.reviews),
 
             "sold": self.sold,
 

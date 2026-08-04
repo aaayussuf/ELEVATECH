@@ -1,20 +1,42 @@
 from datetime import datetime
+
 from app.extensions import db
 
 
 class Review(db.Model):
     __tablename__ = "reviews"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
 
-    rating = db.Column(db.Integer, nullable=False)
+    rating = db.Column(
+        db.Integer,
+        nullable=False
+    )
 
-    comment = db.Column(db.Text)
+    title = db.Column(
+        db.String(150)
+    )
+
+    comment = db.Column(
+        db.Text,
+        nullable=False
+    )
 
     created_at = db.Column(
         db.DateTime,
         default=datetime.utcnow
     )
+
+    updated_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
+
+    # Relationships
 
     user_id = db.Column(
         db.Integer,
@@ -28,21 +50,25 @@ class Review(db.Model):
         nullable=False
     )
 
-    user = db.relationship("User")
+    user = db.relationship(
+        "User",
+        back_populates="reviews"
+    )
+
+    product = db.relationship(
+        "Product",
+        back_populates="reviews"
+    )
 
     def to_dict(self):
-
         return {
-
             "id": self.id,
-
             "rating": self.rating,
-
+            "title": self.title,
             "comment": self.comment,
-
             "created_at": self.created_at.isoformat(),
-
-            "user": self.user.name if self.user else "Anonymous"
-
+            "user": {
+                "id": self.user.id,
+                "name": self.user.name
+            }
         }
-

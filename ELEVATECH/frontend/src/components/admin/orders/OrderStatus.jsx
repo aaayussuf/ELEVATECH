@@ -22,9 +22,9 @@ export default function OrderStatus({ order, onUpdated }) {
         setError(null);
 
         try {
-            const updated = await adminOrderService.updateStatus(
+            const updated = await adminOrderService.updateOrder(
                 order.id,
-                newStatus
+                { status: newStatus }
             );
             onUpdated(updated);
         } catch (err) {
@@ -74,4 +74,3 @@ export default function OrderStatus({ order, onUpdated }) {
         </div>
     );
 }
-

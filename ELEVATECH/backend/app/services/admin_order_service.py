@@ -1,9 +1,10 @@
+from datetime import datetime
+
 from app.extensions import db
 from app.models.order import Order
 
 
 def get_all_orders():
-    """Return all orders ordered by newest first."""
     return (
         Order.query
         .order_by(Order.created_at.desc())
@@ -12,19 +13,37 @@ def get_all_orders():
 
 
 def get_order(order_id):
-    """Return one order or None."""
     return Order.query.get(order_id)
 
 
-def update_order_status(order_id, status):
+def update_order(order_id, data):
+
     order = Order.query.get(order_id)
 
     if not order:
         return None
 
-    order.status = status
+    if "status" in data:
+        order.status = data["status"]
+
+        if data["status"] == "Shipped":
+            order.shipped_at = datetime.utcnow()
+
+        if data["status"] == "Delivered":
+            order.delivered_at = datetime.utcnow()
+
+    if "payment_status" in data:
+        order.payment_status = data["payment_status"]
+
+    if "tracking_number" in data:
+        order.tracking_number = data["tracking_number"]
+
+    if "courier" in data:
+        order.courier = data["courier"]
+
+    if "notes" in data:
+        order.notes = data["notes"]
 
     db.session.commit()
 
     return order
-

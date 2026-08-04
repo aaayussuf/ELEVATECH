@@ -10,6 +10,53 @@ export default function Checkout() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponMessage, setCouponMessage] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [subtotal, setSubtotal] = useState(
+    cartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    )
+  );
+
+  async function applyCoupon() {
+    setCouponMessage("");
+
+    if (!couponCode.trim()) {
+      setCouponMessage("Enter a coupon code.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE}/api/coupons/apply`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            code: couponCode,
+            subtotal,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setDiscount(0);
+        setCouponMessage(data.message || "Invalid coupon.");
+        return;
+      }
+
+      setDiscount(data.discount);
+      setCouponMessage("Coupon applied successfully!");
+    } catch {
+      setCouponMessage("Unable to validate coupon.");
+    }
+  }
 
   async function handlePay(e) {
     e.preventDefault();
@@ -48,10 +95,11 @@ export default function Checkout() {
           },
           body: JSON.stringify({
             payment_method: paymentMethod,
-            items: cartItems.map((item) => ({
+            coupon_code: couponCode,
+            items: cartItems.map(item => ({
               product_id: item.id,
-              quantity: item.quantity,
-            })),
+              quantity: item.quantity
+            }))
           }),
         }
       );
@@ -161,6 +209,46 @@ export default function Checkout() {
           gap: 18,
         }}
       >
+        <div
+          style={{
+            border: "1px solid #ddd",
+            padding: 15,
+            borderRadius: 8,
+          }}
+        >
+          <h3>Coupon</h3>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+            }}
+          >
+            <input
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder="WELCOME10"
+              style={{
+                flex: 1,
+                padding: 10,
+              }}
+            />
+
+            <button
+              type="button"
+              onClick={applyCoupon}
+            >
+              Apply
+            </button>
+          </div>
+
+          {couponMessage && (
+            <p style={{ marginTop: 10 }}>
+              {couponMessage}
+            </p>
+          )}
+        </div>
+
         <label>
           <input
             type="radio"
@@ -192,7 +280,43 @@ export default function Checkout() {
               width: "100%",
             }}
           />
-        )}
+)}
+
+        <div
+          style={{
+            border: "1px solid #ddd",
+            padding: 20,
+            borderRadius: 8,
+          }}
+        >
+          <h3>Order Summary</h3>
+
+          <p>
+            Subtotal:
+            <strong>
+              {" "}
+              KES {subtotal.toFixed(2)}
+            </strong>
+          </p>
+
+          <p>
+            Discount:
+            <strong>
+              {" "}
+              -KES {discount.toFixed(2)}
+            </strong>
+          </p>
+
+          <hr />
+
+          <h3>
+            Total:
+            <strong>
+              {" "}
+              KES {(subtotal - discount).toFixed(2)}
+            </strong>
+          </h3>
+        </div>
 
         <button
           type="submit"

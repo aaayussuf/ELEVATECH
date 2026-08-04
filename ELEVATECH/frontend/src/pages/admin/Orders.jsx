@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import adminOrderService from "../../services/adminOrderService";
 import DataTable from "../../components/admin/tables/DataTable";
-import StatusBadge from "../../components/admin/tables/StatusBadge";
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -34,10 +33,40 @@ export default function Orders() {
       key: "payment_method",
       title: "Payment",
     },
-    {
+{
       key: "status",
       title: "Status",
-      render: (order) => <StatusBadge status={order.status} />,
+      render: (order) => (
+        <select
+          value={order.status}
+          onChange={async (e) => {
+            const status = e.target.value;
+
+            try {
+              await adminOrderService.updateOrder(order.id, {
+                status,
+              });
+
+              setOrders((prev) =>
+                prev.map((o) =>
+                  o.id === order.id
+                    ? { ...o, status }
+                    : o
+                )
+              );
+            } catch (err) {
+              alert("Failed to update order.");
+            }
+          }}
+        >
+          <option>Pending</option>
+          <option>Processing</option>
+          <option>Paid</option>
+          <option>Shipped</option>
+          <option>Delivered</option>
+          <option>Cancelled</option>
+        </select>
+      ),
     },
     {
       key: "total",

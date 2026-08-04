@@ -1,12 +1,15 @@
-from flask import Blueprint, jsonify, request
+from datetime import datetime
 
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from app.utils.admin_required import admin_required
+from app.extensions import db
+from app.models.order import Order
 from app.services.admin_order_service import (
     get_all_orders,
     get_order,
-    update_order_status,
+    update_order,
 )
 
 admin_orders_bp = Blueprint(
@@ -41,64 +44,32 @@ def order(order_id):
             "message": "Order not found"
         }), 404
 
-    return jsonify({
-
-        "id": order.id,
-
-        "status": order.status,
-
-        "payment_method": order.payment_method,
-
-        "total": order.total,
-
-        "created_at": order.created_at.isoformat() if order.created_at else None,
-
-        "customer": {
-            "id": order.user.id,
-            "name": order.user.name,
-            "email": order.user.email,
-            "phone": order.user.phone
-        },
-
-        "items": [
-            {
-                "id": item.id,
-                "product_id": item.product_id,
-                "product_name": item.product.name,
-                "price": item.price,
-                "quantity": item.quantity,
-                "subtotal": item.price * item.quantity
-            }
-            for item in order.items
-        ]
-
-    })
+    return jsonify(order.to_dict())
 
 
-@admin_orders_bp.route("/<int:order_id>/status", methods=["PATCH"])
+@admin_orders_bp.route("/<int:order_id>", methods=["PATCH"])
 @jwt_required()
 @admin_required
-def change_status(order_id):
+def update_order_route(order_id):
 
     data = request.get_json()
 
-    status = data.get("status")
+    if "status" in data:
+        allowed = [
+            "Pending",
+            "Processing",
+            "Paid",
+            "Shipped",
+            "Delivered",
+            "Cancelled",
+        ]
 
-    allowed = [
-        "Pending",
-        "Processing",
-        "Paid",
-        "Shipped",
-        "Delivered",
-        "Cancelled",
-    ]
+        if data["status"] not in allowed:
+            return jsonify({
+                "message": "Invalid status"
+            }), 400
 
-    if status not in allowed:
-        return jsonify({
-            "message": "Invalid status"
-        }), 400
-
-    order = update_order_status(order_id, status)
+    order = update_order(order_id, data)
 
     if not order:
         return jsonify({
@@ -107,3 +78,41 @@ def change_status(order_id):
 
     return jsonify(order.to_dict())
 
+
+# ======================================================
+# UPDATE COMPLETE ORDER
+# ======================================================
+
+@admin_orders_bp.route("/<int:order_id>", methods=["PUT"])
+@jwt_required()
+@admin_required
+def update_order_full(order_id):
+
+    order = Order.query.get_or_404(order_id)
+
+    data = request.get_json() or {}
+
+    if "status" in data:
+        order.status = data["status"]
+
+    if "payment_status" in data:
+        order.payment_status = data["payment_status"]
+
+    if "tracking_number" in data:
+        order.tracking_number = data["tracking_number"]
+
+    if "courier" in data:
+        order.courier = data["courier"]
+
+    if "notes" in data:
+        order.notes = data["notes"]
+
+    if order.status == "Shipped" and not order.shipped_at:
+        order.shipped_at = datetime.utcnow()
+
+    if order.status == "Delivered" and not order.delivered_at:
+        order.delivered_at = datetime.utcnow()
+
+    db.session.commit()
+
+    return jsonify(order.to_dict())

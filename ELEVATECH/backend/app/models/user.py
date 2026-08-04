@@ -41,6 +41,12 @@ class User(BaseModel):
         lazy=True
     )
 
+    reviews = db.relationship(
+        "Review",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
     @property
     def name(self):
         return f"{self.first_name} {self.last_name}"

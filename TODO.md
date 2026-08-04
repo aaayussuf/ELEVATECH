@@ -1,18 +1,15 @@
-# Coupon Service — Implementation TODO
+# TODO
 
-## Step 1 — Create the coupon service
-- [x] Create `frontend/src/services/adminCouponService.js`
-- [x] Base path: `/api/admin/coupons` (matches backend blueprint + all other admin services)
+## Coupon Integration Task
 
-## Step 2 — Connect the Coupons page
-- [x] Replace `frontend/src/pages/admin/Coupons.jsx`
-- [x] Load coupons via `adminCouponService.listCoupons()`
-- [x] Table with code, description, discount, min amount, usage, expiry, status, actions
-- [x] Create / Edit modal form
-- [x] Delete with confirmation
-- [x] Active/Inactive toggle
+- [x] Add `from app.models.coupon import Coupon` import to orders.py
+- [x] Replace `create_order()` function in orders.py with coupon-enabled version
+- [x] Update Checkout.jsx order body to send `coupon_code: couponCode`
 
-## Follow-up
-- [x] Files created and routes confirmed in `App.jsx` and `Sidebar.jsx`
-- [ ] Verify page loads in dev (`npm run dev` in `ELEVATECH/frontend`)
+## Coupon State in Checkout.jsx
 
+- [x] Step 1: Add coupon state declarations (couponCode, couponMessage, discount, subtotal)
+- [x] Step 2: Add the Apply Coupon function using couponMessage
+- [x] Step 3: Add the Coupon section UI above the payment method
+- [x] Step 4: Replace the simple heading with an Order Summary
+- [x] Step 5: Verify `coupon_code: couponCode` is sent with the order (already done)

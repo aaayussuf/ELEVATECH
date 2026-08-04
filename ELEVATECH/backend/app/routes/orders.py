@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.extensions import db
 from app.models.order import Order, OrderItem
 from app.models.product import Product
+from app.models.coupon import Coupon
 
 orders_bp = Blueprint(
     "orders",
@@ -15,20 +16,38 @@ orders_bp = Blueprint(
 def serialize_order(order):
     return {
         "id": order.id,
-        "user_id": order.user_id,
         "status": order.status,
         "payment_method": order.payment_method,
+        "payment_status": order.payment_status,
+        "tracking_number": order.tracking_number,
+        "courier": order.courier,
+        "notes": order.notes,
+        "discount": order.discount,
+        "coupon_code": order.coupon_code,
         "total": order.total,
-        "created_at": order.created_at.isoformat(),
+        "created_at": order.created_at.isoformat() if order.created_at else None,
+        "shipped_at": (
+            order.shipped_at.isoformat()
+            if order.shipped_at else None
+        ),
+        "delivered_at": (
+            order.delivered_at.isoformat()
+            if order.delivered_at else None
+        ),
+        "customer": {
+            "id": order.user.id,
+            "name": order.user.name,
+            "email": order.user.email,
+            "phone": order.user.phone
+        },
         "items": [
             {
                 "id": item.id,
                 "product_id": item.product_id,
-                "name": item.product.name,
-                "image": item.product.image,
+                "product_name": item.product.name,
                 "price": item.price,
                 "quantity": item.quantity,
-                "subtotal": item.price * item.quantity,
+                "subtotal": item.price * item.quantity
             }
             for item in order.items
         ],
@@ -68,12 +87,14 @@ def create_order():
 
     items = data.get("items", [])
 
+    coupon_code = data.get("coupon_code")
+
     payment_method = data.get(
         "payment_method",
         "Stripe"
     )
 
-    if len(items) == 0:
+    if not items:
         return jsonify({
             "message": "Cart is empty"
         }), 400
@@ -89,13 +110,16 @@ def create_order():
 
     db.session.add(order)
 
+    # -------------------------
+    # Create order items
+    # -------------------------
+
     for item in items:
 
         product = Product.query.get(item["product_id"])
 
         if not product:
             db.session.rollback()
-
             return jsonify({
                 "message": f"Product {item['product_id']} not found"
             }), 404
@@ -103,9 +127,7 @@ def create_order():
         quantity = int(item["quantity"])
 
         if quantity <= 0:
-
             db.session.rollback()
-
             return jsonify({
                 "message": "Quantity must be greater than zero"
             }), 400
@@ -128,21 +150,85 @@ def create_order():
 
         total += line_total
 
-        order_item = OrderItem(
-            order=order,
-            product=product,
-            quantity=quantity,
-            price=product.price
+        db.session.add(
+            OrderItem(
+                order=order,
+                product=product,
+                quantity=quantity,
+                price=product.price
+            )
         )
 
-        db.session.add(order_item)
+    # -------------------------
+    # Apply Coupon
+    # -------------------------
 
-    order.total = total
+    discount = 0
+
+    if coupon_code:
+
+        coupon = Coupon.query.filter_by(
+            code=coupon_code.upper(),
+            active=True
+        ).first()
+
+        if not coupon:
+
+            db.session.rollback()
+
+            return jsonify({
+                "message": "Invalid coupon."
+            }), 400
+
+        if coupon.expires_at and coupon.expires_at < order.created_at:
+
+            db.session.rollback()
+
+            return jsonify({
+                "message": "Coupon expired."
+            }), 400
+
+        if coupon.usage_limit and coupon.used >= coupon.usage_limit:
+
+            db.session.rollback()
+
+            return jsonify({
+                "message": "Coupon usage limit reached."
+            }), 400
+
+        if total < coupon.minimum_amount:
+
+            db.session.rollback()
+
+            return jsonify({
+                "message": f"Minimum order is {coupon.minimum_amount}"
+            }), 400
+
+        if coupon.discount_type == "percent":
+
+            discount = total * (coupon.value / 100)
+
+        else:
+
+            discount = coupon.value
+
+        if discount > total:
+            discount = total
+
+        coupon.used += 1
+
+    # -------------------------
+    # Final total
+    # -------------------------
+
+    order.total = total - discount
 
     db.session.commit()
 
     return jsonify({
         "message": "Order created successfully",
+        "discount": discount,
+        "total": order.total,
         "order": serialize_order(order)
     }), 201
 

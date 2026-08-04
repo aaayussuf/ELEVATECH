@@ -1,0 +1,138 @@
+.page {
+  max-width: 1300px;
+  margin: auto;
+  padding: 30px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.back-btn {
+  border: none;
+  background: #f3f4f6;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.order-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.pending {
+  background: #f59e0b;
+}
+
+.processing {
+  background: #3b82f6;
+}
+
+.paid {
+  background: #10b981;
+}
+
+.shipped {
+  background: #8b5cf6;
+}
+
+.delivered {
+  background: #16a34a;
+}
+
+.cancelled {
+  background: #ef4444;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.save-btn {
+  width: 100%;
+  border: none;
+  background: #2563eb;
+  color: white;
+  padding: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.save-btn:hover {
+  background: #1d4ed8;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+.total {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+@media (max-width: 900px) {
+  .order-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -25,6 +25,32 @@ class Order(db.Model):
         default="Cash"
     )
 
+    # NEW
+    payment_status = db.Column(
+        db.String(30),
+        default="Pending"
+    )
+
+    tracking_number = db.Column(
+        db.String(100)
+    )
+
+    courier = db.Column(
+        db.String(100)
+    )
+
+    notes = db.Column(
+        db.Text
+    )
+
+    shipped_at = db.Column(
+        db.DateTime
+    )
+
+    delivered_at = db.Column(
+        db.DateTime
+    )
+
     # Coupon
     coupon_id = db.Column(
         db.Integer,
@@ -66,7 +92,15 @@ class Order(db.Model):
             "total": float(self.total),
             "status": self.status,
             "payment_method": self.payment_method,
+            "payment_status": self.payment_status,
+            "tracking_number": self.tracking_number,
+            "courier": self.courier,
+            "notes": self.notes,
+            "discount": self.discount,
+            "coupon_code": self.coupon_code,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "shipped_at": self.shipped_at.isoformat() if self.shipped_at else None,
+            "delivered_at": self.delivered_at.isoformat() if self.delivered_at else None,
             "items": [item.to_dict() for item in self.items]
         }
 
