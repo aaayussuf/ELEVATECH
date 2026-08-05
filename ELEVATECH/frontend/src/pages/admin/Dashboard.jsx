@@ -1,148 +1,189 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../../services/api";
-import StatCard from "../../components/admin/cards/StatCard";
-import DashboardCard from "../../components/admin/cards/DashboardCard";
-import SalesChart from "../../components/admin/charts/SalesChart";
-import TopProducts from "../../components/admin/TopProducts";
+
+import adminDashboardService from "../../services/adminDashboardService";
+
+import StatCard from "../../components/admin/dashboard/StatCard";
+import SalesChart from "../../components/admin/dashboard/SalesChart";
+import TopProductsChart from "../../components/admin/dashboard/TopProductsChart";
+import StatusBadge from "../../components/admin/dashboard/StatusBadge";
+import NotificationPanel from "../../components/admin/dashboard/NotificationPanel";
 
 export default function Dashboard() {
-  const [stats, setStats] = useState(null);
+  const [dashboard, setDashboard] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
-    api
-      .get("/api/admin/dashboard")
-      .then((res) => setStats(res.data))
-      .catch(console.error);
+    loadDashboard();
+
+    const interval = setInterval(() => {
+      loadDashboard();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  if (!stats) return <p>Loading...</p>;
+  async function loadDashboard() {
+    try {
+      const [dashboardData, notificationData] =
+        await Promise.all([
+          adminDashboardService.getDashboard(),
+          adminDashboardService.getNotifications(),
+        ]);
 
-  const change = stats.revenue_change_percent ?? 0;
-  const increasing = change >= 0;
+      setDashboard(dashboardData);
+      setNotifications(notificationData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setLastUpdated(new Date());
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        Loading dashboard...
+      </div>
+    );
+  }
+
+  if (!dashboard) {
+    return (
+      <div className="p-6">
+        Failed to load dashboard.
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+    <div className="p-6 space-y-6">
 
-      {/* Navigation */}
-      <div className="flex gap-4 mb-6">
-        <Link
-          to="/admin"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
-        >
-          Dashboard
-        </Link>
-        <Link
-          to="/admin/customers"
-          className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm"
-        >
-          Customers
-        </Link>
-        <Link
-          to="/admin/products"
-          className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm"
-        >
-          Manage Products
-        </Link>
-        <Link
-          to="/admin/products/create"
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
-        >
-          + Add Product
-        </Link>
-      </div>
+      <h1 className="text-3xl font-bold">
+        Admin Dashboard
+      </h1>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+      <p className="text-sm text-gray-500">
+        Last updated:
+        {" "}
+        {lastUpdated?.toLocaleTimeString()}
+      </p>
+
+      <NotificationPanel
+        notifications={notifications}
+      />
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
         <StatCard
           title="Revenue"
-          value={`KSh ${stats.revenue.toLocaleString()}`}
-          subtitle="Total sales"
+          value={`KSh ${Number(dashboard.revenue).toLocaleString()}`}
+          change={dashboard.revenue_change_percent}
           icon="💰"
-          color="green"
         />
 
         <StatCard
           title="Orders"
-          value={stats.orders}
-          subtitle="Total orders"
+          value={dashboard.orders}
           icon="📦"
-          color="blue"
         />
 
         <StatCard
           title="Customers"
-          value={stats.customers}
-          subtitle="Registered users"
+          value={dashboard.customers}
           icon="👥"
-          color="purple"
         />
 
         <StatCard
           title="Products"
-          value={stats.products}
-          subtitle="In catalog"
-          icon="🛍️"
-          color="yellow"
+          value={dashboard.products}
+          icon="🛒"
         />
+
       </div>
 
-      {/* Revenue Trend */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <DashboardCard title="Revenue This Week">
-          <p className="text-3xl font-bold">
-            KSh {Number(stats.revenue_this_week || 0).toLocaleString()}
-          </p>
+      {/* Charts */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-          <p
-            className={`mt-2 text-lg font-semibold ${
-              increasing ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {increasing ? "▲" : "▼"} {Math.abs(change)}%
-          </p>
+        <SalesChart
+          data={dashboard.sales_chart}
+        />
 
-          <p className="text-sm text-gray-400 mt-1">
-            Compared with last week
-          </p>
-        </DashboardCard>
-      </div>
+        <TopProductsChart
+          products={dashboard.top_products}
+        />
 
-      {/* Sales Chart */}
-      <div className="mb-8">
-        <DashboardCard title="Sales Chart">
-          <SalesChart data={stats.sales_chart} />
-        </DashboardCard>
-      </div>
-
-      {/* Top Products */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <TopProducts products={stats.top_products} />
       </div>
 
       {/* Recent Orders */}
-      <DashboardCard title="Recent Orders">
-        <table className="w-full border-collapse">
+      <div className="bg-white rounded-xl shadow-sm border p-6">
+
+        <h2 className="text-xl font-semibold mb-4">
+          Recent Orders
+        </h2>
+
+        <table className="w-full">
+
           <thead>
+
             <tr className="border-b">
-              <th className="text-left py-2">Order</th>
-              <th className="text-left py-2">Status</th>
-              <th className="text-left py-2">Total</th>
+
+              <th className="text-left py-3">Order</th>
+
+              <th className="text-left py-3">Status</th>
+
+              <th className="text-left py-3">Total</th>
+
+              <th className="text-left py-3">Date</th>
+
             </tr>
+
           </thead>
+
           <tbody>
-            {stats.recent_orders.map((order) => (
-              <tr key={order.id} className="border-b">
-                <td className="py-2">#{order.id}</td>
-                <td className="py-2">{order.status}</td>
-                <td className="py-2">KSh {order.total}</td>
+
+            {dashboard.recent_orders.map(order => (
+
+              <tr
+                key={order.id}
+                className="border-b"
+>
+
+                <td className="py-3">
+                  <Link
+                    to={`/admin/orders/${order.id}`}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    #{order.id}
+                  </Link>
+                </td>
+
+                <td className="py-3">
+                  <StatusBadge status={order.status} />
+                </td>
+
+                <td className="py-3">
+                  KSh {Number(order.total).toLocaleString()}
+                </td>
+
+                <td className="py-3">
+                  {new Date(order.created_at).toLocaleDateString()}
+                </td>
+
               </tr>
+
             ))}
+
           </tbody>
+
         </table>
-      </DashboardCard>
+
+      </div>
+
     </div>
   );
 }
-

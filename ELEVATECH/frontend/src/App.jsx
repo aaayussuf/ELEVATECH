@@ -26,6 +26,7 @@ import CreateCategory from "./pages/admin/CreateCategory";
 import EditCategory from "./pages/admin/EditCategory";
 import Coupons from "./pages/admin/Coupons";
 import CreateCoupon from "./pages/admin/CreateCoupon";
+import Inventory from "./pages/admin/Inventory";
 
 import AccountDashboard from "./pages/account/Dashboard";
 import AccountProfile from "./pages/account/Profile";
@@ -74,8 +75,9 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/admin/customers" element={<AdminCustomers />} />
-        <Route path="/admin/customers/:id" element={<CustomerDetails />} />
+<Route path="/admin/customers/:id" element={<CustomerDetails />} />
         <Route path="/admin/products" element={<ProductList />} />
+        <Route path="/admin/inventory" element={<Inventory />} />
         <Route path="/admin/products/create" element={<CreateProduct />} />
         <Route path="/admin/products/:id/edit" element={<EditProduct />} />
         <Route path="/admin/categories" element={<AdminCategories />} />

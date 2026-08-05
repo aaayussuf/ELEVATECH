@@ -1,15 +1,7 @@
-# TODO
+# TODO — Auto-refresh dashboard every 30s + "Last Updated"
 
-## Coupon Integration Task
+- [x] Step 1: Update `useEffect` in Dashboard.jsx to auto-refresh every 30 seconds via `setInterval`
+- [x] Step 2: Add `lastUpdated` state in Dashboard.jsx
+- [x] Step 3: Set `lastUpdated` timestamp at the end of `loadDashboard()`
+- [x] Step 4: Display "Last updated: [time]" under the dashboard title
 
-- [x] Add `from app.models.coupon import Coupon` import to orders.py
-- [x] Replace `create_order()` function in orders.py with coupon-enabled version
-- [x] Update Checkout.jsx order body to send `coupon_code: couponCode`
-
-## Coupon State in Checkout.jsx
-
-- [x] Step 1: Add coupon state declarations (couponCode, couponMessage, discount, subtotal)
-- [x] Step 2: Add the Apply Coupon function using couponMessage
-- [x] Step 3: Add the Coupon section UI above the payment method
-- [x] Step 4: Replace the simple heading with an Order Summary
-- [x] Step 5: Verify `coupon_code: couponCode` is sent with the order (already done)

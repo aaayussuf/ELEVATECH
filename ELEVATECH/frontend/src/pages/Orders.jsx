@@ -195,9 +195,39 @@ export default function Orders() {
                 <small>
                   {order.customer?.email}
                 </small>
-              </td>
+</td>
 
-              <td>{badge(order.status)}</td>
+              <td>
+                <select
+                  value={order.status}
+                  onChange={async (e) => {
+                    const status = e.target.value;
+
+                    try {
+                      await adminOrderService.updateOrder(order.id, {
+                        status,
+                      });
+
+                      setOrders((prev) =>
+                        prev.map((o) =>
+                          o.id === order.id
+                            ? { ...o, status }
+                            : o
+                        )
+                      );
+                    } catch (err) {
+                      alert("Failed to update order.");
+                    }
+                  }}
+                >
+                  <option>Pending</option>
+                  <option>Processing</option>
+                  <option>Paid</option>
+                  <option>Shipped</option>
+                  <option>Delivered</option>
+                  <option>Cancelled</option>
+                </select>
+              </td>
 
               <td>{order.payment_method}</td>
 

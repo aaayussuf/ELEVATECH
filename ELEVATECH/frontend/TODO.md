@@ -1,8 +1,6 @@
-# Recently Viewed Feature - Implementation Steps
+# TODO — Connect Notifications to Dashboard
 
-- [x] Create `src/components/products/RecentlyViewed.jsx` component
-- [x] Add `useEffect` in `ProductDetails.jsx` to save viewed products to localStorage
-- [x] Import `RecentlyViewed` component in `ProductDetails.jsx`
-- [x] Render `<RecentlyViewed />` near the bottom of `ProductDetails.jsx`
-- [x] Verify changes
-
+- [x] 1. Import NotificationPanel into Dashboard.jsx
+- [x] 2. Add notifications state
+- [x] 3. Update loadDashboard() to fetch dashboard + notifications in parallel
+- [x] 4. Render NotificationPanel after the Admin Dashboard h1

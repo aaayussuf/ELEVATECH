@@ -23,8 +23,19 @@ const adminProductService = {
     return data;
   },
 
-  async deleteProduct(id) {
+async deleteProduct(id) {
     const { data } = await api.delete(`${BASE}/${id}`);
+    return data;
+  },
+
+  async bulkDelete(ids) {
+    const { data } = await api.delete(
+      "/api/admin/products/bulk-delete",
+      {
+        data: { ids }
+      }
+    );
+
     return data;
   },
 
@@ -52,13 +63,21 @@ const adminProductService = {
     return data;
   },
 
-  async getStats() {
+async getStats() {
     const { data } = await api.get(
       `${BASE}/stats`
     );
 
     return data;
-  }
+  },
+
+  async getLowStock() {
+    const { data } = await api.get(
+      "/api/admin/products/low-stock"
+    );
+
+    return data;
+  },
 };
 
 export default adminProductService;

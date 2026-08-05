@@ -342,3 +342,64 @@ def featured_products():
         "count": len(products),
         "products": [p.to_dict() for p in products]
     })
+
+
+# ======================================================
+# INVENTORY
+# ======================================================
+@admin_products_bp.route("/inventory", methods=["GET"])
+@jwt_required()
+@admin_required
+def inventory():
+
+    products = Product.query.order_by(Product.name.asc()).all()
+
+    inventory = []
+
+    for product in products:
+
+        if product.quantity == 0:
+            status = "Out of Stock"
+        elif product.quantity <= product.low_stock:
+            status = "Low Stock"
+        else:
+            status = "In Stock"
+
+        inventory.append({
+            "id": product.id,
+            "name": product.name,
+            "sku": product.sku,
+            "stock": product.quantity,
+            "low_stock": product.low_stock,
+            "status": status,
+        })
+
+    return jsonify(inventory)
+
+
+# ======================================================
+# BULK DELETE PRODUCTS
+# ======================================================
+@admin_products_bp.route("/bulk-delete", methods=["DELETE"])
+@jwt_required()
+@admin_required
+def bulk_delete_products():
+
+    data = request.get_json()
+
+    ids = data.get("ids", [])
+
+    if not ids:
+        return jsonify({
+            "message": "No products selected"
+        }), 400
+
+    Product.query.filter(
+        Product.id.in_(ids)
+    ).delete(synchronize_session=False)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Products deleted successfully"
+    })
