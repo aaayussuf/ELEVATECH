@@ -7,5 +7,9 @@ from .wishlist import Wishlist
 from .payment import Payment
 from .review import Review
 from .coupon import Coupon
+from .supplier import Supplier
+from .purchase_order import PurchaseOrder
+from .purchase_order_item import PurchaseOrderItem
+from .inventory_movement import InventoryMovement
 
 

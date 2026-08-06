@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from app.extensions import db
+from app.extensions.socketio import socketio
 from app.models.order import Order
 
 
@@ -45,5 +46,13 @@ def update_order(order_id, data):
         order.notes = data["notes"]
 
     db.session.commit()
+
+    socketio.emit(
+        "order_updated",
+        {
+            "order_id": order.id,
+            "status": order.status,
+        }
+    )
 
     return order

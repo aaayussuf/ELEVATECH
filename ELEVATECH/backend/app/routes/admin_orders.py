@@ -5,12 +5,14 @@ from flask_jwt_extended import jwt_required
 
 from app.utils.admin_required import admin_required
 from app.extensions import db
+from app.extensions.socketio import socketio
 from app.models.order import Order
 from app.services.admin_order_service import (
     get_all_orders,
     get_order,
     update_order,
 )
+from app.services.admin_kanban_service import get_kanban_orders
 
 admin_orders_bp = Blueprint(
     "admin_orders",
@@ -79,6 +81,16 @@ def update_order_route(order_id):
     return jsonify(order.to_dict())
 
 
+@admin_orders_bp.route("/kanban", methods=["GET"])
+@jwt_required()
+@admin_required
+def kanban():
+
+    return jsonify(
+        get_kanban_orders()
+    )
+
+
 # ======================================================
 # UPDATE COMPLETE ORDER
 # ======================================================
@@ -114,5 +126,13 @@ def update_order_full(order_id):
         order.delivered_at = datetime.utcnow()
 
     db.session.commit()
+
+    socketio.emit(
+        "order_updated",
+        {
+            "order_id": order.id,
+            "status": order.status,
+        }
+    )
 
     return jsonify(order.to_dict())

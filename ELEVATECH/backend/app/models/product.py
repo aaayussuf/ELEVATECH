@@ -31,6 +31,18 @@ class Product(BaseModel):
 
     track_inventory = db.Column(db.Boolean, default=True)
 
+    minimum_stock = db.Column(db.Integer, default=10)
+
+    reorder_quantity = db.Column(db.Integer, default=20)
+
+    # Reorder Supplier
+    supplier_id = db.Column(
+        db.Integer,
+        db.ForeignKey("suppliers.id")
+    )
+
+    supplier = db.relationship("Supplier")
+
     # Images
     image = db.Column(db.String(255))
 
@@ -141,6 +153,14 @@ class Product(BaseModel):
             "low_stock": self.low_stock,
 
             "track_inventory": self.track_inventory,
+
+            "minimum_stock": self.minimum_stock,
+
+            "reorder_quantity": self.reorder_quantity,
+
+            "supplier_id": self.supplier_id,
+
+            "supplier_name": self.supplier.company_name if self.supplier else None,
 
             "image": self.image,
 

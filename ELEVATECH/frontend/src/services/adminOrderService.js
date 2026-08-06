@@ -21,7 +21,15 @@ const adminOrderService = {
     );
 
     return data;
-  }
+  },
+
+  async getKanban() {
+    const { data } = await api.get(
+      "/api/admin/orders/kanban"
+    );
+
+    return data;
+  },
 
 };
 

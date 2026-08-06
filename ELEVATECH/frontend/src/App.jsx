@@ -21,12 +21,19 @@ import ProductList from "./pages/admin/ProductList";
 import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
 import AdminOrderDetails from "./pages/admin/orders/OrderDetails";
+import OrderBoard from "./pages/admin/orders/OrderBoard";
 import AdminCategories from "./pages/admin/Categories";
 import CreateCategory from "./pages/admin/CreateCategory";
 import EditCategory from "./pages/admin/EditCategory";
 import Coupons from "./pages/admin/Coupons";
 import CreateCoupon from "./pages/admin/CreateCoupon";
 import Inventory from "./pages/admin/Inventory";
+import SupplierList from "./pages/admin/suppliers/SupplierList";
+import Suppliers from "./pages/admin/Suppliers";
+import CreateSupplier from "./pages/admin/suppliers/CreateSupplier";
+import PurchaseOrders from "./pages/admin/PurchaseOrders";
+import PurchaseOrderDetails from "./pages/admin/PurchaseOrderDetails";
+import PurchaseOrderCreate from "./pages/admin/PurchaseOrderCreate";
 
 import AccountDashboard from "./pages/account/Dashboard";
 import AccountProfile from "./pages/account/Profile";
@@ -85,6 +92,12 @@ function App() {
         <Route path="/admin/categories/:id/edit" element={<EditCategory />} />
 <Route path="/admin/coupons" element={<Coupons />} />
         <Route path="/admin/coupons/new" element={<CreateCoupon />} />
+<Route path="/admin/suppliers" element={<Suppliers />} />
+<Route path="/admin/suppliers/create" element={<CreateSupplier />} />
+<Route path="/admin/purchase-orders" element={<PurchaseOrders />} />
+<Route path="/admin/purchase-orders/new" element={<PurchaseOrderCreate />} />
+        <Route path="/admin/purchase-orders/:id" element={<PurchaseOrderDetails />} />
+<Route path="/admin/orders/board" element={<OrderBoard />} />
         <Route path="/admin/orders/:id" element={<AdminOrderDetails />} />
       </Route>
       <Route path="/*" element={<ProtectedAccountRoutes />} />

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import adminDashboardService from "../../services/adminDashboardService";
+import socket from "../../services/socketService";
 
 import StatCard from "../../components/admin/dashboard/StatCard";
 import SalesChart from "../../components/admin/dashboard/SalesChart";
@@ -15,7 +16,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  useEffect(() => {
+useEffect(() => {
     loadDashboard();
 
     const interval = setInterval(() => {
@@ -23,6 +24,18 @@ export default function Dashboard() {
     }, 30000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    socket.on("notification", (data) => {
+      console.log("Realtime:", data);
+
+      loadDashboard();
+    });
+
+    return () => {
+      socket.off("notification");
+    };
   }, []);
 
   async function loadDashboard() {

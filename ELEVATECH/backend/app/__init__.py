@@ -2,7 +2,7 @@ from flask import Flask  # type: ignore
 from flask_cors import CORS  # type: ignore
 
 from config import Config
-from app.extensions import db, migrate, jwt, mail
+from app.extensions import db, migrate, jwt, mail, socketio
 
 # Import models
 from app.models import User, Category, Product
@@ -24,8 +24,13 @@ from app.routes.upload import upload_bp
 from app.routes.categories import categories_bp
 from app.routes.admin_categories import admin_categories_bp
 from app.routes.admin_coupons import admin_coupons_bp
+from app.routes.admin_suppliers import admin_suppliers_bp
+from app.routes.admin_purchase_orders import purchase_orders_bp
+from app.routes.admin_purchase_order_items import purchase_order_items_bp
 from app.routes.coupons import coupons_bp
 from app.routes.reviews import reviews_bp
+from app.routes.admin_inventory import inventory_bp
+from app.socket_events import send_test_notification
 
 
 def create_app():
@@ -43,6 +48,7 @@ def create_app():
     migrate.init_app(app, db)
     jwt.init_app(app)
     mail.init_app(app)
+    socketio.init_app(app)
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(products_bp)
@@ -62,11 +68,20 @@ def create_app():
     app.register_blueprint(categories_bp)
     app.register_blueprint(admin_categories_bp)
     app.register_blueprint(admin_coupons_bp)
+    app.register_blueprint(admin_suppliers_bp)
+    app.register_blueprint(purchase_orders_bp)
+    app.register_blueprint(purchase_order_items_bp)
     app.register_blueprint(coupons_bp)
     app.register_blueprint(reviews_bp)
+    app.register_blueprint(inventory_bp)
 
     @app.route("/")
     def home():
         return {"message": "Welcome to ELEVATECH API"}
+
+    @app.route("/api/test-notification")
+    def test_notification():
+        send_test_notification()
+        return {"message": "Test notification sent"}
 
     return app
