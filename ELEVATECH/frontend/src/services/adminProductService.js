@@ -3,6 +3,13 @@ import api from "./api";
 const BASE = "/api/admin/products";
 
 const adminProductService = {
+  async getAll() {
+    const { data } = await api.get(BASE, {
+      params: { per_page: 1000 },
+    });
+    return data.products || [];
+  },
+
   async listProducts(params = {}) {
     const { data } = await api.get(BASE, { params });
     return data;

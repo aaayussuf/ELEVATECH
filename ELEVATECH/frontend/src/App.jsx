@@ -35,6 +35,7 @@ import CreateSupplier from "./pages/admin/suppliers/CreateSupplier";
 import PurchaseOrders from "./pages/admin/PurchaseOrders";
 import PurchaseOrderDetails from "./pages/admin/PurchaseOrderDetails";
 import PurchaseOrderCreate from "./pages/admin/PurchaseOrderCreate";
+import NewPurchaseOrder from "./pages/admin/NewPurchaseOrder";
 
 import AccountDashboard from "./pages/account/Dashboard";
 import AccountProfile from "./pages/account/Profile";
@@ -97,7 +98,7 @@ function App() {
 <Route path="/admin/suppliers" element={<Suppliers />} />
 <Route path="/admin/suppliers/create" element={<CreateSupplier />} />
 <Route path="/admin/purchase-orders" element={<PurchaseOrders />} />
-<Route path="/admin/purchase-orders/new" element={<PurchaseOrderCreate />} />
+<Route path="/admin/purchase-orders/new" element={<NewPurchaseOrder />} />
         <Route path="/admin/purchase-orders/:id" element={<PurchaseOrderDetails />} />
 <Route path="/admin/orders/board" element={<OrderBoard />} />
         <Route path="/admin/orders/:id" element={<AdminOrderDetails />} />

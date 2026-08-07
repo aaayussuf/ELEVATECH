@@ -1,24 +1,43 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+
 import purchaseOrderService from "../../services/purchaseOrderService";
+import purchaseOrderItemService from "../../services/purchaseOrderItemService";
+import adminProductService from "../../services/adminProductService";
 
 export default function PurchaseOrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [purchaseOrder, setPurchaseOrder] = useState(null);
+  const [products, setProducts] = useState([]);
+
   const [loading, setLoading] = useState(true);
-  const [receiving, setReceiving] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [receiving, setReceiving] = useState(false);
+
+const [editing, setEditing] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
+
+  const [editingItem, setEditingItem] = useState({
+    quantity: "",
+    cost_price: "",
+  });
 
   const [editForm, setEditForm] = useState({
     status: "Draft",
     notes: "",
   });
 
+  const [newItem, setNewItem] = useState({
+    product_id: "",
+    quantity: 1,
+    cost_price: 0,
+  });
+
   useEffect(() => {
     loadPurchaseOrder();
+    loadProducts();
   }, [id]);
 
   async function loadPurchaseOrder() {
@@ -35,11 +54,28 @@ export default function PurchaseOrderDetails() {
       });
     } catch (err) {
       console.error("Purchase order error:", err);
-
       alert("Failed to load purchase order.");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadProducts() {
+    try {
+      const data = await adminProductService.getAll();
+
+      setProducts(data || []);
+    } catch (err) {
+      console.error("Products error:", err);
+    }
+  }
+
+  function canEdit() {
+    return (
+      purchaseOrder &&
+      purchaseOrder.status !== "Received" &&
+      purchaseOrder.status !== "Cancelled"
+    );
   }
 
   async function handleReceive() {
@@ -51,7 +87,7 @@ export default function PurchaseOrderDetails() {
 
     const confirmed = window.confirm(
       `Receive purchase order #${purchaseOrder.id}?\n\n` +
-      `This will add all ordered quantities to inventory.`
+        `This will add all ordered quantities to inventory.`
     );
 
     if (!confirmed) {
@@ -71,7 +107,7 @@ export default function PurchaseOrderDetails() {
 
       alert(
         err?.response?.data?.message ||
-        "Failed to receive purchase order."
+          "Failed to receive purchase order."
       );
     } finally {
       setReceiving(false);
@@ -100,11 +136,152 @@ export default function PurchaseOrderDetails() {
 
       alert(
         err?.response?.data?.message ||
-        "Failed to update purchase order."
+          "Failed to update purchase order."
       );
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleAddItem() {
+    if (!newItem.product_id) {
+      alert("Please select a product.");
+      return;
+    }
+
+    const quantity = Number(newItem.quantity);
+    const costPrice = Number(newItem.cost_price);
+
+    if (quantity <= 0) {
+      alert("Quantity must be greater than 0.");
+      return;
+    }
+
+    if (costPrice < 0) {
+      alert("Cost price cannot be negative.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await purchaseOrderItemService.create({
+        purchase_order_id: Number(purchaseOrder.id),
+        product_id: Number(newItem.product_id),
+        quantity,
+        cost_price: costPrice,
+      });
+
+      setNewItem({
+        product_id: "",
+        quantity: 1,
+        cost_price: 0,
+      });
+
+      await loadPurchaseOrder();
+
+      alert("Product added to purchase order.");
+    } catch (err) {
+      console.error("Add PO item error:", err);
+
+      alert(
+        err?.response?.data?.message ||
+          "Failed to add product."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+async function handleUpdateItem(itemId) {
+    const quantity = Number(editingItem.quantity);
+    const costPrice = Number(editingItem.cost_price);
+
+    if (quantity <= 0) {
+      alert("Quantity must be greater than 0.");
+      return;
+    }
+
+    if (costPrice < 0) {
+      alert("Cost price cannot be negative.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await purchaseOrderItemService.update(itemId, {
+        quantity,
+        cost_price: costPrice,
+      });
+
+      setEditingItemId(null);
+
+      setEditingItem({
+        quantity: "",
+        cost_price: "",
+      });
+
+      await loadPurchaseOrder();
+
+      alert("Purchase order item updated.");
+    } catch (err) {
+      console.error("Update PO item error:", err);
+
+      alert(
+        err?.response?.data?.message ||
+          "Failed to update purchase order item."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteItem(itemId) {
+    const confirmed = window.confirm(
+      "Remove this product from the purchase order?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await purchaseOrderItemService.remove(itemId);
+
+      await loadPurchaseOrder();
+
+      alert("Product removed from purchase order.");
+    } catch (err) {
+      console.error("Delete PO item error:", err);
+
+      alert(
+        err?.response?.data?.message ||
+          "Failed to remove product."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+function startItemEdit(item) {
+    setEditingItemId(item.id);
+
+    setEditingItem({
+      quantity: item.quantity,
+      cost_price: item.cost_price,
+    });
+  }
+
+  function cancelItemEdit() {
+    setEditingItemId(null);
+
+    setEditingItem({
+      quantity: "",
+      cost_price: "",
+    });
   }
 
   if (loading) {
@@ -118,7 +295,7 @@ export default function PurchaseOrderDetails() {
   if (!purchaseOrder) {
     return (
       <div className="p-6">
-        <p className="text-red-600">
+        <p className="text-gray-600 mb-4">
           Purchase order not found.
         </p>
 
@@ -138,7 +315,7 @@ export default function PurchaseOrderDetails() {
     (sum, item) =>
       sum +
       Number(item.quantity || 0) *
-      Number(item.cost_price || 0),
+        Number(item.cost_price || 0),
     0
   );
 
@@ -146,11 +323,9 @@ export default function PurchaseOrderDetails() {
     <div className="p-6">
 
       {/* Header */}
-
       <div className="flex justify-between items-start mb-8">
 
         <div>
-
           <Link
             to="/admin/purchase-orders"
             className="text-blue-600 hover:underline text-sm"
@@ -168,12 +343,10 @@ export default function PurchaseOrderDetails() {
               purchaseOrder.created_at
             ).toLocaleString()}
           </p>
-
         </div>
 
         <div className="flex items-center gap-3">
 
-          {/* Status */}
           <span
             className={`px-4 py-2 rounded-full text-sm font-semibold ${
               purchaseOrder.status === "Received"
@@ -186,20 +359,15 @@ export default function PurchaseOrderDetails() {
             {purchaseOrder.status}
           </span>
 
-          {/* Edit */}
-          {purchaseOrder.status !== "Received" &&
-            purchaseOrder.status !== "Cancelled" && (
+          {canEdit() && (
+            <>
               <button
                 onClick={() => setEditing(true)}
                 className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"
               >
                 Edit
               </button>
-            )}
 
-          {/* Receive */}
-          {purchaseOrder.status !== "Received" &&
-            purchaseOrder.status !== "Cancelled" && (
               <button
                 onClick={handleReceive}
                 disabled={receiving}
@@ -209,14 +377,13 @@ export default function PurchaseOrderDetails() {
                   ? "Receiving..."
                   : "Receive Purchase Order"}
               </button>
-            )}
+            </>
+          )}
 
         </div>
-
       </div>
 
       {/* Supplier */}
-
       <div className="bg-white rounded-xl shadow border p-6 mb-6">
 
         <h2 className="text-xl font-bold mb-4">
@@ -266,12 +433,10 @@ export default function PurchaseOrderDetails() {
           </div>
 
         </div>
-
       </div>
 
-      {/* Edit Form */}
-
-      {editing && (
+      {/* Edit PO */}
+      {editing && canEdit() && (
         <div className="bg-white rounded-xl shadow border p-6 mb-6">
 
           <h2 className="text-xl font-bold mb-5">
@@ -344,7 +509,9 @@ export default function PurchaseOrderDetails() {
               disabled={saving}
               className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving
+                ? "Saving..."
+                : "Save Changes"}
             </button>
 
           </div>
@@ -353,7 +520,6 @@ export default function PurchaseOrderDetails() {
       )}
 
       {/* Notes */}
-
       {purchaseOrder.notes && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
 
@@ -368,8 +534,111 @@ export default function PurchaseOrderDetails() {
         </div>
       )}
 
-      {/* Items */}
+      {/* Add Product */}
+      {canEdit() && (
+        <div className="bg-white rounded-xl shadow border p-6 mb-6">
 
+          <h2 className="text-xl font-bold mb-5">
+            Add Product
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+
+            <div className="md:col-span-2">
+
+              <label className="block text-sm font-medium mb-2">
+                Product
+              </label>
+
+              <select
+                value={newItem.product_id}
+                onChange={(e) =>
+                  setNewItem({
+                    ...newItem,
+                    product_id: e.target.value,
+                  })
+                }
+                className="w-full border rounded-lg px-4 py-2"
+              >
+                <option value="">
+                  Select product
+                </option>
+
+                {products.map((product) => (
+                  <option
+                    key={product.id}
+                    value={product.id}
+                  >
+                    {product.name}
+                  </option>
+                ))}
+              </select>
+
+            </div>
+
+            <div>
+
+              <label className="block text-sm font-medium mb-2">
+                Quantity
+              </label>
+
+              <input
+                type="number"
+                min="1"
+                value={newItem.quantity}
+                onChange={(e) =>
+                  setNewItem({
+                    ...newItem,
+                    quantity: e.target.value,
+                  })
+                }
+                className="w-full border rounded-lg px-4 py-2"
+              />
+
+            </div>
+
+            <div>
+
+              <label className="block text-sm font-medium mb-2">
+                Cost Price
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={newItem.cost_price}
+                onChange={(e) =>
+                  setNewItem({
+                    ...newItem,
+                    cost_price: e.target.value,
+                  })
+                }
+                className="w-full border rounded-lg px-4 py-2"
+              />
+
+            </div>
+
+          </div>
+
+          <div className="flex justify-end mt-4">
+
+            <button
+              onClick={handleAddItem}
+              disabled={saving}
+              className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving
+                ? "Adding..."
+                : "+ Add Product"}
+            </button>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* Items */}
       <div className="bg-white rounded-xl shadow border overflow-hidden">
 
         <div className="p-6 border-b">
@@ -402,6 +671,12 @@ export default function PurchaseOrderDetails() {
                 Total
               </th>
 
+              {canEdit() && (
+                <th className="text-left p-4">
+                  Actions
+                </th>
+              )}
+
             </tr>
 
           </thead>
@@ -413,7 +688,7 @@ export default function PurchaseOrderDetails() {
               <tr>
 
                 <td
-                  colSpan="4"
+                  colSpan={canEdit() ? 5 : 4}
                   className="p-8 text-center text-gray-500"
                 >
                   No products have been added to this purchase
@@ -425,6 +700,9 @@ export default function PurchaseOrderDetails() {
             ) : (
 
               items.map((item) => {
+
+                const isEditing =
+                  editingItemId === item.id;
 
                 const itemTotal =
                   Number(item.quantity || 0) *
@@ -441,23 +719,121 @@ export default function PurchaseOrderDetails() {
                     </td>
 
                     <td className="p-4">
-                      {item.quantity}
+
+                      {isEditing ? (
+
+<input
+                          type="number"
+                          min="1"
+                          value={editingItem.quantity}
+                          onChange={(e) =>
+                            setEditingItem({
+                              ...editingItem,
+                              quantity: e.target.value,
+                            })
+                          }
+                          className="w-24 border rounded px-2 py-1"
+                        />
+
+                      ) : (
+                        item.quantity
+                      )}
+
                     </td>
 
                     <td className="p-4">
-                      ${Number(
-                        item.cost_price || 0
-                      ).toFixed(2)}
+
+                      {isEditing ? (
+
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={editingItem.cost_price}
+                          onChange={(e) =>
+                            setEditingItem({
+                              ...editingItem,
+                              cost_price: e.target.value,
+                            })
+                          }
+                          className="w-28 border rounded px-2 py-1"
+                        />
+
+                      ) : (
+                        `$${Number(
+                          item.cost_price || 0
+                        ).toFixed(2)}`
+                      )}
+
                     </td>
 
                     <td className="p-4 font-semibold">
-                      ${itemTotal.toFixed(2)}
+
+                      {isEditing
+                        ? "-"
+                        : `$${itemTotal.toFixed(2)}`}
+
                     </td>
+
+                    {canEdit() && (
+                      <td className="p-4">
+
+                        {isEditing ? (
+
+                          <div className="flex gap-2">
+
+<button
+                              onClick={() =>
+                                handleUpdateItem(item.id)
+                              }
+                              disabled={saving}
+                              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50"
+                            >
+                              Save
+                            </button>
+
+                            <button
+                              onClick={cancelItemEdit}
+                              className="border px-3 py-1 rounded"
+                            >
+                              Cancel
+                            </button>
+
+                          </div>
+
+                        ) : (
+
+                          <div className="flex gap-2">
+
+                            <button
+                              onClick={() =>
+                                startItemEdit(item)
+                              }
+                              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                handleDeleteItem(item.id)
+                              }
+                              disabled={saving}
+                              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 disabled:opacity-50"
+                            >
+                              Delete
+                            </button>
+
+                          </div>
+
+                        )}
+
+                      </td>
+                    )}
 
                   </tr>
                 );
               })
-
             )}
 
           </tbody>
@@ -465,7 +841,6 @@ export default function PurchaseOrderDetails() {
         </table>
 
         {/* Total */}
-
         <div className="flex justify-end border-t p-6">
 
           <div className="text-right">
