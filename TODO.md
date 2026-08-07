@@ -1,5 +1,10 @@
-# TODO — Emit Socket.IO event after updating an order
+# TODO - PurchaseOrderDetails.jsx Task
 
-- [x] Step 1: Emit `order_updated` event in `admin_order_service.py` `update_order()` after `db.session.commit()`
-- [x] Step 2: Emit `order_updated` event in `admin_orders.py` PUT route `update_order_full()` after `db.session.commit()`
-- [x] Step 3: Add `socket` listener in `OrderBoard.jsx` that calls `loadBoard()` on `order_updated`
+## Steps
+
+- [x] Analyze the task and explore relevant files (PurchaseOrderDetails.jsx, App.jsx, PurchaseOrders.jsx, purchaseOrderService.js, backend models/routes)
+- [x] Replace `frontend/src/pages/admin/PurchaseOrderDetails.jsx` with the provided new version
+- [x] Verify the route `/admin/purchase-orders/:id` exists in `App.jsx` (already present)
+- [x] Verify `PurchaseOrders.jsx` uses `po.supplier?.company_name` (already present)
+- [x] Verify the frontend builds (`npm run build` passed)
+

@@ -28,6 +28,7 @@ import EditCategory from "./pages/admin/EditCategory";
 import Coupons from "./pages/admin/Coupons";
 import CreateCoupon from "./pages/admin/CreateCoupon";
 import Inventory from "./pages/admin/Inventory";
+import ReorderSuggestions from "./pages/admin/ReorderSuggestions";
 import SupplierList from "./pages/admin/suppliers/SupplierList";
 import Suppliers from "./pages/admin/Suppliers";
 import CreateSupplier from "./pages/admin/suppliers/CreateSupplier";
@@ -85,6 +86,7 @@ function App() {
 <Route path="/admin/customers/:id" element={<CustomerDetails />} />
         <Route path="/admin/products" element={<ProductList />} />
         <Route path="/admin/inventory" element={<Inventory />} />
+        <Route path="/admin/inventory/reorder-suggestions" element={<ReorderSuggestions />} />
         <Route path="/admin/products/create" element={<CreateProduct />} />
         <Route path="/admin/products/:id/edit" element={<EditProduct />} />
         <Route path="/admin/categories" element={<AdminCategories />} />

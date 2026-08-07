@@ -1,9 +1,11 @@
 import api from "./api";
 
 const inventoryService = {
+  async getInventory() {
+    const { data } = await api.get(
+      "/api/admin/products/inventory"
+    );
 
-async getInventory() {
-    const { data } = await api.get("/api/admin/products/inventory");
     return data;
   },
 
@@ -14,8 +16,16 @@ async getInventory() {
     );
 
     return data;
-  }
+  },
 
+  async getReorderSuggestions() {
+    const { data } = await api.get(
+      "/api/admin/inventory/reorder-suggestions"
+    );
+
+    return data;
+  },
 };
 
 export default inventoryService;
+

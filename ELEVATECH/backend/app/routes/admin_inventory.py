@@ -2,9 +2,7 @@ from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 
 from app.utils.admin_required import admin_required
-from app.services.inventory_reorder_service import (
-    get_reorder_suggestions
-)
+from app.services.inventory_service import get_reorder_suggestions
 
 inventory_bp = Blueprint(
     "inventory",
@@ -13,11 +11,8 @@ inventory_bp = Blueprint(
 )
 
 
-@inventory_bp.route("/reorder-suggestions")
+@inventory_bp.route("/reorder-suggestions", methods=["GET"])
 @jwt_required()
 @admin_required
 def reorder_suggestions():
-
-    return jsonify(
-        get_reorder_suggestions()
-    )
+    return jsonify(get_reorder_suggestions())

@@ -1,10 +1,10 @@
-# Smart Reorder Suggestions - Implementation Checklist
+# TODO
 
-## Steps
-- [x] 1. Analyze task & understand codebase
-- [x] 2. Add database fields to Product model (minimum_stock, reorder_quantity, supplier_id, supplier)
-- [x] 3. Create reorder service (`app/services/inventory_reorder_service.py`)
-- [x] 4. Create admin route (`app/routes/admin_inventory.py`)
-- [x] 5. Register the blueprint in `app/__init__.py`
-- [x] 6. Create Alembic migration for new Product columns
-- [x] 7. Run migration to update database
+## Inventory Service Update
+
+- [x] 1. Understand current state of `inventory_service.py`, `admin_inventory.py`, and related models/services
+- [x] 2. Confirm plan with user
+- [x] 3. Replace `inventory_service.py` with the provided complete version
+- [x] 4. Update `admin_inventory.py` to import `get_reorder_suggestions` from `inventory_service`
+- [x] 5. Run Python syntax check on both edited files
+

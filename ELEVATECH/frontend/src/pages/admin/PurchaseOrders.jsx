@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import purchaseOrderService from "../../services/purchaseOrderService";
 
 export default function PurchaseOrders() {
+  const navigate = useNavigate();
+
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,12 +45,12 @@ export default function PurchaseOrders() {
           Purchase Orders
         </h1>
 
-<Link
-          to="/admin/purchase-orders/new"
+<button
+          onClick={() => navigate("/admin/purchase-orders/new")}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           + New Purchase Order
-        </Link>
+        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow border overflow-hidden">
@@ -97,11 +99,21 @@ export default function PurchaseOrders() {
                 </td>
 
                 <td className="p-4">
-                  {po.supplier?.name}
+                  {po.supplier?.company_name || "Unknown Supplier"}
                 </td>
 
                 <td className="p-4">
-                  {po.status}
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      po.status === "Received"
+                        ? "bg-green-100 text-green-700"
+                        : po.status === "Cancelled"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {po.status}
+                  </span>
                 </td>
 
                 <td className="p-4">
@@ -112,11 +124,25 @@ export default function PurchaseOrders() {
 
                   {po.status !== "Received" && (
                     <button
-                      onClick={() => receivePurchaseOrder(po.id)}
+                      onClick={() => {
+                        const confirmed = window.confirm(
+                          `Receive purchase order #${po.id}? This will add all PO quantities to inventory.`
+                        );
+
+                        if (confirmed) {
+                          receivePurchaseOrder(po.id);
+                        }
+                      }}
                       className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
                     >
                       Receive
                     </button>
+                  )}
+
+                  {po.status === "Received" && (
+                    <span className="text-green-600 font-medium">
+                      Received
+                    </span>
                   )}
 
                 </td>
