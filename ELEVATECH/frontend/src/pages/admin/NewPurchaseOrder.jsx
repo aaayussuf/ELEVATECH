@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import purchaseOrderService from "../../services/purchaseOrderService";
 import purchaseOrderItemService from "../../services/purchaseOrderItemService";
@@ -8,36 +8,34 @@ import adminProductService from "../../services/adminProductService";
 
 export default function NewPurchaseOrder() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
 
-  const suggestionProductId = searchParams.get("product_id");
-  const suggestionQuantity = searchParams.get("quantity");
-  const suggestionSupplierId = searchParams.get("supplier_id");
+  const suggestion = location.state?.suggestion;
 
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
   const [supplierId, setSupplierId] = useState(
-    suggestionSupplierId || ""
+    suggestion?.supplier_id || ""
   );
 
   const [status, setStatus] = useState("Draft");
   const [notes, setNotes] = useState("");
 
-  const [selectedProductId, setSelectedProductId] = useState(
-    suggestionProductId || ""
+  const [productId, setProductId] = useState(
+    suggestion?.product_id || ""
   );
 
   const [quantity, setQuantity] = useState(
-    suggestionQuantity || 1
+    suggestion?.recommended_quantity || 1
   );
 
-  const [costPrice, setCostPrice] = useState("");
+  const [costPrice, setCostPrice] = useState(0);
 
   const [items, setItems] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -53,79 +51,70 @@ export default function NewPurchaseOrder() {
           adminProductService.getAll(),
         ]);
 
-      setSuppliers(supplierData || []);
-      setProducts(productData || []);
+      setSuppliers(supplierData);
+      setProducts(productData);
 
-      if (
-        suggestionProductId &&
-        productData?.length
-      ) {
-        const product = productData.find(
-          (p) =>
-            Number(p.id) ===
-            Number(suggestionProductId)
+      /*
+       * If this page came from a reorder suggestion,
+       * automatically add the suggested product.
+       */
+      if (suggestion?.product_id) {
+        const suggestedProduct = productData.find(
+          (product) =>
+            Number(product.id) ===
+            Number(suggestion.product_id)
         );
 
-        if (product) {
+        if (suggestedProduct) {
+          setItems([
+            {
+              product_id: suggestedProduct.id,
+              product_name: suggestedProduct.name,
+              quantity:
+                suggestion.recommended_quantity || 1,
+              cost_price:
+                Number(suggestedProduct.cost_price) || 0,
+            },
+          ]);
+
           setCostPrice(
-            product.cost_price
-              ? String(product.cost_price)
-              : ""
+            Number(suggestedProduct.cost_price) || 0
           );
         }
       }
     } catch (err) {
-      console.error(
-        "New purchase order loading error:",
-        err
-      );
+      console.error("New purchase order error:", err);
 
       alert(
         err?.response?.data?.message ||
-          "Failed to load purchase order data."
+        "Failed to load purchase order data."
       );
     } finally {
       setLoading(false);
     }
   }
 
-  function handleProductChange(productId) {
-    setSelectedProductId(productId);
-
-    const product = products.find(
-      (p) => Number(p.id) === Number(productId)
-    );
-
-    if (product?.cost_price) {
-      setCostPrice(String(product.cost_price));
-    } else {
-      setCostPrice("");
-    }
-  }
-
   function addProduct() {
-    if (!selectedProductId) {
+    if (!productId) {
       alert("Please select a product.");
       return;
     }
 
-    const parsedQuantity = Number(quantity);
-    const parsedCostPrice = Number(costPrice);
+    const qty = Number(quantity);
+    const price = Number(costPrice);
 
-    if (parsedQuantity <= 0) {
-      alert("Quantity must be greater than 0.");
+    if (qty <= 0) {
+      alert("Quantity must be greater than zero.");
       return;
     }
 
-    if (parsedCostPrice < 0) {
+    if (price < 0) {
       alert("Cost price cannot be negative.");
       return;
     }
 
     const product = products.find(
-      (p) =>
-        Number(p.id) ===
-        Number(selectedProductId)
+      (p) => Number(p.id) === Number(productId)
     );
 
     if (!product) {
@@ -133,24 +122,21 @@ export default function NewPurchaseOrder() {
       return;
     }
 
-    const existingItem = items.find(
+    const existing = items.find(
       (item) =>
-        Number(item.product_id) ===
-        Number(selectedProductId)
+        Number(item.product_id) === Number(productId)
     );
 
-    if (existingItem) {
+    if (existing) {
       setItems(
         items.map((item) =>
           Number(item.product_id) ===
-          Number(selectedProductId)
+          Number(productId)
             ? {
                 ...item,
                 quantity:
-                  Number(item.quantity) +
-                  parsedQuantity,
-                cost_price:
-                  parsedCostPrice,
+                  Number(item.quantity) + qty,
+                cost_price: price,
               }
             : item
         )
@@ -159,17 +145,17 @@ export default function NewPurchaseOrder() {
       setItems([
         ...items,
         {
-          product_id: Number(selectedProductId),
+          product_id: product.id,
           product_name: product.name,
-          quantity: parsedQuantity,
-          cost_price: parsedCostPrice,
+          quantity: qty,
+          cost_price: price,
         },
       ]);
     }
 
-    setSelectedProductId("");
+    setProductId("");
     setQuantity(1);
-    setCostPrice("");
+    setCostPrice(0);
   }
 
   function removeProduct(productId) {
@@ -182,65 +168,64 @@ export default function NewPurchaseOrder() {
     );
   }
 
-  function updateItem(itemProductId, field, value) {
+  function updateItemQuantity(productId, value) {
+    const qty = Number(value);
+
+    if (qty < 1) {
+      return;
+    }
+
     setItems(
       items.map((item) =>
         Number(item.product_id) ===
-        Number(itemProductId)
+        Number(productId)
           ? {
               ...item,
-              [field]: value,
+              quantity: qty,
             }
           : item
       )
     );
   }
 
-  function getTotal() {
-    return items.reduce(
-      (total, item) =>
-        total +
-        Number(item.quantity || 0) *
-          Number(item.cost_price || 0),
-      0
+  function updateItemCost(productId, value) {
+    const price = Number(value);
+
+    if (price < 0) {
+      return;
+    }
+
+    setItems(
+      items.map((item) =>
+        Number(item.product_id) ===
+        Number(productId)
+          ? {
+              ...item,
+              cost_price: price,
+            }
+          : item
+      )
     );
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-
+  async function handleCreate() {
     if (!supplierId) {
       alert("Please select a supplier.");
       return;
     }
 
     if (items.length === 0) {
-      alert(
-        "Please add at least one product."
-      );
+      alert("Please add at least one product.");
       return;
-    }
-
-    for (const item of items) {
-      if (Number(item.quantity) <= 0) {
-        alert(
-          `Invalid quantity for ${item.product_name}.`
-        );
-        return;
-      }
-
-      if (Number(item.cost_price) < 0) {
-        alert(
-          `Invalid cost price for ${item.product_name}.`
-        );
-        return;
-      }
     }
 
     try {
       setSaving(true);
 
-      // Create the purchase order first.
+      /*
+       * Step 1:
+       * Create the purchase order.
+       */
       const purchaseOrder =
         await purchaseOrderService.create({
           supplier_id: Number(supplierId),
@@ -248,23 +233,21 @@ export default function NewPurchaseOrder() {
           notes,
         });
 
-      // Add all PO items.
+      /*
+       * Step 2:
+       * Add each product to the purchase order.
+       */
       for (const item of items) {
         await purchaseOrderItemService.create({
-          purchase_order_id:
-            purchaseOrder.id,
-          product_id: Number(
-            item.product_id
-          ),
+          purchase_order_id: purchaseOrder.id,
+          product_id: Number(item.product_id),
           quantity: Number(item.quantity),
-          cost_price: Number(
-            item.cost_price
-          ),
+          cost_price: Number(item.cost_price),
         });
       }
 
       alert(
-        "Purchase order created successfully."
+        `Purchase order #${purchaseOrder.id} created successfully.`
       );
 
       navigate(
@@ -278,12 +261,20 @@ export default function NewPurchaseOrder() {
 
       alert(
         err?.response?.data?.message ||
-          "Failed to create purchase order."
+        "Failed to create purchase order."
       );
     } finally {
       setSaving(false);
     }
   }
+
+  const total = items.reduce(
+    (sum, item) =>
+      sum +
+      Number(item.quantity || 0) *
+        Number(item.cost_price || 0),
+    0
+  );
 
   if (loading) {
     return (
@@ -297,17 +288,15 @@ export default function NewPurchaseOrder() {
     <div className="p-6 max-w-6xl mx-auto">
 
       {/* Header */}
+
       <div className="mb-8">
 
-        <button
-          type="button"
-          onClick={() =>
-            navigate("/admin/purchase-orders")
-          }
+        <Link
+          to="/admin/purchase-orders"
           className="text-blue-600 hover:underline text-sm"
         >
           ← Back to Purchase Orders
-        </button>
+        </Link>
 
         <h1 className="text-3xl font-bold mt-3">
           New Purchase Order
@@ -319,425 +308,403 @@ export default function NewPurchaseOrder() {
 
       </div>
 
-      {/* Automatic reorder notice */}
-      {suggestionProductId && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
+      {/* Reorder Suggestion */}
 
-          <h2 className="font-bold text-yellow-800">
+      {suggestion && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
+
+          <h2 className="font-bold text-blue-800">
             Automatic Reorder Suggestion
           </h2>
 
-          <p className="text-yellow-700 mt-1">
-            This purchase order was opened from
-            an inventory reorder suggestion.
+          <p className="text-blue-700 mt-2">
+            {suggestion.product_name} has reached
+            its minimum stock level.
           </p>
 
-          {suggestionQuantity && (
-            <p className="text-yellow-700 mt-2">
-              Recommended quantity:{" "}
-              <strong>
-                {suggestionQuantity}
-              </strong>
-            </p>
-          )}
+          <p className="text-blue-700 mt-1">
+            Recommended quantity:
+            <strong className="ml-1">
+              {suggestion.recommended_quantity}
+            </strong>
+          </p>
 
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      {/* Purchase Order Information */}
 
-        {/* Purchase Order Information */}
-        <div className="bg-white rounded-xl shadow border p-6 mb-6">
+      <div className="bg-white rounded-xl shadow border p-6 mb-6">
 
-          <h2 className="text-xl font-bold mb-5">
-            Purchase Order Information
-          </h2>
+        <h2 className="text-xl font-bold mb-5">
+          Purchase Order Information
+        </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-            {/* Supplier */}
-            <div>
+          <div>
 
-              <label className="block text-sm font-medium mb-2">
-                Supplier
-              </label>
+            <label className="block text-sm font-medium mb-2">
+              Supplier
+            </label>
 
-              <select
-                value={supplierId}
-                onChange={(e) =>
-                  setSupplierId(e.target.value)
-                }
-                className="w-full border rounded-lg px-4 py-2"
-                required
-              >
+            <select
+              value={supplierId}
+              onChange={(e) =>
+                setSupplierId(e.target.value)
+              }
+              className="w-full border rounded-lg px-4 py-2"
+            >
 
-                <option value="">
-                  Select supplier
-                </option>
+              <option value="">
+                Select supplier
+              </option>
 
-                {suppliers
-                  .filter(
-                    (supplier) =>
-                      supplier.active !== false
-                  )
-                  .map((supplier) => (
-                    <option
-                      key={supplier.id}
-                      value={supplier.id}
-                    >
-                      {supplier.company_name}
-                    </option>
-                  ))}
+              {suppliers
+                .filter((supplier) => supplier.active)
+                .map((supplier) => (
+                  <option
+                    key={supplier.id}
+                    value={supplier.id}
+                  >
+                    {supplier.company_name}
+                  </option>
+                ))}
 
-              </select>
+            </select>
 
-            </div>
+          </div>
 
-            {/* Status */}
-            <div>
+          <div>
 
-              <label className="block text-sm font-medium mb-2">
-                Status
-              </label>
+            <label className="block text-sm font-medium mb-2">
+              Status
+            </label>
 
-              <select
-                value={status}
-                onChange={(e) =>
-                  setStatus(e.target.value)
-                }
-                className="w-full border rounded-lg px-4 py-2"
-              >
+            <select
+              value={status}
+              onChange={(e) =>
+                setStatus(e.target.value)
+              }
+              className="w-full border rounded-lg px-4 py-2"
+            >
 
-                <option value="Draft">
-                  Draft
-                </option>
+              <option value="Draft">
+                Draft
+              </option>
 
-                <option value="Ordered">
-                  Ordered
-                </option>
+              <option value="Ordered">
+                Ordered
+              </option>
 
-              </select>
+            </select>
 
-            </div>
+          </div>
 
-            {/* Notes */}
-            <div className="md:col-span-2">
+          <div className="md:col-span-2">
 
-              <label className="block text-sm font-medium mb-2">
-                Notes
-              </label>
+            <label className="block text-sm font-medium mb-2">
+              Notes
+            </label>
 
-              <textarea
-                value={notes}
-                onChange={(e) =>
-                  setNotes(e.target.value)
-                }
-                rows="4"
-                className="w-full border rounded-lg px-4 py-2"
-                placeholder="Optional purchase order notes..."
-              />
-
-            </div>
+            <textarea
+              value={notes}
+              onChange={(e) =>
+                setNotes(e.target.value)
+              }
+              rows="4"
+              className="w-full border rounded-lg px-4 py-2"
+              placeholder="Optional purchase order notes..."
+            />
 
           </div>
 
         </div>
 
-        {/* Add Products */}
-        <div className="bg-white rounded-xl shadow border p-6 mb-6">
+      </div>
 
-          <h2 className="text-xl font-bold mb-5">
-            Add Products
-          </h2>
+      {/* Add Products */}
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div className="bg-white rounded-xl shadow border p-6 mb-6">
 
-            {/* Product */}
-            <div className="md:col-span-2">
+        <h2 className="text-xl font-bold mb-5">
+          Add Products
+        </h2>
 
-              <label className="block text-sm font-medium mb-2">
-                Product
-              </label>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
 
-              <select
-                value={selectedProductId}
-                onChange={(e) =>
-                  handleProductChange(
-                    e.target.value
-                  )
+          <div>
+
+            <label className="block text-sm font-medium mb-2">
+              Product
+            </label>
+
+            <select
+              value={productId}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                setProductId(value);
+
+                const product = products.find(
+                  (p) =>
+                    Number(p.id) ===
+                    Number(value)
+                );
+
+                if (product) {
+                  setCostPrice(
+                    Number(product.cost_price) || 0
+                  );
                 }
-                className="w-full border rounded-lg px-4 py-2"
-              >
+              }}
+              className="w-full border rounded-lg px-4 py-2"
+            >
 
-                <option value="">
-                  Select product
+              <option value="">
+                Select product
+              </option>
+
+              {products.map((product) => (
+                <option
+                  key={product.id}
+                  value={product.id}
+                >
+                  {product.name}
                 </option>
+              ))}
 
-                {products.map((product) => (
-                  <option
-                    key={product.id}
-                    value={product.id}
-                  >
-                    {product.name}
-                  </option>
-                ))}
+            </select>
 
-              </select>
+          </div>
 
-            </div>
+          <div>
 
-            {/* Quantity */}
-            <div>
+            <label className="block text-sm font-medium mb-2">
+              Quantity
+            </label>
 
-              <label className="block text-sm font-medium mb-2">
-                Quantity
-              </label>
+            <input
+              type="number"
+              min="1"
+              value={quantity}
+              onChange={(e) =>
+                setQuantity(e.target.value)
+              }
+              className="w-full border rounded-lg px-4 py-2"
+            />
 
-              <input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) =>
-                  setQuantity(e.target.value)
-                }
-                className="w-full border rounded-lg px-4 py-2"
-              />
+          </div>
 
-            </div>
+          <div>
 
-            {/* Cost */}
-            <div>
+            <label className="block text-sm font-medium mb-2">
+              Cost Price
+            </label>
 
-              <label className="block text-sm font-medium mb-2">
-                Cost Price
-              </label>
-
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={costPrice}
-                onChange={(e) =>
-                  setCostPrice(e.target.value)
-                }
-                className="w-full border rounded-lg px-4 py-2"
-                placeholder="0.00"
-              />
-
-            </div>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={costPrice}
+              onChange={(e) =>
+                setCostPrice(e.target.value)
+              }
+              className="w-full border rounded-lg px-4 py-2"
+            />
 
           </div>
 
           <button
             type="button"
             onClick={addProduct}
-            className="mt-4 bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-gray-900"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             + Add Product
           </button>
 
         </div>
 
-        {/* Items */}
-        <div className="bg-white rounded-xl shadow border overflow-hidden mb-6">
+      </div>
 
-          <div className="p-6 border-b">
+      {/* Items */}
 
-            <h2 className="text-xl font-bold">
-              Purchase Order Items
-            </h2>
+      <div className="bg-white rounded-xl shadow border overflow-hidden mb-6">
 
+        <div className="p-6 border-b">
+
+          <h2 className="text-xl font-bold">
+            Purchase Order Items
+          </h2>
+
+        </div>
+
+        {items.length === 0 ? (
+
+          <div className="p-8 text-center text-gray-500">
+            No products added yet.
           </div>
 
-          {items.length === 0 ? (
+        ) : (
 
-            <div className="p-8 text-center text-gray-500">
-              No products have been added yet.
-            </div>
+          <table className="w-full">
 
-          ) : (
+            <thead className="bg-gray-100">
 
-            <table className="w-full">
+              <tr>
 
-              <thead className="bg-gray-100">
+                <th className="text-left p-4">
+                  Product
+                </th>
 
-                <tr>
+                <th className="text-left p-4">
+                  Quantity
+                </th>
 
-                  <th className="text-left p-4">
-                    Product
-                  </th>
+                <th className="text-left p-4">
+                  Cost Price
+                </th>
 
-                  <th className="text-left p-4">
-                    Quantity
-                  </th>
+                <th className="text-left p-4">
+                  Total
+                </th>
 
-                  <th className="text-left p-4">
-                    Cost Price
-                  </th>
+                <th className="text-left p-4">
+                  Action
+                </th>
 
-                  <th className="text-left p-4">
-                    Total
-                  </th>
+              </tr>
 
-                  <th className="text-left p-4">
-                    Action
-                  </th>
+            </thead>
 
-                </tr>
+            <tbody>
 
-              </thead>
+              {items.map((item) => {
 
-              <tbody>
+                const itemTotal =
+                  Number(item.quantity || 0) *
+                  Number(item.cost_price || 0);
 
-                {items.map((item) => {
+                return (
+                  <tr
+                    key={item.product_id}
+                    className="border-t"
+                  >
 
-                  const itemTotal =
-                    Number(
-                      item.quantity || 0
-                    ) *
-                    Number(
-                      item.cost_price || 0
-                    );
+                    <td className="p-4 font-medium">
+                      {item.product_name}
+                    </td>
 
-                  return (
-                    <tr
-                      key={item.product_id}
-                      className="border-t"
-                    >
+                    <td className="p-4">
 
-                      <td className="p-4 font-medium">
-                        {item.product_name}
-                      </td>
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateItemQuantity(
+                            item.product_id,
+                            e.target.value
+                          )
+                        }
+                        className="w-24 border rounded px-2 py-1"
+                      />
 
-                      <td className="p-4">
+                    </td>
 
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) =>
-                            updateItem(
-                              item.product_id,
-                              "quantity",
-                              e.target.value
-                            )
-                          }
-                          className="w-24 border rounded px-2 py-1"
-                        />
+                    <td className="p-4">
 
-                      </td>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.cost_price}
+                        onChange={(e) =>
+                          updateItemCost(
+                            item.product_id,
+                            e.target.value
+                          )
+                        }
+                        className="w-28 border rounded px-2 py-1"
+                      />
 
-                      <td className="p-4">
+                    </td>
 
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.cost_price}
-                          onChange={(e) =>
-                            updateItem(
-                              item.product_id,
-                              "cost_price",
-                              e.target.value
-                            )
-                          }
-                          className="w-28 border rounded px-2 py-1"
-                        />
+                    <td className="p-4 font-semibold">
+                      ${itemTotal.toFixed(2)}
+                    </td>
 
-                      </td>
+                    <td className="p-4">
 
-                      <td className="p-4 font-semibold">
-                        $
-                        {itemTotal.toLocaleString(
-                          "en-US",
-                          {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          }
-                        )}
-                      </td>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeProduct(
+                            item.product_id
+                          )
+                        }
+                        className="text-red-600 hover:underline"
+                      >
+                        Remove
+                      </button>
 
-                      <td className="p-4">
+                    </td>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            removeProduct(
-                              item.product_id
-                            )
-                          }
-                          className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200"
-                        >
-                          Remove
-                        </button>
+                  </tr>
+                );
+              })}
 
-                      </td>
+            </tbody>
 
-                    </tr>
-                  );
-                })}
+          </table>
 
-              </tbody>
+        )}
 
-            </table>
+        {/* Total */}
 
-          )}
+        <div className="flex justify-end border-t p-6">
 
-          {/* Total */}
-          <div className="flex justify-end border-t p-6">
+          <div className="text-right">
 
-            <div className="text-right">
+            <p className="text-gray-500">
+              Total Purchase Cost
+            </p>
 
-              <p className="text-gray-500">
-                Total Purchase Cost
-              </p>
-
-              <p className="text-2xl font-bold">
-                $
-                {getTotal().toLocaleString(
-                  "en-US",
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }
-                )}
-              </p>
-
-            </div>
+            <p className="text-2xl font-bold">
+              ${total.toFixed(2)}
+            </p>
 
           </div>
 
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3">
+      </div>
 
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/admin/purchase-orders")
-            }
-            className="px-5 py-2 border rounded-lg hover:bg-gray-50"
-          >
-            Cancel
-          </button>
+      {/* Actions */}
 
-          <button
-            type="submit"
-            disabled={
-              saving || items.length === 0
-            }
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {saving
-              ? "Creating..."
-              : "Create Purchase Order"}
-          </button>
+      <div className="flex justify-end gap-3">
 
-        </div>
+        <Link
+          to="/admin/purchase-orders"
+          className="px-5 py-2 border rounded-lg hover:bg-gray-50"
+        >
+          Cancel
+        </Link>
 
-      </form>
+        <button
+          type="button"
+          onClick={handleCreate}
+          disabled={saving}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving
+            ? "Creating..."
+            : "Create Purchase Order"}
+        </button>
+
+      </div>
 
     </div>
   );
 }
+

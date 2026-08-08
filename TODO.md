@@ -1,9 +1,8 @@
 # TODO
 
-## Purchase Order Item Management - Implementation Steps
+## Task: Add delete purchase order functionality
 
-- [x] Step 0: Understand the task and gather context (read service files, backend routes, current component)
-- [x] Step 1: Verify `purchaseOrderItemService.js` exists and matches backend routes (already correct, no changes needed)
-- [x] Step 2: Add `getAll()` method to `adminProductService.js` (required by new PurchaseOrderDetails.jsx)
-- [x] Step 3: Replace `PurchaseOrderDetails.jsx` with the provided complete version
-- [x] Step 4: Verify build compiles without errors
+- [x] Verify purchaseOrderService has `remove(id)` method
+- [x] Add `deletePurchaseOrder(id)` function below `receivePurchaseOrder()` in PurchaseOrders.jsx
+- [x] Add Delete button in the Actions section
+- [x] Verify build/lint passes

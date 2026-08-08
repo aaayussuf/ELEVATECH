@@ -59,12 +59,16 @@ def create():
 @admin_required
 def update(id):
 
-    po = update_purchase_order(id, request.json)
+    try:
+        po = update_purchase_order(id, request.json or {})
 
-    if not po:
-        return jsonify({"message": "Not found"}), 404
+        if not po:
+            return jsonify({"message": "Not found"}), 404
 
-    return jsonify(po.to_dict())
+        return jsonify(po.to_dict())
+
+    except ValueError as e:
+        return jsonify({"message": str(e)}), 400
 
 
 @purchase_orders_bp.route("/<int:id>", methods=["DELETE"])
@@ -72,10 +76,18 @@ def update(id):
 @admin_required
 def delete(id):
 
-    if delete_purchase_order(id):
-        return jsonify({"message": "Deleted"})
+    success, message = delete_purchase_order(id)
 
-    return jsonify({"message": "Not found"}), 404
+    if not success:
+        status_code = 404 if message == "Purchase order not found." else 400
+
+        return jsonify({
+            "message": message
+        }), status_code
+
+    return jsonify({
+        "message": message
+    }), 200
 
 
 @purchase_orders_bp.route("/<int:id>/receive", methods=["POST"])

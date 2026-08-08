@@ -12,28 +12,26 @@ export default function PurchaseOrderDetails() {
   const [purchaseOrder, setPurchaseOrder] = useState(null);
   const [products, setProducts] = useState([]);
 
-  const [loading, setLoading] = useState(true);
+const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [receiving, setReceiving] = useState(false);
 
-const [editing, setEditing] = useState(false);
-  const [editingItemId, setEditingItemId] = useState(null);
-
-  const [editingItem, setEditingItem] = useState({
-    quantity: "",
-    cost_price: "",
-  });
+  const [editing, setEditing] = useState(false);
 
   const [editForm, setEditForm] = useState({
     status: "Draft",
     notes: "",
   });
 
+const [itemSaving, setItemSaving] = useState(null);
+  const [itemDeleting, setItemDeleting] = useState(null);
+
   const [newItem, setNewItem] = useState({
     product_id: "",
     quantity: 1,
     cost_price: 0,
   });
+  const [addingItem, setAddingItem] = useState(false);
 
   useEffect(() => {
     loadPurchaseOrder();
@@ -47,6 +45,13 @@ const [editing, setEditing] = useState(false);
       const data = await purchaseOrderService.get(id);
 
       setPurchaseOrder(data);
+
+      try {
+        const productData = await adminProductService.getAll();
+        setProducts(productData);
+      } catch (productError) {
+        console.error("Products loading error:", productError);
+      }
 
       setEditForm({
         status: data.status || "Draft",
@@ -70,13 +75,88 @@ const [editing, setEditing] = useState(false);
     }
   }
 
-  function canEdit() {
+function canEdit() {
     return (
       purchaseOrder &&
       purchaseOrder.status !== "Received" &&
       purchaseOrder.status !== "Cancelled"
     );
   }
+
+async function handleUpdateItem(itemId, quantity, costPrice) {
+  if (!purchaseOrder) return;
+
+  if (
+    purchaseOrder.status === "Received" ||
+    purchaseOrder.status === "Cancelled"
+  ) {
+    alert(
+      "Cannot modify items on a Received or Cancelled purchase order."
+    );
+    return;
+  }
+
+  try {
+    setItemSaving(itemId);
+
+    await purchaseOrderService.updateItem(itemId, {
+      quantity: Number(quantity),
+      cost_price: Number(costPrice),
+    });
+
+    await loadPurchaseOrder();
+
+    alert("Purchase order item updated successfully.");
+  } catch (err) {
+    console.error("Update item error:", err);
+
+    alert(
+      err?.response?.data?.message ||
+        "Failed to update purchase order item."
+    );
+  } finally {
+    setItemSaving(null);
+  }
+}
+
+async function handleDeleteItem(itemId) {
+  if (!purchaseOrder) return;
+
+  if (
+    purchaseOrder.status === "Received" ||
+    purchaseOrder.status === "Cancelled"
+  ) {
+    alert(
+      "Cannot modify items on a Received or Cancelled purchase order."
+    );
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Remove this item from the purchase order?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    setItemDeleting(itemId);
+
+    await purchaseOrderService.deleteItem(itemId);
+
+    await loadPurchaseOrder();
+
+    alert("Purchase order item removed.");
+  } catch (err) {
+    console.error("Delete item error:", err);
+
+    alert(
+      err?.response?.data?.message ||
+        "Failed to delete purchase order item."
+    );
+  } finally {
+    setItemDeleting(null);
+  }
+}
 
   async function handleReceive() {
     if (!purchaseOrder) return;
@@ -143,148 +223,66 @@ const [editing, setEditing] = useState(false);
     }
   }
 
-  async function handleAddItem() {
-    if (!newItem.product_id) {
-      alert("Please select a product.");
-      return;
-    }
+async function handleAddItem() {
+  if (!purchaseOrder) return;
 
-    const quantity = Number(newItem.quantity);
-    const costPrice = Number(newItem.cost_price);
-
-    if (quantity <= 0) {
-      alert("Quantity must be greater than 0.");
-      return;
-    }
-
-    if (costPrice < 0) {
-      alert("Cost price cannot be negative.");
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      await purchaseOrderItemService.create({
-        purchase_order_id: Number(purchaseOrder.id),
-        product_id: Number(newItem.product_id),
-        quantity,
-        cost_price: costPrice,
-      });
-
-      setNewItem({
-        product_id: "",
-        quantity: 1,
-        cost_price: 0,
-      });
-
-      await loadPurchaseOrder();
-
-      alert("Product added to purchase order.");
-    } catch (err) {
-      console.error("Add PO item error:", err);
-
-      alert(
-        err?.response?.data?.message ||
-          "Failed to add product."
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
-
-async function handleUpdateItem(itemId) {
-    const quantity = Number(editingItem.quantity);
-    const costPrice = Number(editingItem.cost_price);
-
-    if (quantity <= 0) {
-      alert("Quantity must be greater than 0.");
-      return;
-    }
-
-    if (costPrice < 0) {
-      alert("Cost price cannot be negative.");
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      await purchaseOrderItemService.update(itemId, {
-        quantity,
-        cost_price: costPrice,
-      });
-
-      setEditingItemId(null);
-
-      setEditingItem({
-        quantity: "",
-        cost_price: "",
-      });
-
-      await loadPurchaseOrder();
-
-      alert("Purchase order item updated.");
-    } catch (err) {
-      console.error("Update PO item error:", err);
-
-      alert(
-        err?.response?.data?.message ||
-          "Failed to update purchase order item."
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleDeleteItem(itemId) {
-    const confirmed = window.confirm(
-      "Remove this product from the purchase order?"
+  if (
+    purchaseOrder.status === "Received" ||
+    purchaseOrder.status === "Cancelled"
+  ) {
+    alert(
+      "Cannot modify items on a Received or Cancelled purchase order."
     );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      await purchaseOrderItemService.remove(itemId);
-
-      await loadPurchaseOrder();
-
-      alert("Product removed from purchase order.");
-    } catch (err) {
-      console.error("Delete PO item error:", err);
-
-      alert(
-        err?.response?.data?.message ||
-          "Failed to remove product."
-      );
-    } finally {
-      setSaving(false);
-    }
+    return;
   }
 
-function startItemEdit(item) {
-    setEditingItemId(item.id);
+  if (!newItem.product_id) {
+    alert("Please select a product.");
+    return;
+  }
 
-    setEditingItem({
-      quantity: item.quantity,
-      cost_price: item.cost_price,
+  if (Number(newItem.quantity) <= 0) {
+    alert("Quantity must be greater than zero.");
+    return;
+  }
+
+  if (Number(newItem.cost_price) < 0) {
+    alert("Cost price cannot be negative.");
+    return;
+  }
+
+  try {
+    setAddingItem(true);
+
+    await purchaseOrderService.addItem({
+      purchase_order_id: purchaseOrder.id,
+      product_id: Number(newItem.product_id),
+      quantity: Number(newItem.quantity),
+      cost_price: Number(newItem.cost_price),
     });
-  }
 
-  function cancelItemEdit() {
-    setEditingItemId(null);
-
-    setEditingItem({
-      quantity: "",
-      cost_price: "",
+    setNewItem({
+      product_id: "",
+      quantity: 1,
+      cost_price: 0,
     });
-  }
 
-  if (loading) {
+    await loadPurchaseOrder();
+
+    alert("Product added to purchase order.");
+  } catch (err) {
+    console.error("Add item error:", err);
+
+    alert(
+      err?.response?.data?.message ||
+        "Failed to add product to purchase order."
+    );
+  } finally {
+    setAddingItem(false);
+  }
+}
+
+if (loading) {
     return (
       <div className="p-6">
         Loading purchase order...
@@ -621,14 +619,14 @@ function startItemEdit(item) {
 
           </div>
 
-          <div className="flex justify-end mt-4">
+<div className="flex justify-end mt-4">
 
             <button
               onClick={handleAddItem}
-              disabled={saving}
+              disabled={addingItem}
               className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving
+              {addingItem
                 ? "Adding..."
                 : "+ Add Product"}
             </button>
@@ -638,14 +636,31 @@ function startItemEdit(item) {
         </div>
       )}
 
-      {/* Items */}
+{/* Items */}
       <div className="bg-white rounded-xl shadow border overflow-hidden">
 
         <div className="p-6 border-b">
 
-          <h2 className="text-xl font-bold">
-            Purchase Order Items
-          </h2>
+          <div className="flex justify-between items-center">
+
+            <div>
+              <h2 className="text-xl font-bold">
+                Purchase Order Items
+              </h2>
+
+              <p className="text-sm text-gray-500 mt-1">
+                Products included in this supplier order.
+              </p>
+            </div>
+
+            {purchaseOrder.status !== "Received" &&
+              purchaseOrder.status !== "Cancelled" && (
+                <span className="text-sm text-blue-600">
+                  Editing enabled
+                </span>
+              )}
+
+          </div>
 
         </div>
 
@@ -671,11 +686,12 @@ function startItemEdit(item) {
                 Total
               </th>
 
-              {canEdit() && (
-                <th className="text-left p-4">
-                  Actions
-                </th>
-              )}
+              {purchaseOrder.status !== "Received" &&
+                purchaseOrder.status !== "Cancelled" && (
+                  <th className="text-left p-4">
+                    Actions
+                  </th>
+                )}
 
             </tr>
 
@@ -688,7 +704,12 @@ function startItemEdit(item) {
               <tr>
 
                 <td
-                  colSpan={canEdit() ? 5 : 4}
+                  colSpan={
+                    purchaseOrder.status !== "Received" &&
+                    purchaseOrder.status !== "Cancelled"
+                      ? 5
+                      : 4
+                  }
                   className="p-8 text-center text-gray-500"
                 >
                   No products have been added to this purchase
@@ -701,14 +722,12 @@ function startItemEdit(item) {
 
               items.map((item) => {
 
-                const isEditing =
-                  editingItemId === item.id;
-
                 const itemTotal =
                   Number(item.quantity || 0) *
                   Number(item.cost_price || 0);
 
                 return (
+
                   <tr
                     key={item.id}
                     className="border-t"
@@ -720,120 +739,112 @@ function startItemEdit(item) {
 
                     <td className="p-4">
 
-                      {isEditing ? (
+                      {purchaseOrder.status === "Received" ||
+                      purchaseOrder.status === "Cancelled" ? (
 
-<input
-                          type="number"
-                          min="1"
-                          value={editingItem.quantity}
-                          onChange={(e) =>
-                            setEditingItem({
-                              ...editingItem,
-                              quantity: e.target.value,
-                            })
-                          }
-                          className="w-24 border rounded px-2 py-1"
-                        />
+                        item.quantity
 
                       ) : (
-                        item.quantity
+
+                        <input
+                          type="number"
+                          min="1"
+                          defaultValue={item.quantity}
+                          id={`quantity-${item.id}`}
+                          className="w-24 border rounded-lg px-3 py-2"
+                        />
+
                       )}
 
                     </td>
 
                     <td className="p-4">
 
-                      {isEditing ? (
+                      {purchaseOrder.status === "Received" ||
+                      purchaseOrder.status === "Cancelled" ? (
+
+                        `$${Number(
+                          item.cost_price || 0
+                        ).toFixed(2)}`
+
+                      ) : (
 
                         <input
                           type="number"
                           min="0"
                           step="0.01"
-                          value={editingItem.cost_price}
-                          onChange={(e) =>
-                            setEditingItem({
-                              ...editingItem,
-                              cost_price: e.target.value,
-                            })
-                          }
-                          className="w-28 border rounded px-2 py-1"
+                          defaultValue={item.cost_price}
+                          id={`cost-${item.id}`}
+                          className="w-32 border rounded-lg px-3 py-2"
                         />
 
-                      ) : (
-                        `$${Number(
-                          item.cost_price || 0
-                        ).toFixed(2)}`
                       )}
 
                     </td>
 
                     <td className="p-4 font-semibold">
-
-                      {isEditing
-                        ? "-"
-                        : `$${itemTotal.toFixed(2)}`}
-
+                      ${itemTotal.toFixed(2)}
                     </td>
 
-                    {canEdit() && (
-                      <td className="p-4">
+                    {purchaseOrder.status !== "Received" &&
+                      purchaseOrder.status !== "Cancelled" && (
 
-                        {isEditing ? (
-
-                          <div className="flex gap-2">
-
-<button
-                              onClick={() =>
-                                handleUpdateItem(item.id)
-                              }
-                              disabled={saving}
-                              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50"
-                            >
-                              Save
-                            </button>
-
-                            <button
-                              onClick={cancelItemEdit}
-                              className="border px-3 py-1 rounded"
-                            >
-                              Cancel
-                            </button>
-
-                          </div>
-
-                        ) : (
+                        <td className="p-4">
 
                           <div className="flex gap-2">
 
                             <button
-                              onClick={() =>
-                                startItemEdit(item)
-                              }
-                              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                              disabled={itemSaving === item.id}
+                              onClick={() => {
+
+                                const quantity =
+                                  document.getElementById(
+                                    `quantity-${item.id}`
+                                  ).value;
+
+                                const costPrice =
+                                  document.getElementById(
+                                    `cost-${item.id}`
+                                  ).value;
+
+                                handleUpdateItem(
+                                  item.id,
+                                  quantity,
+                                  costPrice
+                                );
+
+                              }}
+                              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
                             >
-                              Edit
+                              {itemSaving === item.id
+                                ? "Saving..."
+                                : "Save"}
                             </button>
 
                             <button
+                              disabled={itemDeleting === item.id}
                               onClick={() =>
                                 handleDeleteItem(item.id)
                               }
-                              disabled={saving}
                               className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 disabled:opacity-50"
                             >
-                              Delete
+                              {itemDeleting === item.id
+                                ? "Removing..."
+                                : "Remove"}
                             </button>
 
                           </div>
 
-                        )}
+                        </td>
 
-                      </td>
-                    )}
+                      )}
 
                   </tr>
+
                 );
+
               })
+
             )}
 
           </tbody>

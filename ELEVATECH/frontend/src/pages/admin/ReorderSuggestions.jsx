@@ -29,7 +29,7 @@ export default function ReorderSuggestions() {
   function createPurchaseOrder(suggestion) {
     navigate("/admin/purchase-orders/new", {
       state: {
-        reorderSuggestion: suggestion,
+        suggestion,
       },
     });
   }

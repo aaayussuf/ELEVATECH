@@ -34,9 +34,16 @@ def items(purchase_order_id):
 @admin_required
 def create():
 
-    item = add_item(request.json)
+    try:
+        item = add_item(request.json or {})
 
-    return jsonify(item.to_dict()), 201
+        return jsonify(item.to_dict()), 201
+
+    except ValueError as e:
+
+        return jsonify({
+            "message": str(e)
+        }), 400
 
 
 @purchase_order_items_bp.route("/<int:item_id>", methods=["PUT"])
@@ -44,12 +51,24 @@ def create():
 @admin_required
 def update(item_id):
 
-    item = update_item(item_id, request.json)
+    try:
+        item = update_item(
+            item_id,
+            request.json or {}
+        )
 
-    if not item:
-        return jsonify({"message": "Not found"}), 404
+        if not item:
+            return jsonify({
+                "message": "Not found"
+            }), 404
 
-    return jsonify(item.to_dict())
+        return jsonify(item.to_dict())
+
+    except ValueError as e:
+
+        return jsonify({
+            "message": str(e)
+        }), 400
 
 
 @purchase_order_items_bp.route("/<int:item_id>", methods=["DELETE"])
@@ -57,7 +76,19 @@ def update(item_id):
 @admin_required
 def delete(item_id):
 
-    if delete_item(item_id):
-        return jsonify({"message": "Deleted"})
+    try:
+        if delete_item(item_id):
 
-    return jsonify({"message": "Not found"}), 404
+            return jsonify({
+                "message": "Deleted"
+            })
+
+        return jsonify({
+            "message": "Not found"
+        }), 404
+
+    except ValueError as e:
+
+        return jsonify({
+            "message": str(e)
+        }), 400
