@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import purchaseOrderService from "../../services/purchaseOrderService";
-import purchaseOrderItemService from "../../services/purchaseOrderItemService";
 import supplierService from "../../services/supplierService";
 import adminProductService from "../../services/adminProductService";
 
@@ -238,7 +237,7 @@ export default function NewPurchaseOrder() {
        * Add each product to the purchase order.
        */
       for (const item of items) {
-        await purchaseOrderItemService.create({
+        await purchaseOrderService.addItem({
           purchase_order_id: purchaseOrder.id,
           product_id: Number(item.product_id),
           quantity: Number(item.quantity),
