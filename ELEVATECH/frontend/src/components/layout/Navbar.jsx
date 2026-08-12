@@ -6,37 +6,30 @@ import {
   Heart,
   ChevronDown,
 } from "lucide-react";
+import { useContext } from "react";
+import { CartContext } from "../../context/CartContext";
 
 export default function Navbar() {
+  const { totalItems } = useContext(CartContext);
+
   return (
     <header className="sticky top-0 z-50 bg-[#07101D]/95 backdrop-blur-xl border-b border-slate-800">
       <div className="max-w-7xl mx-auto">
-
         <div className="h-20 flex items-center justify-between px-6">
 
           {/* Logo */}
-
-          <Link
-            to="/"
-            className="flex items-center gap-3"
-          >
+          <Link to="/" className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-yellow-400 flex items-center justify-center text-black font-black text-lg">
               EV
             </div>
 
-            <div>
-
-              <h1 className="font-black text-2xl tracking-wide">
-                <span className="text-white">ELEVA</span>
-                <span className="text-yellow-400">TECH</span>
-              </h1>
-
-            </div>
-
+            <h1 className="font-black text-2xl tracking-wide">
+              <span className="text-white">ELEVA</span>
+              <span className="text-yellow-400">TECH</span>
+            </h1>
           </Link>
 
           {/* Navigation */}
-
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium">
 
             <NavLink
@@ -52,25 +45,22 @@ export default function Navbar() {
 
             <NavLink
               to="/products"
-              className="text-gray-300 hover:text-yellow-400 transition"
+              className={({ isActive }) =>
+                isActive
+                  ? "text-white border-b-2 border-yellow-400 pb-1"
+                  : "text-gray-300 hover:text-yellow-400 transition"
+              }
             >
               Shop
             </NavLink>
 
-            <button className="flex items-center gap-1 text-gray-300 hover:text-yellow-400 transition">
-
-              Categories
-
-              <ChevronDown size={16} />
-
-            </button>
-
-            <NavLink
-              to="/deals"
-              className="text-gray-300 hover:text-yellow-400 transition"
+            <button
+              type="button"
+              className="flex items-center gap-1 text-gray-300 hover:text-yellow-400 transition"
             >
-              Deals
-            </NavLink>
+              Categories
+              <ChevronDown size={16} />
+            </button>
 
             <NavLink
               to="/about"
@@ -89,49 +79,54 @@ export default function Navbar() {
           </nav>
 
           {/* Search */}
-
           <div className="hidden xl:flex items-center w-80 bg-[#131F35] border border-slate-700 rounded-full px-4 py-2">
-
-            <Search
-              size={18}
-              className="text-gray-400"
-            />
+            <Search size={18} className="text-gray-400" />
 
             <input
               placeholder="Search products..."
-              className="bg-transparent flex-1 ml-3 outline-none text-sm placeholder:text-gray-500"
+              className="bg-transparent flex-1 ml-3 outline-none text-sm text-white placeholder:text-gray-500"
             />
-
           </div>
 
           {/* Icons */}
-
           <div className="flex items-center gap-5">
 
-            <button className="hover:text-yellow-400 transition">
+            {/* Wishlist */}
+            <Link
+              to="/account/wishlist"
+              className="hover:text-yellow-400 transition"
+              title="Wishlist"
+            >
               <Heart size={22} />
-            </button>
+            </Link>
 
-            <button className="hover:text-yellow-400 transition">
+            {/* Account */}
+            <Link
+              to="/account"
+              className="hover:text-yellow-400 transition"
+              title="Account"
+            >
               <User size={22} />
-            </button>
+            </Link>
 
-            <button className="relative hover:text-yellow-400 transition">
-
+            {/* CART */}
+            <Link
+              to="/cart"
+              className="relative hover:text-yellow-400 transition"
+              title="Shopping Cart"
+            >
               <ShoppingCart size={23} />
 
-              <span className="absolute -top-2 -right-2 bg-yellow-400 text-black rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-
-                0
-
-              </span>
-
-            </button>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-yellow-400 text-black rounded-full min-w-5 h-5 px-1 flex items-center justify-center text-xs font-bold">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
 
           </div>
 
         </div>
-
       </div>
     </header>
   );

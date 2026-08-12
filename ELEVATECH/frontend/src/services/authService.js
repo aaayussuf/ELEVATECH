@@ -1,4 +1,5 @@
-const API_URL = "http://127.0.0.1:5000/api/auth";
+const API_URL =
+  `${import.meta.env.VITE_API_BASE || "http://127.0.0.1:5000"}/api/auth`;
 
 const authService = {
   async login(credentials) {
@@ -31,7 +32,9 @@ const authService = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Registration failed");
+      throw new Error(
+        data.message || "Registration failed"
+      );
     }
 
     return data;
@@ -48,15 +51,15 @@ const authService = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Unable to fetch profile");
+      throw new Error(
+        data.message || "Unable to fetch profile"
+      );
     }
 
     return data;
   },
 
   async logout() {
-    // No backend logout endpoint.
-    // JWT logout is handled by removing the token locally.
     return true;
   },
 };

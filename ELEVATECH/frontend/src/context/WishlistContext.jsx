@@ -1,81 +1,91 @@
 import {
-    createContext,
-    useEffect,
-    useState,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 
+import { AuthContext } from "./AuthContext";
 import wishlistService from "../services/wishlistService";
 
-export const WishlistContext =
-    createContext();
+export const WishlistContext = createContext(null);
 
-export function WishlistProvider({
+export function WishlistProvider({ children }) {
+  const { token, isLoading } = useContext(AuthContext);
 
-    children,
+  const [wishlist, setWishlist] = useState([]);
 
-}) {
+  useEffect(() => {
+    if (!isLoading && token) {
+      loadWishlist();
+    } else if (!token) {
+      setWishlist([]);
+    }
+  }, [token, isLoading]);
 
-    const [wishlist,setWishlist] =
-        useState([]);
+  async function loadWishlist() {
+    try {
+      const data = await wishlistService.getWishlist(token);
 
-    useEffect(()=>{
+      const items =
+        Array.isArray(data)
+          ? data
+          : data?.items ||
+            data?.wishlist ||
+            [];
 
-        loadWishlist();
+      setWishlist(items);
+    } catch (error) {
+      console.error("Wishlist load error:", error);
+      setWishlist([]);
+    }
+  }
 
-    },[]);
-
-    async function loadWishlist(){
-
-        try{
-
-            const data =
-                await wishlistService.getWishlist();
-
-            setWishlist(data);
-
-        }catch{
-
-            setWishlist([]);
-
-        }
-
+  async function toggleWishlist(product) {
+    if (!token) {
+      alert("Please login to use your wishlist.");
+      return;
     }
 
-    async function toggleWishlist(product){
+    try {
+      const exists = wishlist.some(
+        (p) =>
+          Number(p.id ?? p.product_id) ===
+          Number(product.id)
+      );
 
-        const exists =
-            wishlist.find(
-                p=>p.id===product.id
-            );
+      if (exists) {
+        await wishlistService.remove(
+          product.id,
+          token
+        );
+      } else {
+        await wishlistService.add(
+          product.id,
+          token
+        );
+      }
 
-        if(exists){
+      await loadWishlist();
+    } catch (error) {
+      console.error("Wishlist toggle error:", error);
 
-            await wishlistService.remove(product.id);
-
-        }else{
-
-            await wishlistService.add(product.id);
-
-        }
-
-        loadWishlist();
-
+      alert(
+        error?.message ||
+          "Unable to update wishlist."
+      );
     }
+  }
 
-    return(
-
-        <WishlistContext.Provider
-            value={{
-                wishlist,
-                toggleWishlist,
-            }}
-        >
-
-            {children}
-
-        </WishlistContext.Provider>
-
-    );
-
+  return (
+    <WishlistContext.Provider
+      value={{
+        wishlist,
+        toggleWishlist,
+        loadWishlist,
+      }}
+    >
+      {children}
+    </WishlistContext.Provider>
+  );
 }
-

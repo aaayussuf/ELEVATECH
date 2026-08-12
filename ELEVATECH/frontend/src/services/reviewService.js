@@ -1,33 +1,41 @@
-const API = "http://127.0.0.1:5000/api/reviews";
+const API =
+  `${import.meta.env.VITE_API_BASE || "http://127.0.0.1:5000"}/api/reviews`;
 
 const reviewService = {
+  async getReviews(productId) {
+    const res = await fetch(`${API}/${productId}`);
 
-    async getReviews(productId) {
+    const data = await res.json();
 
-        const res = await fetch(`${API}/${productId}`);
+    if (!res.ok) {
+      throw new Error(
+        data.message || "Unable to load reviews"
+      );
+    }
 
-        return await res.json();
+    return data;
+  },
 
-    },
+  async createReview(review) {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(review),
+    });
 
-    async createReview(review) {
+    const data = await res.json();
 
-        const res = await fetch(API, {
+    if (!res.ok) {
+      throw new Error(
+        data.message || "Unable to create review"
+      );
+    }
 
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json",
-            },
-
-            body: JSON.stringify(review),
-
-        });
-
-        return await res.json();
-
-    },
-
+    return data;
+  },
 };
 
 export default reviewService;
+

@@ -1,53 +1,81 @@
-const API = "http://127.0.0.1:5000/api/wishlist";
+const API =
+  `${import.meta.env.VITE_API_BASE || "http://127.0.0.1:5000"}/api/wishlist`;
+
+function authHeaders(token) {
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : {};
+}
 
 const wishlistService = {
+  async getWishlist(token) {
+    const res = await fetch(API, {
+      method: "GET",
+      headers: {
+        ...authHeaders(token),
+      },
+    });
 
-    async getWishlist() {
+    const data = await res.json().catch(() => []);
 
-        const res = await fetch(API, {
-            credentials: "include",
-        });
+    if (!res.ok) {
+      throw new Error(
+        data?.message ||
+          "Unable to load wishlist."
+      );
+    }
 
-        return await res.json();
+    return data;
+  },
 
-    },
+  async add(productId, token) {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(token),
+      },
+      body: JSON.stringify({
+        product_id: productId,
+      }),
+    });
 
-    async add(productId) {
+    const data = await res.json().catch(() => ({}));
 
-        const res = await fetch(API, {
+    if (!res.ok) {
+      throw new Error(
+        data?.message ||
+          "Unable to add product to wishlist."
+      );
+    }
 
-            method: "POST",
+    return data;
+  },
 
-            credentials: "include",
+  async remove(productId, token) {
+    const res = await fetch(
+      `${API}/${productId}`,
+      {
+        method: "DELETE",
+        headers: {
+          ...authHeaders(token),
+        },
+      }
+    );
 
-            headers: {
-                "Content-Type": "application/json",
-            },
+    const data = await res.json().catch(() => ({}));
 
-            body: JSON.stringify({
-                product_id: productId,
-            }),
+    if (!res.ok) {
+      throw new Error(
+        data?.message ||
+          "Unable to remove product from wishlist."
+      );
+    }
 
-        });
-
-        return await res.json();
-
-    },
-
-    async remove(productId) {
-
-        const res = await fetch(`${API}/${productId}`, {
-
-            method: "DELETE",
-
-            credentials: "include",
-
-        });
-
-        return await res.json();
-
-    },
-
+    return data;
+  },
 };
 
 export default wishlistService;
