@@ -12,18 +12,25 @@ function withAuth(token) {
 }
 
 async function getProfile(token) {
-  const res = await axios.get(`${API_BASE}/profile`, withAuth(token));
+  const res = await axios.get(
+    `${API_BASE}/auth/profile`,
+    withAuth(token)
+  );
   return res.data;
 }
 
 async function updateProfile(token, payload) {
-  const res = await axios.put(`${API_BASE}/profile`, payload, {
-    ...withAuth(token),
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await axios.put(
+    `${API_BASE}/auth/profile`,
+    payload,
+    {
+      ...withAuth(token),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
   return res.data;
 }
 

@@ -21,19 +21,24 @@ export default function Addresses() {
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
   const [form, setForm] = useState({
     ...emptyForm,
-    full_name: user?.name || "",
+    full_name: user?.first_name
+      ? `${user.first_name} ${user.last_name || ""}`.trim()
+      : "",
+    phone: user?.phone || "",
   });
 
   useEffect(() => {
-    if (user?.name) {
-      setForm((prev) => ({
-        ...prev,
-        full_name: prev.full_name || user.name,
+    if (user) {
+      setForm((current) => ({
+        ...current,
+        full_name:
+          current.full_name ||
+          `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+        phone: current.phone || user.phone || "",
       }));
     }
   }, [user]);
@@ -42,22 +47,26 @@ export default function Addresses() {
     let mounted = true;
 
     async function loadAddresses() {
+      if (!token || isLoading) return;
+
       try {
         setLoading(true);
-        setError("");
+        setMessage("");
 
         const list = await accountService.getAddresses(token);
 
         if (mounted) {
           setAddresses(Array.isArray(list) ? list : []);
         }
-      } catch (err) {
+      } catch (error) {
+        console.error("Failed to load addresses:", error);
+
         if (mounted) {
-          setError(
-            err.response?.data?.message ||
-              "Unable to load addresses"
-          );
           setAddresses([]);
+          setMessage(
+            error?.response?.data?.message ||
+              "Unable to load your addresses."
+          );
         }
       } finally {
         if (mounted) {
@@ -66,77 +75,69 @@ export default function Addresses() {
       }
     }
 
-    if (token && !isLoading) {
-      loadAddresses();
-    }
+    loadAddresses();
 
     return () => {
       mounted = false;
     };
-  }, [isLoading, token]);
+  }, [token, isLoading]);
 
-  function handleChange(e) {
-    const { name, value, type, checked } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
+  function updateField(field, value) {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
     }));
   }
 
   async function createAddress(e) {
     e.preventDefault();
 
-    setError("");
     setMessage("");
 
-    if (!form.full_name.trim()) {
-      setError("Full name is required");
-      return;
-    }
-
-    if (!form.phone.trim()) {
-      setError("Phone number is required");
-      return;
-    }
-
-    if (!form.county.trim()) {
-      setError("County is required");
-      return;
-    }
-
-    if (!form.city.trim()) {
-      setError("City is required");
-      return;
-    }
-
-    if (!form.address_line_1.trim()) {
-      setError("Address line 1 is required");
+    if (
+      !form.full_name.trim() ||
+      !form.phone.trim() ||
+      !form.county.trim() ||
+      !form.city.trim() ||
+      !form.address_line_1.trim()
+    ) {
+      setMessage("Please fill in all required fields.");
       return;
     }
 
     try {
       setSaving(true);
 
-      const created = await accountService.createAddress(
-        token,
-        form
-      );
+      const created = await accountService.createAddress(token, {
+        ...form,
+        full_name: form.full_name.trim(),
+        phone: form.phone.trim(),
+        county: form.county.trim(),
+        city: form.city.trim(),
+        address_line_1: form.address_line_1.trim(),
+        address_line_2: form.address_line_2.trim(),
+        postal_code: form.postal_code.trim(),
+      });
 
       if (created) {
-        setAddresses((prev) => [created, ...prev]);
+        setAddresses((previous) => [created, ...previous]);
       }
 
       setForm({
         ...emptyForm,
-        full_name: user?.name || "",
+        full_name: `${user?.first_name || ""} ${
+          user?.last_name || ""
+        }`.trim(),
+        phone: user?.phone || "",
       });
 
-      setMessage("Address saved successfully");
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Failed to save address"
+      setMessage("Address saved successfully.");
+    } catch (error) {
+      console.error("Failed to create address:", error);
+
+      setMessage(
+        error?.response?.data?.message ||
+          "Failed to save address."
       );
     } finally {
       setSaving(false);
@@ -144,131 +145,137 @@ export default function Addresses() {
   }
 
   async function remove(addressId) {
-    if (!window.confirm("Delete this address?")) {
-      return;
-    }
+    if (!addressId) return;
 
     try {
-      setError("");
       setMessage("");
 
-      await accountService.deleteAddress(
-        token,
-        addressId
-      );
+      await accountService.deleteAddress(token, addressId);
 
-      setAddresses((prev) =>
-        prev.filter(
+      setAddresses((previous) =>
+        previous.filter(
           (address) =>
-            (address.id ?? address.address_id) !==
-            addressId
+            (address.id ?? address.address_id) !== addressId
         )
       );
 
-      setMessage("Address deleted successfully");
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Failed to delete address"
+      setMessage("Address deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+
+      setMessage(
+        error?.response?.data?.message ||
+          "Failed to delete address."
       );
     }
   }
 
   return (
-    <AccountLayout
-      user={user}
-      onLogout={logout}
-    >
+    <AccountLayout user={user} onLogout={logout}>
       <div>
-        <h2 style={h2}>My Addresses</h2>
-
-        {error && (
-          <div style={errorBox}>
-            {error}
-          </div>
-        )}
+        <h2 style={h2}>Addresses</h2>
 
         {message && (
-          <div style={successBox}>
+          <div
+            style={{
+              marginBottom: 16,
+              padding: 12,
+              borderRadius: 10,
+              background: message.includes("successfully")
+                ? "#f0fdf4"
+                : "#fef2f2",
+              color: message.includes("successfully")
+                ? "#166534"
+                : "#b91c1c",
+              fontWeight: 700,
+            }}
+          >
             {message}
           </div>
         )}
 
         {loading ? (
           <div>Loading addresses...</div>
-        ) : addresses.length ? (
+        ) : addresses.length > 0 ? (
           <div style={grid}>
             {addresses.map((address) => (
               <AddressCard
-                key={
-                  address.id ??
-                  address.address_id
-                }
+                key={address.id}
                 address={address}
-                onDelete={() =>
-                  remove(
-                    address.id ??
-                      address.address_id
-                  )
-                }
+                onDelete={() => remove(address.id)}
               />
             ))}
           </div>
         ) : (
-          <div style={emptyBox}>
+          <div
+            style={{
+              padding: 18,
+              border: "1px solid #eee",
+              borderRadius: 12,
+              color: "#666",
+            }}
+          >
             No saved addresses yet.
           </div>
         )}
 
         <form
           onSubmit={createAddress}
-          style={formBox}
+          style={{
+            marginTop: 20,
+            border: "1px solid #eee",
+            borderRadius: 16,
+            padding: 18,
+            maxWidth: 850,
+          }}
         >
-          <div style={formTitle}>
-            Add New Address
-          </div>
+          <div style={formTitle}>Add new address</div>
 
           <div style={grid2}>
             <label style={field}>
-              Full name
+              Full name *
               <input
                 style={input}
-                name="full_name"
                 value={form.full_name}
-                onChange={handleChange}
+                onChange={(e) =>
+                  updateField("full_name", e.target.value)
+                }
                 placeholder="John Doe"
               />
             </label>
 
             <label style={field}>
-              Phone
+              Phone *
               <input
                 style={input}
-                name="phone"
                 value={form.phone}
-                onChange={handleChange}
-                placeholder="0712345678"
+                onChange={(e) =>
+                  updateField("phone", e.target.value)
+                }
+                placeholder="2547XXXXXXXX"
               />
             </label>
 
             <label style={field}>
-              County
+              County *
               <input
                 style={input}
-                name="county"
                 value={form.county}
-                onChange={handleChange}
+                onChange={(e) =>
+                  updateField("county", e.target.value)
+                }
                 placeholder="Nairobi"
               />
             </label>
 
             <label style={field}>
-              City
+              City *
               <input
                 style={input}
-                name="city"
                 value={form.city}
-                onChange={handleChange}
+                onChange={(e) =>
+                  updateField("city", e.target.value)
+                }
                 placeholder="Nairobi"
               />
             </label>
@@ -279,13 +286,17 @@ export default function Addresses() {
                 gridColumn: "1 / -1",
               }}
             >
-              Address line 1
+              Address line 1 *
               <input
                 style={input}
-                name="address_line_1"
                 value={form.address_line_1}
-                onChange={handleChange}
-                placeholder="Street / Building / Estate"
+                onChange={(e) =>
+                  updateField(
+                    "address_line_1",
+                    e.target.value
+                  )
+                }
+                placeholder="Street / building / house number"
               />
             </label>
 
@@ -298,10 +309,14 @@ export default function Addresses() {
               Address line 2
               <input
                 style={input}
-                name="address_line_2"
                 value={form.address_line_2}
-                onChange={handleChange}
-                placeholder="Apartment, floor, etc. (optional)"
+                onChange={(e) =>
+                  updateField(
+                    "address_line_2",
+                    e.target.value
+                  )
+                }
+                placeholder="Apartment, floor, landmark..."
               />
             </label>
 
@@ -309,9 +324,13 @@ export default function Addresses() {
               Postal code
               <input
                 style={input}
-                name="postal_code"
                 value={form.postal_code}
-                onChange={handleChange}
+                onChange={(e) =>
+                  updateField(
+                    "postal_code",
+                    e.target.value
+                  )
+                }
                 placeholder="00100"
               />
             </label>
@@ -322,40 +341,40 @@ export default function Addresses() {
                 justifyContent: "center",
               }}
             >
-              <span>
+              <span>Default address</span>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontWeight: 600,
+                }}
+              >
                 <input
                   type="checkbox"
-                  name="is_default"
                   checked={form.is_default}
-                  onChange={handleChange}
-                  style={{
-                    marginRight: 8,
-                  }}
+                  onChange={(e) =>
+                    updateField(
+                      "is_default",
+                      e.target.checked
+                    )
+                  }
                 />
-
                 Make this my default address
-              </span>
+              </label>
             </label>
           </div>
 
           <button
             type="submit"
-            disabled={
-              saving ||
-              !form.full_name.trim() ||
-              !form.phone.trim() ||
-              !form.county.trim() ||
-              !form.city.trim() ||
-              !form.address_line_1.trim()
-            }
+            disabled={saving}
             style={{
               ...primaryBtn,
-              opacity: saving ? 0.7 : 1,
+              opacity: saving ? 0.6 : 1,
             }}
           >
-            {saving
-              ? "Saving..."
-              : "Save Address"}
+            {saving ? "Saving..." : "Save address"}
           </button>
         </form>
       </div>
@@ -364,23 +383,22 @@ export default function Addresses() {
 }
 
 const h2 = {
-  fontSize: 28,
+  fontSize: 22,
   fontWeight: 900,
-  marginBottom: 20,
+  marginBottom: 16,
 };
 
 const grid = {
   display: "grid",
   gridTemplateColumns:
     "repeat(auto-fit, minmax(280px, 1fr))",
-  gap: 16,
+  gap: 12,
 };
 
 const grid2 = {
   display: "grid",
-  gridTemplateColumns:
-    "repeat(2, minmax(0, 1fr))",
-  gap: 14,
+  gridTemplateColumns: "1fr 1fr",
+  gap: 12,
 };
 
 const field = {
@@ -392,59 +410,26 @@ const field = {
 };
 
 const input = {
-  padding: 12,
+  padding: 11,
   borderRadius: 10,
   border: "1px solid #ddd",
   outline: "none",
-  fontSize: 15,
-};
-
-const formBox = {
-  marginTop: 24,
-  border: "1px solid #eee",
-  borderRadius: 16,
-  padding: 20,
-  background: "#fff",
+  fontSize: 14,
 };
 
 const formTitle = {
-  fontSize: 20,
+  fontSize: 18,
   fontWeight: 900,
-  marginBottom: 16,
+  marginBottom: 14,
 };
 
 const primaryBtn = {
-  marginTop: 18,
-  padding: "12px 18px",
+  marginTop: 16,
+  padding: "11px 16px",
   borderRadius: 12,
   border: "none",
   background: "#0ea5e9",
   color: "#fff",
   fontWeight: 900,
   cursor: "pointer",
-};
-
-const errorBox = {
-  background: "#fee2e2",
-  color: "#b91c1c",
-  padding: 12,
-  borderRadius: 10,
-  marginBottom: 15,
-  fontWeight: 700,
-};
-
-const successBox = {
-  background: "#dcfce7",
-  color: "#15803d",
-  padding: 12,
-  borderRadius: 10,
-  marginBottom: 15,
-  fontWeight: 700,
-};
-
-const emptyBox = {
-  color: "#666",
-  padding: 20,
-  border: "1px dashed #ddd",
-  borderRadius: 12,
 };

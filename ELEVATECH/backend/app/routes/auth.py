@@ -103,6 +103,47 @@ def profile():
     return jsonify(user.to_dict())
 
 
+@auth_bp.put("/profile")
+@jwt_required()
+def update_profile():
+
+    user_id = int(get_jwt_identity())
+
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({
+            "message": "User not found"
+        }), 404
+
+    data = request.get_json() or {}
+
+    first_name = data.get("first_name")
+    last_name = data.get("last_name")
+    phone = data.get("phone")
+
+    if not first_name or not first_name.strip():
+        return jsonify({
+            "message": "First name is required"
+        }), 400
+
+    if not last_name or not last_name.strip():
+        return jsonify({
+            "message": "Last name is required"
+        }), 400
+
+    user.first_name = first_name.strip()
+    user.last_name = last_name.strip()
+    user.phone = phone.strip() if phone else None
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Profile updated successfully",
+        "user": user.to_dict()
+    }), 200
+
+
 @auth_bp.patch("/profile/password")
 @jwt_required()
 def change_password():
