@@ -57,6 +57,7 @@ function ProtectedAccountRoutes() {
         <Route path="/account/addresses" element={<Addresses />} />
         <Route path="/account/wishlist" element={<Wishlist />} />
         <Route path="/account/change-password" element={<ChangePassword />} />
+        <Route path="/account/password" element={<ChangePassword />} />
       </Routes>
     </ProtectedRoute>
   );

@@ -25,7 +25,7 @@ export default function ChangePassword() {
 
     try {
       setSaving(true);
-      const res = await fetch(`${import.meta.env.VITE_API_BASE || ""}/api/profile/password`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE || ""}/api/auth/profile/password`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

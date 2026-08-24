@@ -15,10 +15,9 @@ export default function ProductCard({ product, onAddToCart }) {
     toggleWishlist,
   } = useContext(WishlistContext);
 
-  const saved =
-    wishlist.find(
-      p => p.id === product.id
-    );
+  const saved = wishlist.some(
+    (item) => item.product?.id === product.id
+  );
 
   const image =
     product.image ||
@@ -30,8 +29,13 @@ export default function ProductCard({ product, onAddToCart }) {
       <div className="relative">
 
         <button
-          onClick={() => toggleWishlist(product)}
-          className="absolute top-3 right-3 bg-white rounded-full p-2 shadow"
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(product);
+          }}
+          className="absolute top-3 right-3 z-50 bg-white rounded-full p-2 shadow cursor-pointer"
         >
           <Heart
             size={20}

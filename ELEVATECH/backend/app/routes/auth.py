@@ -102,3 +102,56 @@ def profile():
 
     return jsonify(user.to_dict())
 
+
+@auth_bp.patch("/profile/password")
+@jwt_required()
+def change_password():
+
+    user_id = get_jwt_identity()
+
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({
+            "message": "User not found"
+        }), 404
+
+    data = request.get_json() or {}
+
+    old_password = data.get("old_password")
+    new_password = data.get("new_password")
+    confirm_password = data.get("confirm_password")
+
+    if not old_password:
+        return jsonify({
+            "message": "Current password is required"
+        }), 400
+
+    if not new_password:
+        return jsonify({
+            "message": "New password is required"
+        }), 400
+
+    if new_password != confirm_password:
+        return jsonify({
+            "message": "New passwords do not match"
+        }), 400
+
+    if not user.check_password(old_password):
+        return jsonify({
+            "message": "Current password is incorrect"
+        }), 400
+
+    if len(new_password) < 6:
+        return jsonify({
+            "message": "New password must be at least 6 characters"
+        }), 400
+
+    user.set_password(new_password)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Password updated successfully"
+    }), 200
+
