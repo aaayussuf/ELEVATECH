@@ -3,7 +3,6 @@ import { Heart, ShoppingCart } from "lucide-react";
 import { useParams } from "react-router-dom";
 
 import productService from "../services/productService";
-import ProductGallery from "../components/products/ProductGallery";
 import ProductActions from "../components/products/ProductActions";
 import RecentlyViewed from "../components/products/RecentlyViewed";
 import ReviewSection from "../components/products/ReviewSection";
@@ -159,7 +158,13 @@ export default function ProductDetails() {
           {/* PRODUCT IMAGE */}
 
           <div>
-            <ProductGallery product={product} />
+            <div className="bg-white rounded-2xl p-6">
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full max-h-[600px] object-contain rounded-xl"
+              />
+            </div>
           </div>
 
           {/* PRODUCT INFORMATION */}

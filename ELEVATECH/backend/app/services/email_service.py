@@ -51,7 +51,7 @@ ELEVATECH Store
 
     try:
         mail.send(msg)
-        print("✅ EMAIL SENT SUCCESSFULLY")
+        print("[OK] EMAIL SENT SUCCESSFULLY")
 
     except Exception as e:
         print("=" * 60)

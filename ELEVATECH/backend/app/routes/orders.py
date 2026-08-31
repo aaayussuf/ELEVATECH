@@ -72,6 +72,9 @@ def restore_order_inventory(order):
         if product.sold >= item.quantity:
             product.sold -= item.quantity
 
+    if order.coupon and order.coupon.used > 0:
+        order.coupon.used -= 1
+
 
 # ======================================================
 # CREATE ORDER
@@ -105,6 +108,7 @@ def create_order():
         user_id=user_id,
         total=0,
         status="Pending",
+        payment_status="Pending",
         payment_method=payment_method
     )
 
@@ -168,7 +172,7 @@ def create_order():
     if coupon_code:
 
         coupon = Coupon.query.filter_by(
-            code=coupon_code.upper(),
+            code=coupon_code.upper().strip(),
             active=True
         ).first()
 
@@ -180,7 +184,7 @@ def create_order():
                 "message": "Invalid coupon."
             }), 400
 
-        if coupon.expires_at and coupon.expires_at < order.created_at:
+        if coupon.expires_at and coupon.expires_at < datetime.utcnow():
 
             db.session.rollback()
 
@@ -188,7 +192,7 @@ def create_order():
                 "message": "Coupon expired."
             }), 400
 
-        if coupon.usage_limit and coupon.used >= coupon.usage_limit:
+        if coupon.usage_limit and coupon.usage_limit > 0 and coupon.used >= coupon.usage_limit:
 
             db.session.rollback()
 
@@ -217,20 +221,63 @@ def create_order():
 
         coupon.used += 1
 
+        order.coupon = coupon
+        order.coupon_id = coupon.id
+        order.coupon_code = coupon.code
+
     # -------------------------
     # Final total
     # -------------------------
 
-    order.total = total - discount
+    order.discount = round(discount, 2)
+    order.total = round(max(0, total - discount), 2)
 
     db.session.commit()
 
     return jsonify({
         "message": "Order created successfully",
-        "discount": discount,
+        "subtotal": round(total, 2),
+        "discount": order.discount,
         "total": order.total,
         "order": serialize_order(order)
     }), 201
+
+
+# ======================================================
+# CANCEL ORDER / RESTORE INVENTORY
+# ======================================================
+
+@orders_bp.route("/<int:order_id>/cancel", methods=["POST"])
+@jwt_required()
+def cancel_order(order_id):
+
+    user_id = int(get_jwt_identity())
+
+    order = Order.query.filter_by(
+        id=order_id,
+        user_id=user_id
+    ).first()
+
+    if not order:
+        return jsonify({
+            "message": "Order not found"
+        }), 404
+
+    if order.status not in ("Pending",):
+        return jsonify({
+            "message": f"Cannot cancel order with status '{order.status}'"
+        }), 400
+
+    restore_order_inventory(order)
+    order.status = "Cancelled"
+    order.payment_status = "Failed"
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Order cancelled successfully",
+        "order": serialize_order(order)
+    }), 200
 
 
 # ======================================================

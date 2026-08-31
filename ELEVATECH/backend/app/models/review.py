@@ -25,6 +25,12 @@ class Review(db.Model):
         nullable=False
     )
 
+    helpful_count = db.Column(
+        db.Integer,
+        default=0,
+        nullable=False
+    )
+
     created_at = db.Column(
         db.DateTime,
         default=datetime.utcnow
@@ -35,8 +41,6 @@ class Review(db.Model):
         default=datetime.utcnow,
         onupdate=datetime.utcnow
     )
-
-    # Relationships
 
     user_id = db.Column(
         db.Integer,
@@ -66,9 +70,15 @@ class Review(db.Model):
             "rating": self.rating,
             "title": self.title,
             "comment": self.comment,
-            "created_at": self.created_at.isoformat(),
+            "helpful_count": self.helpful_count,
+            "created_at": (
+                self.created_at.isoformat()
+                if self.created_at
+                else None
+            ),
             "user": {
                 "id": self.user.id,
                 "name": self.user.name
             }
         }
+

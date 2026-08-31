@@ -78,6 +78,8 @@ function App() {
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/checkout/success" element={<PaymentSuccess />} />
       <Route path="/checkout/cancel" element={<PaymentCancel />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-cancel" element={<PaymentCancel />} />
       <Route path="/about" element={<About />} />
 
 

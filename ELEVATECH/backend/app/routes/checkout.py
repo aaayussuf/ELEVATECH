@@ -45,42 +45,51 @@ def create_checkout():
             400,
         )
 
-    stripe_currency = current_app.config.get("STRIPE_CURRENCY", "KES")
+    try:
+        stripe_currency = current_app.config.get("STRIPE_CURRENCY", "KES")
 
-    session = create_checkout_session(
-        order_id=order.id,
-        order=order,
-        success_url=current_app.config.get("STRIPE_SUCCESS_URL"),
-        cancel_url=current_app.config.get("STRIPE_CANCEL_URL"),
-        currency=stripe_currency,
-    )
-
-    # Idempotent Payment creation/update using stripe_session_id.
-    payment = (
-        Payment.query.filter_by(order_id=order.id, stripe_session_id=session.id).first()
-    )
-
-    if not payment:
-        payment = Payment(
+        session = create_checkout_session(
             order_id=order.id,
-            amount=order.total,
-            provider="stripe",
-            status="Pending",
+            order=order,
+            success_url=current_app.config.get("STRIPE_SUCCESS_URL"),
+            cancel_url=current_app.config.get("STRIPE_CANCEL_URL"),
             currency=stripe_currency,
-            stripe_session_id=session.id,
-            stripe_payment_intent_id=getattr(session, "payment_intent", None),
         )
-        db.session.add(payment)
-    else:
-        payment.status = "Pending"
-        payment.amount = order.total
-        payment.provider = "stripe"
-        payment.currency = stripe_currency
-        payment.stripe_payment_intent_id = getattr(session, "payment_intent", None)
 
-    db.session.commit()
+        # Idempotent Payment creation/update using stripe_session_id.
+        payment = (
+            Payment.query.filter_by(order_id=order.id, stripe_session_id=session.id).first()
+        )
 
-    return jsonify({"checkout_session_id": session.id, "url": session.url}), 201
+        if not payment:
+            payment = Payment(
+                order_id=order.id,
+                amount=order.total,
+                provider="stripe",
+                status="Pending",
+                currency=stripe_currency,
+                stripe_session_id=session.id,
+                stripe_payment_intent_id=getattr(session, "payment_intent", None),
+            )
+            db.session.add(payment)
+        else:
+            payment.status = "Pending"
+            payment.amount = order.total
+            payment.provider = "stripe"
+            payment.currency = stripe_currency
+            payment.stripe_payment_intent_id = getattr(session, "payment_intent", None)
+
+        db.session.commit()
+
+        return jsonify({"checkout_session_id": session.id, "url": session.url}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        restore_order_inventory(order)
+        order.status = "Cancelled"
+        order.payment_status = "Failed"
+        db.session.commit()
+        return jsonify({"error": f"Failed to create Stripe Checkout: {str(e)}"}), 500
 
 
 @checkout_bp.route("/verify/<session_id>", methods=["GET"])
@@ -147,27 +156,52 @@ def stripe_webhook():
         metadata = obj.get("metadata", {})
         order_id = metadata.get("order_id")
 
+        session_id = obj.get("id") if event_type.startswith("checkout.session") else None
+        payment_intent_id = (
+            obj.get("payment_intent")
+            if event_type.startswith("checkout.session")
+            else obj.get("id")
+        )
+
         if order_id:
 
             order = Order.query.get(int(order_id))
 
             if order:
 
-                payment = Payment.query.filter_by(
-                    order_id=order.id,
-                    provider="stripe",
-                ).first()
+                payment = None
+
+                # 1. Try finding by Stripe session ID
+                if session_id:
+                    payment = Payment.query.filter_by(
+                        stripe_session_id=session_id
+                    ).first()
+
+                # 2. Try finding by Stripe Payment Intent ID or Transaction ID
+                if not payment and payment_intent_id:
+                    payment = Payment.query.filter(
+                        (Payment.stripe_payment_intent_id == payment_intent_id)
+                        | (Payment.transaction_id == payment_intent_id)
+                    ).first()
+
+                # 3. Fallback to latest payment for this order
+                if not payment:
+                    payment = Payment.query.filter_by(
+                        order_id=order.id,
+                        provider="stripe",
+                    ).order_by(Payment.id.desc()).first()
 
                 if payment:
 
                     payment.status = "Completed"
                     payment.verified_at = datetime.utcnow()
 
-                    if obj.get("payment_intent"):
-                        payment.transaction_id = obj["payment_intent"]
+                    if payment_intent_id:
+                        payment.transaction_id = payment_intent_id
+                        payment.stripe_payment_intent_id = payment_intent_id
 
-                    if obj.get("id"):
-                        payment.stripe_session_id = obj["id"]
+                    if session_id:
+                        payment.stripe_session_id = session_id
 
                 else:
 
@@ -180,15 +214,16 @@ def stripe_webhook():
                             "STRIPE_CURRENCY",
                             "KES",
                         ),
-                        stripe_session_id=obj.get("id"),
-                        stripe_payment_intent_id=obj.get("payment_intent"),
-                        transaction_id=obj.get("payment_intent"),
+                        stripe_session_id=session_id,
+                        stripe_payment_intent_id=payment_intent_id,
+                        transaction_id=payment_intent_id or session_id,
                         verified_at=datetime.utcnow(),
                     )
 
                     db.session.add(payment)
 
                 order.status = "Paid"
+                order.payment_status = "Paid"
 
                 db.session.commit()
 
@@ -205,6 +240,13 @@ def stripe_webhook():
         metadata = obj.get("metadata", {})
         order_id = metadata.get("order_id")
 
+        session_id = obj.get("id") if event_type.startswith("checkout.session") else None
+        payment_intent_id = (
+            obj.get("payment_intent")
+            if event_type.startswith("checkout.session")
+            else obj.get("id")
+        )
+
         if order_id:
 
             order = Order.query.get(int(order_id))
@@ -214,11 +256,25 @@ def stripe_webhook():
                 restore_order_inventory(order)
 
                 order.status = "Cancelled"
+                order.payment_status = "Failed"
 
-                payment = Payment.query.filter_by(
-                    order_id=order.id,
-                    provider="stripe",
-                ).first()
+                payment = None
+                if session_id:
+                    payment = Payment.query.filter_by(
+                        stripe_session_id=session_id
+                    ).first()
+
+                if not payment and payment_intent_id:
+                    payment = Payment.query.filter(
+                        (Payment.stripe_payment_intent_id == payment_intent_id)
+                        | (Payment.transaction_id == payment_intent_id)
+                    ).first()
+
+                if not payment:
+                    payment = Payment.query.filter_by(
+                        order_id=order.id,
+                        provider="stripe",
+                    ).order_by(Payment.id.desc()).first()
 
                 if payment:
                     payment.status = "Failed"

@@ -1,4 +1,5 @@
 import { useContext, useState } from "react";
+import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext";
 
@@ -13,12 +14,13 @@ export default function Checkout() {
   const [couponCode, setCouponCode] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
   const [discount, setDiscount] = useState(0);
-  const [subtotal, setSubtotal] = useState(
-    cartItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    )
+
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
   );
+
+  const total = Math.max(0, subtotal - discount);
 
   async function applyCoupon() {
     setCouponMessage("");
@@ -37,7 +39,7 @@ export default function Checkout() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            code: couponCode,
+            code: couponCode.trim(),
             subtotal,
           }),
         }
@@ -45,13 +47,13 @@ export default function Checkout() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         setDiscount(0);
         setCouponMessage(data.message || "Invalid coupon.");
         return;
       }
 
-      setDiscount(data.discount);
+      setDiscount(data.discount || 0);
       setCouponMessage("Coupon applied successfully!");
     } catch {
       setCouponMessage("Unable to validate coupon.");
@@ -80,6 +82,8 @@ export default function Checkout() {
 
     setLoading(true);
 
+    let createdOrderId = null;
+
     try {
       // ===========================
       // STEP 1: CREATE ORDER
@@ -95,22 +99,27 @@ export default function Checkout() {
           },
           body: JSON.stringify({
             payment_method: paymentMethod,
-            coupon_code: couponCode,
-            items: cartItems.map(item => ({
+            coupon_code: couponCode.trim() || undefined,
+            items: cartItems.map((item) => ({
               product_id: item.id,
-              quantity: item.quantity
-            }))
+              quantity: item.quantity,
+            })),
           }),
         }
       );
 
       const orderData = await orderResponse.json().catch(() => ({}));
 
-      if (!orderResponse.ok) {
+      if (!orderResponse.ok || !orderData.order) {
         throw new Error(orderData.message || "Failed to create order.");
       }
 
-      const orderId = orderData.order.id;
+      createdOrderId = orderData.order.id;
+
+      // Update state with backend's authoritative values
+      if (typeof orderData.discount === "number") {
+        setDiscount(orderData.discount);
+      }
 
       // ===========================
       // STRIPE PAYMENT
@@ -126,21 +135,17 @@ export default function Checkout() {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              order_id: orderId,
+              order_id: createdOrderId,
             }),
           }
         );
 
         const stripeData = await stripeResponse.json().catch(() => ({}));
 
-        if (!stripeResponse.ok) {
+        if (!stripeResponse.ok || !stripeData.url) {
           throw new Error(
-            stripeData.error || "Failed to create Stripe Checkout."
+            stripeData.error || "Failed to create Stripe Checkout session."
           );
-        }
-
-        if (!stripeData.url) {
-          throw new Error("Stripe Checkout URL not returned.");
         }
 
         window.location.href = stripeData.url;
@@ -160,7 +165,7 @@ export default function Checkout() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            order_id: orderId,
+            order_id: createdOrderId,
             phone: phone,
           }),
         }
@@ -168,7 +173,7 @@ export default function Checkout() {
 
       const mpesaData = await mpesaResponse.json().catch(() => ({}));
 
-      if (!mpesaResponse.ok) {
+      if (!mpesaResponse.ok || !mpesaData.success) {
         throw new Error(
           mpesaData.error ||
             mpesaData.message ||
@@ -178,14 +183,51 @@ export default function Checkout() {
 
       alert(
         mpesaData.CustomerMessage ||
-          "M-Pesa prompt sent successfully. Check your phone."
+          "M-Pesa prompt sent successfully. Please check your phone to authorize payment."
       );
     } catch (err) {
       console.error(err);
       setError(err.message || "Something went wrong.");
+
+      // If order was created but initiating payment failed, ensure order is cancelled and inventory restored
+      if (createdOrderId) {
+        fetch(
+          `${import.meta.env.VITE_API_BASE}/api/orders/${createdOrderId}/cancel`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        ).catch(() => {});
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <div
+        style={{
+          maxWidth: 550,
+          margin: "60px auto",
+          padding: 20,
+          textAlign: "center",
+        }}
+      >
+        <h2>Your Cart is Empty</h2>
+        <p style={{ color: "#666", marginBottom: 20 }}>
+          Add items to your cart before proceeding to checkout.
+        </p>
+        <Link to="/products">
+          <button style={{ padding: "10px 20px", cursor: "pointer" }}>
+            Browse Products
+          </button>
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -313,7 +355,7 @@ export default function Checkout() {
             Total:
             <strong>
               {" "}
-              KES {(subtotal - discount).toFixed(2)}
+              KES {total.toFixed(2)}
             </strong>
           </h3>
         </div>

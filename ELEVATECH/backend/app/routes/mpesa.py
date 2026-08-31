@@ -7,6 +7,7 @@ from app.extensions import db
 from app.models.order import Order
 from app.models.payment import Payment
 from app.routes.orders import restore_order_inventory
+from app.services.email_service import send_order_confirmation
 from app.services.mpesa_service import get_access_token, stk_push
 
 mpesa_bp = Blueprint(
@@ -60,34 +61,46 @@ def create_stk_push():
     if not order:
         return jsonify({"message": "Order not found"}), 404
 
-    if order.status == "Paid":
+    if order.status == "Paid" or order.payment_status == "Paid":
         return jsonify({"message": "Order already paid"}), 400
 
-    response = stk_push(
-        phone=phone,
-        amount=order.total,
-        order_id=order.id,
-    )
+    try:
+        response = stk_push(
+            phone=phone,
+            amount=order.total,
+            order_id=order.id,
+        )
 
-    payment = Payment(
-        order_id=order.id,
-        amount=order.total,
-        provider="M-Pesa",
-        status="Pending",
-        currency="KES",
-        transaction_id=response.get("CheckoutRequestID"),
-    )
+        payment = Payment(
+            order_id=order.id,
+            amount=order.total,
+            provider="M-Pesa",
+            status="Pending",
+            currency="KES",
+            transaction_id=response.get("CheckoutRequestID"),
+        )
 
-    db.session.add(payment)
-    db.session.commit()
+        db.session.add(payment)
+        db.session.commit()
 
-    return jsonify({
-        "success": True,
-        "message": "STK Push sent successfully.",
-        "checkout_request_id": response.get("CheckoutRequestID"),
-        "merchant_request_id": response.get("MerchantRequestID"),
-        "response": response,
-    })
+        return jsonify({
+            "success": True,
+            "message": "STK Push sent successfully.",
+            "checkout_request_id": response.get("CheckoutRequestID"),
+            "merchant_request_id": response.get("MerchantRequestID"),
+            "response": response,
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        restore_order_inventory(order)
+        order.status = "Cancelled"
+        order.payment_status = "Failed"
+        db.session.commit()
+        return jsonify({
+            "success": False,
+            "message": f"Failed to initiate M-Pesa payment: {str(e)}"
+        }), 500
 
 
 @mpesa_bp.route("/callback", methods=["POST"])
@@ -122,6 +135,9 @@ def mpesa_callback():
 
             if order:
                 order.status = "Paid"
+                order.payment_status = "Paid"
+                db.session.commit()
+                send_order_confirmation(order.user, order)
 
         else:
 
@@ -134,6 +150,7 @@ def mpesa_callback():
                 restore_order_inventory(order)
 
                 order.status = "Cancelled"
+                order.payment_status = "Failed"
 
         db.session.commit()
 

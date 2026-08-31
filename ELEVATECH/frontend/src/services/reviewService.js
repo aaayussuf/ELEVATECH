@@ -3,7 +3,9 @@ const API =
 
 const reviewService = {
   async getReviews(productId) {
-    const res = await fetch(`${API}/${productId}`);
+    const res = await fetch(
+      `${API}/product/${productId}`
+    );
 
     const data = await res.json();
 
@@ -17,10 +19,21 @@ const reviewService = {
   },
 
   async createReview(review) {
+    const token =
+      localStorage.getItem("elevatech_token") ||
+      localStorage.getItem("access_token");
+
+    if (!token) {
+      throw new Error(
+        "You must be logged in to write a review."
+      );
+    }
+
     const res = await fetch(API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(review),
     });
@@ -35,7 +48,27 @@ const reviewService = {
 
     return data;
   },
+
+  async markHelpful(reviewId) {
+    const res = await fetch(
+      `${API}/${reviewId}/helpful`,
+      {
+        method: "POST",
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data.message || "Unable to mark review as helpful"
+      );
+    }
+
+    return data;
+  },
 };
 
 export default reviewService;
+
 

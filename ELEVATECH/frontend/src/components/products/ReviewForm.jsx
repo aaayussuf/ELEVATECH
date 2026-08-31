@@ -1,85 +1,170 @@
 import { useState } from "react";
 
 import ReviewStars from "./ReviewStars";
-
 import reviewService from "../../services/reviewService";
 
 export default function ReviewForm({
-
-    productId,
-
-    reload,
-
+  productId,
+  reload,
 }) {
+  const [rating, setRating] = useState(5);
+  const [title, setTitle] = useState("");
+  const [comment, setComment] = useState("");
 
-    const [rating, setRating] = useState(5);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-    const [comment, setComment] = useState("");
+  async function submit(e) {
+    e.preventDefault();
 
-    async function submit(e){
+    setMessage("");
+    setError("");
 
-        e.preventDefault();
+    const cleanTitle = title.trim();
+    const cleanComment = comment.trim();
 
-        await reviewService.createReview({
-
-            product_id: productId,
-
-            user_id: 1,
-
-            rating,
-
-            comment,
-
-        });
-
-        setComment("");
-
-        reload();
-
+    if (!rating || rating < 1 || rating > 5) {
+      setError("Please select a rating.");
+      return;
     }
 
-    return (
+    if (!cleanComment) {
+      setError("Please write a review before submitting.");
+      return;
+    }
 
-        <form
-            onSubmit={submit}
-            className="bg-white rounded-2xl shadow p-8"
+    if (cleanComment.length < 5) {
+      setError("Your review must contain at least 5 characters.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      await reviewService.createReview({
+        product_id: productId,
+        rating,
+        title: cleanTitle || null,
+        comment: cleanComment,
+      });
+
+      setTitle("");
+      setComment("");
+      setRating(5);
+
+      setMessage("Thank you! Your review has been submitted.");
+
+      await reload();
+
+    } catch (err) {
+      console.error("Review submission error:", err);
+
+      setError(
+        err.message ||
+        "Unable to create review. Please try again."
+      );
+
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="bg-white rounded-2xl shadow p-8"
+    >
+      <h3 className="text-2xl font-bold mb-6">
+        Write a Review
+      </h3>
+
+      {/* Rating */}
+
+      <div>
+        <label className="block font-semibold mb-3">
+          Your Rating
+        </label>
+
+        <ReviewStars
+          rating={rating}
+          setRating={setRating}
+        />
+      </div>
+
+      {/* Title */}
+
+      <div className="mt-6">
+        <label
+          htmlFor="review-title"
+          className="block font-semibold mb-2"
         >
+          Review Title
+        </label>
 
-            <h3 className="text-2xl font-bold mb-6">
+        <input
+          id="review-title"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={150}
+          placeholder="Example: Excellent laptop"
+          className="w-full border rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-                Write a Review
+      {/* Comment */}
 
-            </h3>
+      <div className="mt-6">
+        <label
+          htmlFor="review-comment"
+          className="block font-semibold mb-2"
+        >
+          Your Review
+        </label>
 
-            <ReviewStars
-                rating={rating}
-                setRating={setRating}
-            />
+        <textarea
+          id="review-comment"
+          rows="5"
+          maxLength={2000}
+          className="w-full border rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Tell us what you think..."
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+        />
 
-            <textarea
+        <div className="text-sm text-gray-400 mt-2 text-right">
+          {comment.length}/2000
+        </div>
+      </div>
 
-                rows="5"
+      {/* Error */}
 
-                className="w-full border rounded-xl p-4 mt-6"
+      {error && (
+        <div className="mt-5 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
+          {error}
+        </div>
+      )}
 
-                placeholder="Tell us what you think..."
+      {/* Success */}
 
-                value={comment}
+      {message && (
+        <div className="mt-5 bg-green-50 border border-green-200 text-green-700 rounded-xl p-4">
+          {message}
+        </div>
+      )}
 
-                onChange={(e)=>setComment(e.target.value)}
+      {/* Submit */}
 
-            />
-
-            <button
-                className="mt-6 bg-blue-600 text-white px-8 py-3 rounded-xl"
-            >
-
-                Submit Review
-
-            </button>
-
-        </form>
-
-    );
-
+      <button
+        type="submit"
+        disabled={submitting}
+        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {submitting
+          ? "Submitting..."
+          : "Submit Review"}
+      </button>
+    </form>
+  );
 }
