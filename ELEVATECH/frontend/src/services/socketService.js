@@ -8,5 +8,23 @@ const socket = io(SOCKET_URL, {
   transports: ["websocket"],
 });
 
+export function joinCustomerRoom(token) {
+  if (!token) {
+    return;
+  }
+
+  if (!socket.connected) {
+    socket.once("connect", () => {
+      socket.emit("join_customer_room", {
+        token,
+      });
+    });
+  } else {
+    socket.emit("join_customer_room", {
+      token,
+    });
+  }
+}
+
 export default socket;
 

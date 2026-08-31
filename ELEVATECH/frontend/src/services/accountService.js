@@ -41,7 +41,21 @@ async function getOrders(token) {
 }
 
 async function getOrderDetails(token, id) {
-  const res = await axios.get(`${API_BASE}/orders/${id}`, withAuth(token));
+  const res = await axios.get(
+    `${API_BASE}/orders/${id}`,
+    withAuth(token)
+  );
+
+  return res.data?.order ?? res.data;
+}
+
+async function cancelOrder(token, id) {
+  const res = await axios.post(
+    `${API_BASE}/orders/${id}/cancel`,
+    {},
+    withAuth(token)
+  );
+
   return res.data?.order ?? res.data;
 }
 
@@ -94,6 +108,7 @@ export default {
   updateProfile,
   getOrders,
   getOrderDetails,
+  cancelOrder,
   getAddresses,
   createAddress,
   deleteAddress,

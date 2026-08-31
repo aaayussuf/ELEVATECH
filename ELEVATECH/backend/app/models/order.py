@@ -136,6 +136,9 @@ class OrderItem(db.Model):
         return {
             "id": self.id,
             "product_id": self.product_id,
+            "product_name": self.product.name if self.product else None,
+            "image": self.product.image if self.product else None,
             "quantity": self.quantity,
             "price": float(self.price),
+            "subtotal": float(self.price * self.quantity),
         }

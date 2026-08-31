@@ -4,6 +4,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import AccountLayout from "../../layouts/AccountLayout";
 import accountService from "../../services/accountService";
+import socket, {
+  joinCustomerRoom,
+} from "../../services/socketService";
+import OrderTimeline from "../../components/account/OrderTimeline";
 
 export default function OrderDetails() {
 
@@ -20,6 +24,7 @@ export default function OrderDetails() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
 
@@ -80,6 +85,86 @@ export default function OrderDetails() {
     }
 
   }, [authLoading, token, id, navigate]);
+
+  useEffect(() => {
+    if (!token || !id) {
+      return;
+    }
+
+    joinCustomerRoom(token);
+
+    const handleOrderUpdated = async (data) => {
+      if (
+        Number(data?.order_id) !== Number(id)
+      ) {
+        return;
+      }
+
+      console.log(
+        "Live order detail update received:",
+        data
+      );
+
+      try {
+        const updatedOrder =
+          await accountService.getOrderDetails(
+            token,
+            id
+          );
+
+        setOrder(updatedOrder);
+      } catch (err) {
+        console.error(
+          "Failed to refresh order:",
+          err
+        );
+      }
+    };
+
+    socket.on(
+      "order_updated",
+      handleOrderUpdated
+    );
+
+    return () => {
+      socket.off(
+        "order_updated",
+        handleOrderUpdated
+      );
+    };
+  }, [token, id]);
+
+  async function handleCancelOrder() {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this order?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setCancelling(true);
+      setError("");
+
+      const updatedOrder = await accountService.cancelOrder(
+        token,
+        id
+      );
+
+      setOrder(updatedOrder);
+    } catch (err) {
+      console.error("Cancel order error:", err);
+
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Unable to cancel this order."
+      );
+    } finally {
+      setCancelling(false);
+    }
+  }
 
 
   if (authLoading || loading) {
@@ -193,14 +278,27 @@ export default function OrderDetails() {
                 "Payment Pending"}
             </span>
 
+            {order.status === "Pending" && (
+              <button
+                type="button"
+                onClick={handleCancelOrder}
+                disabled={cancelling}
+                className="px-5 py-2 rounded-full bg-red-50 text-red-700 font-bold hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {cancelling ? "Cancelling..." : "Cancel Order"}
+              </button>
+            )}
+
           </div>
 
         </div>
 
 
+        <OrderTimeline order={order} />
+
         {/* SUMMARY */}
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
 
           <div className="bg-white border rounded-2xl p-5">
 
@@ -214,7 +312,6 @@ export default function OrderDetails() {
 
           </div>
 
-
           <div className="bg-white border rounded-2xl p-5">
 
             <p className="text-sm text-gray-500">
@@ -224,14 +321,33 @@ export default function OrderDetails() {
             <p className="font-bold text-xl mt-2">
               {items.reduce(
                 (sum, item) =>
-                  sum +
-                  Number(item.quantity || 0),
+                  sum + Number(item.quantity || 0),
                 0
               )}
             </p>
 
           </div>
 
+          <div className="bg-white border rounded-2xl p-5">
+
+            <p className="text-sm text-gray-500">
+              Subtotal
+            </p>
+
+            <p className="font-bold text-xl mt-2">
+              KSh{" "}
+              {items
+                .reduce(
+                  (sum, item) =>
+                    sum +
+                    Number(item.price || 0) *
+                      Number(item.quantity || 0),
+                  0
+                )
+                .toLocaleString()}
+            </p>
+
+          </div>
 
           <div className="bg-white border rounded-2xl p-5">
 
@@ -245,6 +361,75 @@ export default function OrderDetails() {
                 order.total || 0
               ).toLocaleString()}
             </p>
+
+            {Number(order.discount || 0) > 0 && (
+              <p className="text-sm text-green-600 mt-1">
+                Saved KSh{" "}
+                {Number(
+                  order.discount
+                ).toLocaleString()}
+              </p>
+            )}
+
+          </div>
+
+        </div>
+
+
+        <div className="bg-gray-50 border rounded-3xl p-6">
+
+          <h2 className="text-xl font-black mb-5">
+            Price Breakdown
+          </h2>
+
+          <div className="space-y-3 max-w-md ml-auto">
+
+            <div className="flex justify-between">
+              <span className="text-gray-500">
+                Subtotal
+              </span>
+
+              <span className="font-semibold">
+                KSh{" "}
+                {items
+                  .reduce(
+                    (sum, item) =>
+                      sum +
+                      Number(item.price || 0) *
+                        Number(item.quantity || 0),
+                    0
+                  )
+                  .toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-500">
+                Discount
+              </span>
+
+              <span className="font-semibold text-green-600">
+                - KSh{" "}
+                {Number(
+                  order.discount || 0
+                ).toLocaleString()}
+              </span>
+            </div>
+
+            <div className="border-t pt-3 flex justify-between">
+
+              <span className="font-black text-lg">
+                Total
+              </span>
+
+              <span className="font-black text-xl text-blue-600">
+                KSh{" "}
+                {Number(
+                  order.total || 0
+                ).toLocaleString()}
+              </span>
+
+            </div>
 
           </div>
 
@@ -320,6 +505,166 @@ export default function OrderDetails() {
           </div>
 
         </div>
+
+
+        {/* ORDER TRACKING */}
+
+        <div className="bg-white border rounded-3xl p-6">
+
+          <h2 className="text-2xl font-black mb-6">
+            Order Tracking
+          </h2>
+
+          {order.status === "Cancelled" ? (
+
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
+              <p className="font-bold text-red-700 text-lg">
+                Order Cancelled
+              </p>
+
+              <p className="text-red-600 mt-1">
+                This order has been cancelled.
+              </p>
+            </div>
+
+          ) : (
+
+            <div className="space-y-6">
+
+              {[
+                {
+                  label: "Order Placed",
+                  completed: true,
+                  date: order.created_at,
+                },
+                {
+                  label: "Processing",
+                  completed: [
+                    "Processing",
+                    "Paid",
+                    "Shipped",
+                    "Delivered",
+                  ].includes(order.status),
+                },
+                {
+                  label: "Paid",
+                  completed: [
+                    "Paid",
+                    "Shipped",
+                    "Delivered",
+                  ].includes(order.status),
+                },
+                {
+                  label: "Shipped",
+                  completed: [
+                    "Shipped",
+                    "Delivered",
+                  ].includes(order.status),
+                  date: order.shipped_at,
+                },
+                {
+                  label: "Delivered",
+                  completed: order.status === "Delivered",
+                  date: order.delivered_at,
+                },
+              ].map((step, index) => (
+
+                <div
+                  key={step.label}
+                  className="flex items-start gap-4"
+                >
+
+                  <div className="flex flex-col items-center">
+
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center font-bold ${
+                        step.completed
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-200 text-gray-500"
+                      }`}
+                    >
+                      {step.completed ? "✓" : index + 1}
+                    </div>
+
+                    {index < 4 && (
+                      <div
+                        className={`w-1 h-10 mt-1 ${
+                          step.completed
+                            ? "bg-green-500"
+                            : "bg-gray-200"
+                        }`}
+                      />
+                    )}
+
+                  </div>
+
+                  <div className="pt-1">
+
+                    <p
+                      className={`font-bold ${
+                        step.completed
+                          ? "text-gray-900"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {step.label}
+                    </p>
+
+                    {step.date && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        {new Date(step.date).toLocaleString()}
+                      </p>
+                    )}
+
+                  </div>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          )}
+
+        </div>
+
+        {(order.courier || order.tracking_number) && (
+          <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6">
+
+            <h2 className="text-xl font-black mb-5">
+              Shipping Details
+            </h2>
+
+            <div className="grid md:grid-cols-2 gap-5">
+
+              {order.courier && (
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Courier
+                  </p>
+
+                  <p className="font-bold mt-1">
+                    {order.courier}
+                  </p>
+                </div>
+              )}
+
+              {order.tracking_number && (
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Tracking Number
+                  </p>
+
+                  <p className="font-bold mt-1">
+                    {order.tracking_number}
+                  </p>
+                </div>
+              )}
+
+            </div>
+
+          </div>
+        )}
 
 
         {/* ORDER INFORMATION */}

@@ -132,7 +132,8 @@ def update_order_full(order_id):
         {
             "order_id": order.id,
             "status": order.status,
-        }
+        },
+        room=f"customer_{order.user_id}"
     )
 
     return jsonify(order.to_dict())

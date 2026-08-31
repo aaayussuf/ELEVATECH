@@ -1,9 +1,8 @@
 import api from "./api";
 
-const BASE = "/api/admin/orders";
+const BASE = "/admin/orders";
 
 const adminOrderService = {
-
   async getOrders() {
     const { data } = await api.get(BASE);
     return data;
@@ -23,14 +22,22 @@ const adminOrderService = {
     return data;
   },
 
-  async getKanban() {
-    const { data } = await api.get(
-      "/api/admin/orders/kanban"
+  async updateOrderFull(id, values) {
+    const { data } = await api.put(
+      `${BASE}/${id}`,
+      values
     );
 
     return data;
   },
 
+  async getKanban() {
+    const { data } = await api.get(
+      `${BASE}/kanban`
+    );
+
+    return data;
+  },
 };
 
 export default adminOrderService;

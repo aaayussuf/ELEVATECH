@@ -13,6 +13,7 @@ import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import About from "./pages/About";
+import MyOrders from "./pages/MyOrders";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminOrders from "./pages/admin/Orders";
 import AdminCustomers from "./pages/admin/Customers";
@@ -20,7 +21,7 @@ import CustomerDetails from "./pages/admin/CustomerDetails";
 import ProductList from "./pages/admin/ProductList";
 import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
-import AdminOrderDetails from "./pages/admin/orders/OrderDetails";
+import AdminOrderDetails from "./pages/admin/OrderDetails";
 import OrderBoard from "./pages/admin/orders/OrderBoard";
 import AdminCategories from "./pages/admin/Categories";
 import CreateCategory from "./pages/admin/CreateCategory";
@@ -82,6 +83,14 @@ function App() {
       <Route path="/payment-cancel" element={<PaymentCancel />} />
       <Route path="/about" element={<About />} />
 
+      <Route
+        path="/my-orders"
+        element={
+          <ProtectedRoute>
+            <MyOrders />
+          </ProtectedRoute>
+        }
+      />
 
       <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
         <Route path="/admin" element={<AdminDashboard />} />

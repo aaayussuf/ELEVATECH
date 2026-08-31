@@ -1,6 +1,8 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import socket from "../../services/socketService";
+
 import { AuthContext } from "../../context/AuthContext";
 import AccountLayout from "../../layouts/AccountLayout";
 import accountService from "../../services/accountService";
@@ -16,8 +18,11 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cancellingId, setCancellingId] = useState(null);
 
   const loadOrders = useCallback(async () => {
+    if (!token) return;
+
     try {
       setLoading(true);
       setError("");
@@ -41,6 +46,14 @@ export default function Orders() {
       setLoading(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    if (authLoading || !token) {
+      return;
+    }
+
+    loadOrders();
+  }, [authLoading, token, loadOrders]);
 
   useEffect(() => {
     if (authLoading || !token) {
@@ -82,10 +95,80 @@ export default function Orders() {
 
     fetchOrders();
 
+    // ==========================================
+    // LIVE ORDER UPDATES
+    // ==========================================
+
+    const handleOrderUpdated = (data) => {
+      console.log("Live order update received:", data);
+
+      if (!data?.order_id) {
+        return;
+      }
+
+      // Refresh the customer's orders immediately
+      fetchOrders();
+    };
+
+    socket.on("order_updated", handleOrderUpdated);
+
     return () => {
       isMounted = false;
+
+      socket.off(
+        "order_updated",
+        handleOrderUpdated
+      );
     };
   }, [authLoading, token]);
+
+  async function handleCancelOrder(orderId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this order?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setCancellingId(orderId);
+      setError("");
+
+      const updatedOrder =
+        await accountService.cancelOrder(
+          token,
+          orderId
+        );
+
+      setOrders((currentOrders) =>
+        currentOrders.map((order) =>
+          order.id === orderId
+            ? {
+                ...order,
+                ...updatedOrder,
+                status:
+                  updatedOrder?.status ||
+                  "Cancelled",
+              }
+            : order
+        )
+      );
+    } catch (err) {
+      console.error(
+        "Cancel order error:",
+        err
+      );
+
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to cancel order."
+      );
+    } finally {
+      setCancellingId(null);
+    }
+  }
 
   if (authLoading || loading) {
     return (
@@ -100,7 +183,7 @@ export default function Orders() {
     );
   }
 
-  if (error) {
+  if (error && orders.length === 0) {
     return (
       <AccountLayout
         user={user}
@@ -143,6 +226,12 @@ export default function Orders() {
           </p>
         </div>
 
+        {error && orders.length > 0 && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4">
+            {error}
+          </div>
+        )}
+
         {orders.length === 0 ? (
 
           <div className="bg-white border rounded-3xl p-12 text-center">
@@ -152,7 +241,8 @@ export default function Orders() {
             </h2>
 
             <p className="text-gray-500 mt-2">
-              Your completed and pending orders will appear here.
+              Your completed and pending orders
+              will appear here.
             </p>
 
             <Link
@@ -168,160 +258,201 @@ export default function Orders() {
 
           <div className="space-y-5">
 
-            {orders.map((order) => (
+            {orders.map((order) => {
 
-              <div
-                key={order.id}
-                className="bg-white border rounded-3xl p-6 shadow-sm"
-              >
+              const isPending =
+                String(order.status || "")
+                  .toLowerCase() === "pending";
 
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+              const isCancelling =
+                cancellingId === order.id;
 
-                  <div>
+              return (
+                <div
+                  key={order.id}
+                  className="bg-white border rounded-3xl p-6 shadow-sm"
+                >
 
-                    <p className="text-sm text-gray-500">
-                      Order
-                    </p>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
 
-                    <h2 className="text-xl font-black">
-                      #{order.id}
-                    </h2>
+                    <div>
 
-                    <p className="text-sm text-gray-500 mt-1">
-                      {order.created_at
-                        ? new Date(
-                            order.created_at
-                          ).toLocaleString()
-                        : "Date unavailable"}
-                    </p>
+                      <p className="text-sm text-gray-500">
+                        Order
+                      </p>
 
-                  </div>
+                      <h2 className="text-xl font-black">
+                        #{order.id}
+                      </h2>
 
-
-                  <div className="flex flex-wrap gap-3">
-
-                    <span className="px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-semibold">
-                      {order.status || "Pending"}
-                    </span>
-
-                    <span
-                      className={`px-4 py-2 rounded-full font-semibold ${
-                        order.payment_status === "Paid"
-                          ? "bg-green-50 text-green-700"
-                          : "bg-yellow-50 text-yellow-700"
-                      }`}
-                    >
-                      {order.payment_status || "Payment Pending"}
-                    </span>
-
-                  </div>
-
-                </div>
-
-
-                <div className="border-t my-5" />
-
-
-                <div className="grid md:grid-cols-3 gap-5">
-
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Payment Method
-                    </p>
-
-                    <p className="font-bold mt-1">
-                      {order.payment_method || "—"}
-                    </p>
-                  </div>
-
-
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Items
-                    </p>
-
-                    <p className="font-bold mt-1">
-                      {(order.items || []).reduce(
-                        (sum, item) =>
-                          sum +
-                          Number(item.quantity || 0),
-                        0
-                      )}
-                    </p>
-                  </div>
-
-
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Total
-                    </p>
-
-                    <p className="font-black text-xl text-blue-600 mt-1">
-                      KSh{" "}
-                      {Number(
-                        order.total || 0
-                      ).toLocaleString()}
-                    </p>
-                  </div>
-
-                </div>
-
-
-                <div className="border-t my-5" />
-
-
-                <div className="space-y-3">
-
-                  {(order.items || []).map((item) => (
-
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-4 bg-gray-50 rounded-2xl p-4"
-                    >
-
-                      <div>
-
-                        <p className="font-bold">
-                          {item.product_name ||
-                            `Product #${item.product_id}`}
-                        </p>
-
-                        <p className="text-sm text-gray-500">
-                          Quantity: {item.quantity}
-                        </p>
-
-                      </div>
-
-                      <p className="font-semibold">
-                        KSh{" "}
-                        {Number(
-                          item.subtotal ??
-                          Number(item.price || 0) *
-                          Number(item.quantity || 0)
-                        ).toLocaleString()}
+                      <p className="text-sm text-gray-500 mt-1">
+                        {order.created_at
+                          ? new Date(
+                              order.created_at
+                            ).toLocaleString()
+                          : "Date unavailable"}
                       </p>
 
                     </div>
 
-                  ))}
+                    <div className="flex flex-wrap gap-3">
+
+                      <span
+                        className={`px-4 py-2 rounded-full font-semibold ${
+                          isPending
+                            ? "bg-yellow-50 text-yellow-700"
+                            : order.status === "Cancelled"
+                            ? "bg-red-50 text-red-700"
+                            : order.status === "Delivered"
+                            ? "bg-green-50 text-green-700"
+                            : "bg-blue-50 text-blue-700"
+                        }`}
+                      >
+                        {order.status || "Pending"}
+                      </span>
+
+                      <span
+                        className={`px-4 py-2 rounded-full font-semibold ${
+                          order.payment_status === "Paid"
+                            ? "bg-green-50 text-green-700"
+                            : "bg-yellow-50 text-yellow-700"
+                        }`}
+                      >
+                        {order.payment_status ||
+                          "Payment Pending"}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                  <div className="border-t my-5" />
+
+                  <div className="grid md:grid-cols-3 gap-5">
+
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Payment Method
+                      </p>
+
+                      <p className="font-bold mt-1">
+                        {order.payment_method || "—"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Items
+                      </p>
+
+                      <p className="font-bold mt-1">
+                        {(order.items || []).reduce(
+                          (sum, item) =>
+                            sum +
+                            Number(
+                              item.quantity || 0
+                            ),
+                          0
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Total
+                      </p>
+
+                      <p className="font-black text-xl text-blue-600 mt-1">
+                        KSh{" "}
+                        {Number(
+                          order.total || 0
+                        ).toLocaleString()}
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="border-t my-5" />
+
+                  <div className="space-y-3">
+
+                    {(order.items || []).map(
+                      (item) => (
+
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between gap-4 bg-gray-50 rounded-2xl p-4"
+                        >
+
+                          <div>
+
+                            <p className="font-bold">
+                              {item.product_name ||
+                                `Product #${item.product_id}`}
+                            </p>
+
+                            <p className="text-sm text-gray-500">
+                              Quantity:{" "}
+                              {item.quantity}
+                            </p>
+
+                          </div>
+
+                          <p className="font-semibold">
+                            KSh{" "}
+                            {Number(
+                              item.subtotal ??
+                              Number(
+                                item.price || 0
+                              ) *
+                              Number(
+                                item.quantity || 0
+                              )
+                            ).toLocaleString()}
+                          </p>
+
+                        </div>
+
+                      )
+                    )}
+
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-5">
+
+                    {isPending && (
+                      <button
+                        type="button"
+                        disabled={isCancelling}
+                        onClick={() =>
+                          handleCancelOrder(
+                            order.id
+                          )
+                        }
+                        className={`px-5 py-3 rounded-xl font-bold border ${
+                          isCancelling
+                            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                            : "bg-white text-red-600 border-red-300 hover:bg-red-50"
+                        }`}
+                      >
+                        {isCancelling
+                          ? "Cancelling..."
+                          : "Cancel Order"}
+                      </button>
+                    )}
+
+                    <Link
+                      to={`/account/orders/${order.id}`}
+                      className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-3 rounded-xl font-bold text-center"
+                    >
+                      View Order
+                    </Link>
+
+                  </div>
 
                 </div>
-
-
-                <div className="flex justify-end mt-5">
-
-                  <Link
-                    to={`/account/orders/${order.id}`}
-                    className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-3 rounded-xl font-bold"
-                  >
-                    View Order
-                  </Link>
-
-                </div>
-
-              </div>
-
-            ))}
+              );
+            })}
 
           </div>
 
