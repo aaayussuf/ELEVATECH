@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import adminOrderService from "../../services/adminOrderService";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
-  const [filtered, setFiltered] = useState([]);
+
 
   const [loading, setLoading] = useState(true);
 
@@ -12,15 +12,7 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [paymentFilter, setPaymentFilter] = useState("All");
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  useEffect(() => {
-    filterOrders();
-  }, [orders, search, statusFilter, paymentFilter]);
-
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     try {
       const data = await adminOrderService.getOrders();
 
@@ -30,9 +22,14 @@ export default function Orders() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  function filterOrders() {
+  useEffect(() => {
+     
+    loadOrders();
+  }, [loadOrders]);
+
+  const filtered = useMemo(() => {
     let result = [...orders];
 
     if (search) {
@@ -59,8 +56,8 @@ export default function Orders() {
       );
     }
 
-    setFiltered(result);
-  }
+    return result;
+  }, [orders, search, statusFilter, paymentFilter]);
 
   const stats = useMemo(() => {
     return {
@@ -71,30 +68,6 @@ export default function Orders() {
     };
   }, [orders]);
 
-  function badge(status) {
-    const colors = {
-      Pending: "#facc15",
-      Processing: "#60a5fa",
-      Paid: "#4ade80",
-      Shipped: "#a855f7",
-      Delivered: "#22c55e",
-      Cancelled: "#ef4444"
-    };
-
-    return (
-      <span
-        style={{
-          background: colors[status] || "#ccc",
-          color: "#fff",
-          padding: "4px 10px",
-          borderRadius: 20,
-          fontSize: 13
-        }}
-      >
-        {status}
-      </span>
-    );
-  }
 
   if (loading)
     return <h2>Loading...</h2>;
@@ -216,6 +189,7 @@ export default function Orders() {
                         )
                       );
                     } catch (err) {
+                      console.error(err);
                       alert("Failed to update order.");
                     }
                   }}

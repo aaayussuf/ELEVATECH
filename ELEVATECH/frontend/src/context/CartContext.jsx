@@ -1,5 +1,6 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const CartContext = createContext(null);
 
 const STORAGE_KEY = "elevatech_cart";
@@ -81,7 +82,7 @@ export default function CartProvider({ children }) {
       decreaseQuantity,
       clearCart,
     }),
-    [cartItems]
+    [cartItems, totalItems, totalPrice]
   );
 
   return (

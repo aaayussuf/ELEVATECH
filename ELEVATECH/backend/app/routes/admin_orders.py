@@ -1,11 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from app.utils.admin_required import admin_required
 from app.extensions import db
-from app.extensions.socketio import socketio
+from app.extensions.socketio import (
+    emit_customer_order_update,
+)
 from app.models.order import Order
 from app.services.admin_order_service import (
     get_all_orders,
@@ -120,20 +122,13 @@ def update_order_full(order_id):
         order.notes = data["notes"]
 
     if order.status == "Shipped" and not order.shipped_at:
-        order.shipped_at = datetime.utcnow()
+        order.shipped_at = datetime.now(timezone.utc)
 
     if order.status == "Delivered" and not order.delivered_at:
-        order.delivered_at = datetime.utcnow()
+        order.delivered_at = datetime.now(timezone.utc)
 
     db.session.commit()
 
-    socketio.emit(
-        "order_updated",
-        {
-            "order_id": order.id,
-            "status": order.status,
-        },
-        room=f"customer_{order.user_id}"
-    )
+    emit_customer_order_update(order)
 
     return jsonify(order.to_dict())

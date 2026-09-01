@@ -1,6 +1,8 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import authService from "../services/authService";
+import socket from "../services/socketService";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
 
 const TOKEN_KEY = "elevatech_token";
@@ -45,9 +47,21 @@ export default function AuthProvider({ children }) {
     }
   }, [persistToken, token]);
 
+   
   useEffect(() => {
     bootstrap();
   }, [bootstrap]);
+
+  useEffect(() => {
+    if (!token || !user?.id) {
+      return;
+    }
+
+    socket.emit("join_customer_room", {
+      token,
+    });
+
+  }, [token, user]);
 
   const logout = useCallback(async () => {
     try {

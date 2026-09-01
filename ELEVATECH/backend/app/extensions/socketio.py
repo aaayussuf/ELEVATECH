@@ -35,3 +35,35 @@ def join_customer_room(data):
             "Socket authentication failed:",
             exc
         )
+
+
+def emit_customer_order_update(order):
+    """
+    Send an order update only to the customer
+    who owns the order.
+    """
+
+    if not order or not order.user_id:
+        return
+
+    socketio.emit(
+        "customer_order_updated",
+        {
+            "order_id": order.id,
+            "status": order.status,
+            "payment_status": order.payment_status,
+            "tracking_number": order.tracking_number,
+            "courier": order.courier,
+            "shipped_at": (
+                order.shipped_at.isoformat()
+                if order.shipped_at
+                else None
+            ),
+            "delivered_at": (
+                order.delivered_at.isoformat()
+                if order.delivered_at
+                else None
+            ),
+        },
+        room=f"customer_{order.user_id}",
+    )

@@ -15,6 +15,7 @@ export default function Categories() {
 
   useEffect(() => {
     loadCategories();
+   
   }, [page, search]);
 
   async function loadCategories() {

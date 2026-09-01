@@ -8,10 +8,6 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
   async function loadOrders() {
     try {
       const data = await adminOrderService.getOrders();
@@ -22,6 +18,11 @@ export default function Orders() {
       setLoading(false);
     }
   }
+
+   
+  useEffect(() => {
+    loadOrders();
+  }, []);
 
   const columns = [
     {
@@ -54,7 +55,7 @@ export default function Orders() {
                     : o
                 )
               );
-            } catch (err) {
+            } catch {
               alert("Failed to update order.");
             }
           }}

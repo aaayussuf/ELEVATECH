@@ -5,7 +5,7 @@ const adminCouponService = {
     async listCoupons() {
 
         const { data } = await api.get(
-            "/api/admin/coupons"
+            "/admin/coupons"
         );
 
         return data;
@@ -15,7 +15,7 @@ const adminCouponService = {
     async getCoupon(id) {
 
         const { data } = await api.get(
-            `/api/admin/coupons/${id}`
+            `/admin/coupons/${id}`
         );
 
         return data;
@@ -25,7 +25,7 @@ const adminCouponService = {
     async createCoupon(coupon) {
 
         const { data } = await api.post(
-            "/api/admin/coupons",
+            "/admin/coupons",
             coupon
         );
 
@@ -36,7 +36,7 @@ const adminCouponService = {
     async updateCoupon(id, coupon) {
 
         const { data } = await api.put(
-            `/api/admin/coupons/${id}`,
+            `/admin/coupons/${id}`,
             coupon
         );
 
@@ -47,7 +47,7 @@ const adminCouponService = {
     async deleteCoupon(id) {
 
         const { data } = await api.delete(
-            `/api/admin/coupons/${id}`
+            `/admin/coupons/${id}`
         );
 
         return data;

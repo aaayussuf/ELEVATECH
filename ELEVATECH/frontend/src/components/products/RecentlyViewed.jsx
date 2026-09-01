@@ -1,18 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function RecentlyViewed() {
 
-    const [products, setProducts] = useState([]);
-
-    useEffect(() => {
-
-        const viewed =
-            JSON.parse(localStorage.getItem("recentProducts")) || [];
-
-        setProducts(viewed);
-
-    }, []);
+    const [products] = useState(() => JSON.parse(localStorage.getItem("recentProducts")) || []);
 
     if (products.length === 0) return null;
 

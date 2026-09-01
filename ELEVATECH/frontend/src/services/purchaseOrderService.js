@@ -1,7 +1,7 @@
 import api from "./api";
 
-const BASE = "/api/admin/purchase-orders";
-const ITEM_BASE = "/api/admin/purchase-order-items";
+const BASE = "/admin/purchase-orders";
+const ITEM_BASE = "/admin/purchase-order-items";
 
 const purchaseOrderService = {
   async getAll() {

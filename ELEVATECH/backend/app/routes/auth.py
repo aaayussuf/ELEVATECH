@@ -66,13 +66,16 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if not user:
-
         return jsonify({
             "message": "Invalid credentials"
         }), 401
 
-    if not user.check_password(password):
+    if not user.is_active:
+        return jsonify({
+            "message": "Your account has been deactivated. Please contact support."
+        }), 403
 
+    if not user.check_password(password):
         return jsonify({
             "message": "Invalid credentials"
         }), 401
@@ -96,9 +99,19 @@ def login():
 @jwt_required()
 def profile():
 
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
+
+    if not user:
+        return jsonify({
+            "message": "User not found"
+        }), 404
+
+    if not user.is_active:
+        return jsonify({
+            "message": "Account is deactivated"
+        }), 403
 
     return jsonify(user.to_dict())
 
@@ -109,7 +122,7 @@ def update_profile():
 
     user_id = int(get_jwt_identity())
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
 
     if not user:
         return jsonify({
@@ -150,7 +163,7 @@ def change_password():
 
     user_id = get_jwt_identity()
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
 
     if not user:
         return jsonify({

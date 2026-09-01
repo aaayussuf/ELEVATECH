@@ -23,6 +23,19 @@ def upgrade():
     sa.Column('amount', sa.Float(), nullable=False),
     sa.Column('provider', sa.String(length=50), nullable=False),
     sa.Column('transaction_id', sa.String(length=255), nullable=True),
+    sa.Column(
+        'stripe_session_id',
+        sa.String(length=255),
+        nullable=True,
+        index=True
+    ),
+    sa.Column(
+        'stripe_payment_intent_id',
+        sa.String(length=255),
+        nullable=True,
+        index=True
+    ),
+    sa.Column('verified_at', sa.DateTime(), nullable=True),
     sa.Column('status', sa.String(length=50), nullable=True),
     sa.Column('currency', sa.String(length=10), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),

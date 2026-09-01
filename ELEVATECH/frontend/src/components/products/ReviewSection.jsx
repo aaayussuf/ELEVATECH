@@ -28,6 +28,7 @@ export default function ReviewSection({ productId }) {
     }
   }, [productId]);
 
+   
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);

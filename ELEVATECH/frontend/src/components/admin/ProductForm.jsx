@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import adminProductService from "../../services/adminProductService";
-import uploadService from "../../services/uploadService";
 import ImageUploader from "./ImageUploader";
 
 // ═══════════════════════════════════════════════════════
@@ -213,37 +212,6 @@ export default function ProductForm({
 
     }, [mode, productId]);
 
-    // ═══════════════════════════════════════════════════
-    // Part 8 — Upload Image
-    //
-    //   Connects directly to your working Cloudinary
-    //   uploader.
-    // ═══════════════════════════════════════════════════
-    async function handleImage(file) {
-
-        try {
-
-            const url = await uploadService.uploadImage(file);
-
-            setForm(prev => ({
-
-                ...prev,
-
-                image: url
-
-            }));
-
-        }
-
-        catch (err) {
-
-            console.error(err);
-
-            alert("Image upload failed");
-
-        }
-
-    }
 
     // ═══════════════════════════════════════════════════
     // Submit Handler

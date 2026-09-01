@@ -31,6 +31,7 @@ export default function Addresses() {
     phone: user?.phone || "",
   });
 
+   
   useEffect(() => {
     if (user) {
       setForm((current) => ({

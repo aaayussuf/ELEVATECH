@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import AdminLayout from "./components/admin/layout/AdminLayout";
 
 import Home from "./pages/Home";
@@ -30,7 +31,6 @@ import Coupons from "./pages/admin/Coupons";
 import CreateCoupon from "./pages/admin/CreateCoupon";
 import Inventory from "./pages/admin/Inventory";
 import ReorderSuggestions from "./pages/admin/ReorderSuggestions";
-import SupplierList from "./pages/admin/suppliers/SupplierList";
 import Suppliers from "./pages/admin/Suppliers";
 import CreateSupplier from "./pages/admin/suppliers/CreateSupplier";
 import PurchaseOrders from "./pages/admin/PurchaseOrders";
@@ -59,6 +59,7 @@ function ProtectedAccountRoutes() {
         <Route path="/account/wishlist" element={<Wishlist />} />
         <Route path="/account/change-password" element={<ChangePassword />} />
         <Route path="/account/password" element={<ChangePassword />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ProtectedRoute>
   );
@@ -92,7 +93,7 @@ function App() {
         }
       />
 
-      <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+      <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/admin/customers" element={<AdminCustomers />} />
@@ -119,6 +120,7 @@ function App() {
 <Route path="/admin/orders/board" element={<OrderBoard />} />
         <Route path="/admin/orders/:id" element={<AdminOrderDetails />} />
       </Route>
+      <Route path="/orders" element={<Navigate to="/account/orders" replace />} />
       <Route path="/*" element={<ProtectedAccountRoutes />} />
     </Routes>
   );

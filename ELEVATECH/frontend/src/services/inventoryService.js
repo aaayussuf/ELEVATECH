@@ -3,7 +3,7 @@ import api from "./api";
 const inventoryService = {
   async getInventory() {
     const { data } = await api.get(
-      "/api/admin/products/inventory"
+      "/admin/products/inventory"
     );
 
     return data;
@@ -11,7 +11,7 @@ const inventoryService = {
 
   async updateStock(id, quantity) {
     const { data } = await api.patch(
-      `/api/admin/products/${id}/stock`,
+      `/admin/products/${id}/stock`,
       { quantity }
     );
 
@@ -20,7 +20,7 @@ const inventoryService = {
 
   async getReorderSuggestions() {
     const { data } = await api.get(
-      "/api/admin/inventory/reorder-suggestions"
+      "/admin/inventory/reorder-suggestions"
     );
 
     return data;

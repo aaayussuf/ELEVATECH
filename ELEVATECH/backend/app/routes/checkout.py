@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import stripe
 from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.extensions import db
+from app.extensions.socketio import emit_customer_order_update
 from app.models.order import Order
 from app.models.payment import Payment
 
@@ -194,7 +195,7 @@ def stripe_webhook():
                 if payment:
 
                     payment.status = "Completed"
-                    payment.verified_at = datetime.utcnow()
+                    payment.verified_at = datetime.now(timezone.utc)
 
                     if payment_intent_id:
                         payment.transaction_id = payment_intent_id
@@ -217,7 +218,7 @@ def stripe_webhook():
                         stripe_session_id=session_id,
                         stripe_payment_intent_id=payment_intent_id,
                         transaction_id=payment_intent_id or session_id,
-                        verified_at=datetime.utcnow(),
+                        verified_at=datetime.now(timezone.utc),
                     )
 
                     db.session.add(payment)
@@ -226,6 +227,8 @@ def stripe_webhook():
                 order.payment_status = "Paid"
 
                 db.session.commit()
+
+                emit_customer_order_update(order)
 
                 send_order_confirmation(order.user, order)
 

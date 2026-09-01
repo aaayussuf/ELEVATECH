@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -45,7 +45,7 @@ def dashboard_stats():
     # ---------------------------------------------------------------
     # Revenue trend — this week vs previous week
     # ---------------------------------------------------------------
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
 
     def _revenue_between(start, end):
         return (
@@ -96,7 +96,7 @@ def dashboard_stats():
 @jwt_required()
 @admin_required
 def analytics():
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
 
     today_sales = (
         db.session.query(func.sum(Order.total))

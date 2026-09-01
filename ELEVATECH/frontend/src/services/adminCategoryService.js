@@ -5,7 +5,7 @@ const adminCategoryService = {
     async listCategories(params) {
 
         const { data } = await api.get(
-            "/api/admin/categories",
+            "/admin/categories",
             {
                 params,
             }

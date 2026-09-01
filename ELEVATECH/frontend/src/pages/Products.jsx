@@ -43,7 +43,9 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+   
   useEffect(() => {
+     
     loadProducts();
   }, [
     search,

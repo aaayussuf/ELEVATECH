@@ -1,6 +1,6 @@
 import api from "./api";
 
-const BASE = "/api/admin/suppliers";
+const BASE = "/admin/suppliers";
 
 const adminSupplierService = {
 

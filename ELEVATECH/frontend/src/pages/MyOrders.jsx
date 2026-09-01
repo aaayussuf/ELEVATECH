@@ -1,9 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import socket, {
-  joinCustomerRoom,
-} from "../services/socketService";
+import { joinCustomerRoom } from "../services/socketService";
 
 const API_BASE =
   import.meta.env.VITE_API_BASE || "http://127.0.0.1:5000";
@@ -15,18 +13,7 @@ export default function MyOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      setError("Please log in to view your orders.");
-      return;
-    }
-
-    joinCustomerRoom(token);
-    loadOrders();
-  }, [token]);
-
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -63,7 +50,19 @@ export default function MyOrders() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [token]);
+
+   
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      setError("Please log in to view your orders.");
+      return;
+    }
+
+    joinCustomerRoom(token);
+    loadOrders();
+  }, [token, loadOrders]);
 
   function statusClass(status) {
     switch (status) {

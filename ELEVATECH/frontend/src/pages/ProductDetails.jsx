@@ -20,7 +20,25 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("description");
 
+  async function loadProduct() {
+    try {
+      setLoading(true);
+
+      const data = await productService.getProduct(slug);
+
+      setProduct(data);
+      setQuantity(1);
+    } catch (err) {
+      console.error("Product details error:", err);
+      setProduct(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+   
   useEffect(() => {
+     
     loadProduct();
   }, [slug]);
 
@@ -41,22 +59,6 @@ export default function ProductDetails() {
       JSON.stringify(viewed)
     );
   }, [product]);
-
-  async function loadProduct() {
-    try {
-      setLoading(true);
-
-      const data = await productService.getProduct(slug);
-
-      setProduct(data);
-      setQuantity(1);
-    } catch (err) {
-      console.error("Product details error:", err);
-      setProduct(null);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function handleAddToCart() {
     if (!product) return;

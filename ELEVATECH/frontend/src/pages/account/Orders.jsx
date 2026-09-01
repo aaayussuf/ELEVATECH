@@ -47,6 +47,7 @@ export default function Orders() {
     }
   }, [token]);
 
+   
   useEffect(() => {
     if (authLoading || !token) {
       return;
@@ -95,32 +96,47 @@ export default function Orders() {
 
     fetchOrders();
 
-    // ==========================================
-    // LIVE ORDER UPDATES
-    // ==========================================
-
-    const handleOrderUpdated = (data) => {
-      console.log("Live order update received:", data);
-
-      if (!data?.order_id) {
-        return;
-      }
-
-      // Refresh the customer's orders immediately
-      fetchOrders();
-    };
-
-    socket.on("order_updated", handleOrderUpdated);
-
     return () => {
       isMounted = false;
-
-      socket.off(
-        "order_updated",
-        handleOrderUpdated
-      );
     };
   }, [authLoading, token]);
+
+  useEffect(() => {
+    const handleOrderUpdate = (updatedOrder) => {
+      setOrders((currentOrders) =>
+        currentOrders.map((order) =>
+          order.id === updatedOrder.order_id
+            ? {
+                ...order,
+                status: updatedOrder.status,
+                payment_status:
+                  updatedOrder.payment_status,
+                tracking_number:
+                  updatedOrder.tracking_number,
+                courier:
+                  updatedOrder.courier,
+                shipped_at:
+                  updatedOrder.shipped_at,
+                delivered_at:
+                  updatedOrder.delivered_at,
+              }
+            : order
+        )
+      );
+    };
+
+    socket.on(
+      "customer_order_updated",
+      handleOrderUpdate
+    );
+
+    return () => {
+      socket.off(
+        "customer_order_updated",
+        handleOrderUpdate
+      );
+    };
+  }, []);
 
   async function handleCancelOrder(orderId) {
     const confirmed = window.confirm(

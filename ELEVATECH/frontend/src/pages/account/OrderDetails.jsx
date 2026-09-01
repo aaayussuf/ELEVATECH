@@ -4,9 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import AccountLayout from "../../layouts/AccountLayout";
 import accountService from "../../services/accountService";
-import socket, {
-  joinCustomerRoom,
-} from "../../services/socketService";
+import socket from "../../services/socketService";
 import OrderTimeline from "../../components/account/OrderTimeline";
 
 export default function OrderDetails() {
@@ -87,52 +85,48 @@ export default function OrderDetails() {
   }, [authLoading, token, id, navigate]);
 
   useEffect(() => {
-    if (!token || !id) {
-      return;
-    }
-
-    joinCustomerRoom(token);
-
-    const handleOrderUpdated = async (data) => {
+    const handleOrderUpdate = (updatedOrder) => {
       if (
-        Number(data?.order_id) !== Number(id)
+        Number(updatedOrder.order_id) !==
+        Number(id)
       ) {
         return;
       }
 
-      console.log(
-        "Live order detail update received:",
-        data
-      );
+      setOrder((currentOrder) => {
+        if (!currentOrder) {
+          return currentOrder;
+        }
 
-      try {
-        const updatedOrder =
-          await accountService.getOrderDetails(
-            token,
-            id
-          );
-
-        setOrder(updatedOrder);
-      } catch (err) {
-        console.error(
-          "Failed to refresh order:",
-          err
-        );
-      }
+        return {
+          ...currentOrder,
+          status: updatedOrder.status,
+          payment_status:
+            updatedOrder.payment_status,
+          tracking_number:
+            updatedOrder.tracking_number,
+          courier:
+            updatedOrder.courier,
+          shipped_at:
+            updatedOrder.shipped_at,
+          delivered_at:
+            updatedOrder.delivered_at,
+        };
+      });
     };
 
     socket.on(
-      "order_updated",
-      handleOrderUpdated
+      "customer_order_updated",
+      handleOrderUpdate
     );
 
     return () => {
       socket.off(
-        "order_updated",
-        handleOrderUpdated
+        "customer_order_updated",
+        handleOrderUpdate
       );
     };
-  }, [token, id]);
+  }, [id]);
 
   async function handleCancelOrder() {
     const confirmed = window.confirm(

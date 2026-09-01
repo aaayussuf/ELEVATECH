@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from app.extensions import db
+from app.extensions.socketio import emit_customer_order_update
 from app.models.order import Order
 from app.models.payment import Payment
 from app.routes.orders import restore_order_inventory
@@ -129,14 +130,18 @@ def mpesa_callback():
         if result_code == 0:
 
             payment.status = "Completed"
-            payment.verified_at = datetime.utcnow()
+            payment.verified_at = datetime.now(timezone.utc)
 
             order = db.session.get(Order, payment.order_id)
 
             if order:
                 order.status = "Paid"
                 order.payment_status = "Paid"
+
                 db.session.commit()
+
+                emit_customer_order_update(order)
+
                 send_order_confirmation(order.user, order)
 
         else:

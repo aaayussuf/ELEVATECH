@@ -16,6 +16,7 @@ export default function PaymentSuccess() {
 
     // Empty the shopping cart
     clearCart();
+   
   }, []);
 
   return (
@@ -39,7 +40,7 @@ export default function PaymentSuccess() {
         Your order has been placed successfully.
       </p>
 
-      <Link to="/orders">
+      <Link to="/account/orders">
         <button
           style={{
             padding: "12px 20px",

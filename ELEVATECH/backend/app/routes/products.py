@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from sqlalchemy import or_
 
 from app.extensions import db
@@ -164,7 +164,9 @@ def product_details(slug):
 @products_bp.route("/related/<int:product_id>", methods=["GET"])
 def related_products(product_id):
 
-    product = Product.query.get_or_404(product_id)
+    product = db.session.get(Product, product_id)
+    if product is None:
+        abort(404)
 
     products = (
         Product.query

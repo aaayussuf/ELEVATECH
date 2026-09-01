@@ -9,7 +9,7 @@ const uploadService = {
         formData.append("image", file);
 
         const { data } = await api.post(
-            "/api/admin/upload",
+            "/admin/upload",
             formData,
             {
                 headers: {

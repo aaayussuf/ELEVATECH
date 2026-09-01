@@ -1,7 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.extensions import db
-from app.extensions.socketio import socketio
+from app.extensions.socketio import (
+    emit_customer_order_update,
+)
 from app.models.order import Order
 
 
@@ -36,11 +38,11 @@ def update_order(order_id, data):
 
         # Record shipping time only once
         if new_status == "Shipped" and not order.shipped_at:
-            order.shipped_at = datetime.utcnow()
+            order.shipped_at = datetime.now(timezone.utc)
 
         # Record delivery time only once
         if new_status == "Delivered" and not order.delivered_at:
-            order.delivered_at = datetime.utcnow()
+            order.delivered_at = datetime.now(timezone.utc)
 
     # -----------------------------------------
     # PAYMENT STATUS
@@ -76,13 +78,6 @@ def update_order(order_id, data):
     # REAL-TIME ADMIN/CUSTOMER UPDATE
     # -----------------------------------------
 
-    socketio.emit(
-        "order_updated",
-        {
-            "order_id": order.id,
-            "status": order.status,
-        },
-        room=f"customer_{order.user_id}"
-    )
+    emit_customer_order_update(order)
 
     return order

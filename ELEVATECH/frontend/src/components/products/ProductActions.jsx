@@ -5,7 +5,7 @@ import {
     Link2,
 } from "lucide-react";
 
-export default function ProductActions({ product }) {
+export default function ProductActions() {
 
     function copyLink() {
 

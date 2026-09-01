@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.extensions import db
 from app.models.purchase_order_item import PurchaseOrderItem
@@ -30,7 +30,7 @@ class PurchaseOrder(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow
+        default=lambda: datetime.now(timezone.utc)
     )
 
     supplier = db.relationship(

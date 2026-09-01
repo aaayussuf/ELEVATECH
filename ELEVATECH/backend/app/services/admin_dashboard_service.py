@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func
 
@@ -10,7 +10,7 @@ from app.models.user import User
 
 
 def get_dashboard_summary():
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
 
     revenue = (
         db.session.query(func.coalesce(func.sum(Order.total), 0))
@@ -45,7 +45,7 @@ def get_dashboard_summary():
 
 
 def get_analytics_data():
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
 
     today_sales = (
         db.session.query(func.sum(Order.total))
@@ -101,7 +101,7 @@ def get_analytics_data():
 
 
 def sales_last_7_days():
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     start = today - timedelta(days=6)
 
     rows = (

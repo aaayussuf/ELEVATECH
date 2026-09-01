@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request
 
@@ -31,7 +31,7 @@ def apply_coupon():
             "message": "Invalid coupon code."
         }), 404
 
-    if coupon.expires_at and coupon.expires_at < datetime.utcnow():
+    if coupon.expires_at and coupon.expires_at < datetime.now(timezone.utc):
         return jsonify({
             "success": False,
             "message": "Coupon has expired."

@@ -1,6 +1,6 @@
 import api from "./api";
 
-const BASE = "/api/admin/products";
+const BASE = "/admin/products";
 
 const adminProductService = {
   async getAll() {
@@ -30,14 +30,14 @@ const adminProductService = {
     return data;
   },
 
-async deleteProduct(id) {
+  async deleteProduct(id) {
     const { data } = await api.delete(`${BASE}/${id}`);
     return data;
   },
 
   async bulkDelete(ids) {
     const { data } = await api.delete(
-      "/api/admin/products/bulk-delete",
+      "/admin/products/bulk-delete",
       {
         data: { ids }
       }
@@ -70,7 +70,7 @@ async deleteProduct(id) {
     return data;
   },
 
-async getStats() {
+  async getStats() {
     const { data } = await api.get(
       `${BASE}/stats`
     );
@@ -80,7 +80,7 @@ async getStats() {
 
   async getLowStock() {
     const { data } = await api.get(
-      "/api/admin/products/low-stock"
+      "/admin/products/low-stock"
     );
 
     return data;

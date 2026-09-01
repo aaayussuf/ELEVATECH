@@ -9,10 +9,6 @@ export default function CustomerDetails() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        loadCustomer();
-    }, [id]);
-
     async function loadCustomer() {
         try {
             const result = await adminCustomerService.getCustomer(id);
@@ -23,6 +19,11 @@ export default function CustomerDetails() {
             setLoading(false);
         }
     }
+
+     
+    useEffect(() => {
+        loadCustomer();
+    }, [id]);
 
     if (loading) {
         return (

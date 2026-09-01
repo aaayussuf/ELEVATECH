@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { AuthContext } from "./AuthContext";
 import wishlistService from "../services/wishlistService";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {

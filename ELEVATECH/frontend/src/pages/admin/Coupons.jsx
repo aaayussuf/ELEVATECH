@@ -41,11 +41,7 @@ export default function Coupons() {
     }
   }
 
-  function openCreate() {
-    setEditing(null);
-    setForm(EMPTY_FORM);
-    setModalOpen(true);
-  }
+
 
   function openEdit(coupon) {
     setEditing(coupon);

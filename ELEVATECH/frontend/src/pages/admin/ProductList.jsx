@@ -75,6 +75,7 @@ async function loadStats() {
       await adminProductService.deleteProduct(id);
       setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
+      console.error(err);
       alert("Failed to delete product.");
     }
   }
