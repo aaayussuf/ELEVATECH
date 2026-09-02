@@ -20,6 +20,11 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("description");
 
+  const [reviewStats, setReviewStats] = useState({
+    rating: 0,
+    count: 0,
+  });
+
   async function loadProduct() {
     try {
       setLoading(true);
@@ -186,15 +191,18 @@ export default function ProductDetails() {
             <div className="flex items-center gap-3 mt-3">
 
               <div className="text-yellow-500 text-xl">
-                ⭐⭐⭐⭐⭐
+                {"★".repeat(Math.round(Number(product.rating || 0)))}
+                {"☆".repeat(5 - Math.round(Number(product.rating || 0)))}
               </div>
 
               <span className="font-semibold">
-                {product.rating || "4.8"}
+                {reviewStats.count > 0
+                  ? reviewStats.rating.toFixed(1)
+                  : "0.0"}
               </span>
 
               <span className="text-gray-500">
-                ({product.reviews || 0} Reviews)
+                ({reviewStats.count} Reviews)
               </span>
 
             </div>
@@ -560,7 +568,24 @@ export default function ProductDetails() {
           )}
 
           {activeTab === "reviews" && (
-            <ReviewSection productId={product.id} />
+            <ReviewSection
+              productId={product.id}
+              onReviewsChange={(reviews) => {
+                const count = reviews.length;
+
+                const rating = count
+                  ? reviews.reduce(
+                      (sum, review) => sum + Number(review.rating || 0),
+                      0
+                    ) / count
+                  : 0;
+
+                setReviewStats({
+                  rating: Number(rating.toFixed(1)),
+                  count,
+                });
+              }}
+            />
           )}
 
         </div>

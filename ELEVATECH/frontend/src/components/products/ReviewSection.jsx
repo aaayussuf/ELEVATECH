@@ -8,7 +8,7 @@ import ReviewList from "./ReviewList";
 
 import RatingSummary from "./RatingSummary";
 
-export default function ReviewSection({ productId }) {
+export default function ReviewSection({ productId, onReviewsChange }) {
 
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,11 @@ export default function ReviewSection({ productId }) {
       setLoading(true);
       setError("");
       const data = await reviewService.getReviews(productId);
-      setReviews(Array.isArray(data) ? data : []);
+      const nextReviews = Array.isArray(data) ? data : [];
+      setReviews(nextReviews);
+      if (onReviewsChange) {
+        onReviewsChange(nextReviews);
+      }
     } catch (err) {
       console.error("Load reviews error:", err);
       setError(err?.message || "Unable to load reviews.");
