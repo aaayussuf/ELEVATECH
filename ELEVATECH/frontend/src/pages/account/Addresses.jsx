@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import { MapPinned, Phone } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import AccountLayout from "../../layouts/AccountLayout";
 import accountService from "../../services/accountService";
@@ -14,6 +15,9 @@ const emptyForm = {
   postal_code: "",
   is_default: false,
 };
+
+const inputCls =
+  "mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100";
 
 export default function Addresses() {
   const { user, token, isLoading, logout } = useContext(AuthContext);
@@ -31,7 +35,6 @@ export default function Addresses() {
     phone: user?.phone || "",
   });
 
-   
   useEffect(() => {
     if (user) {
       setForm((current) => ({
@@ -171,209 +174,166 @@ export default function Addresses() {
     }
   }
 
+  const success = message.toLowerCase().includes("successfully");
+
   return (
-    <AccountLayout user={user} onLogout={logout}>
-      <div>
-        <h2 style={h2}>Addresses</h2>
+<AccountLayout user={user} onLogout={logout}>
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-yellow-400 text-black">
+            <MapPinned size={20} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black">My Addresses</h1>
+            <p className="text-sm text-gray-400">
+              Manage where we ship your orders.
+            </p>
+          </div>
+        </div>
 
         {message && (
           <div
-            style={{
-              marginBottom: 16,
-              padding: 12,
-              borderRadius: 10,
-              background: message.includes("successfully")
-                ? "#f0fdf4"
-                : "#fef2f2",
-              color: message.includes("successfully")
-                ? "#166534"
-                : "#b91c1c",
-              fontWeight: 700,
-            }}
+            className={`rounded-2xl border px-5 py-3 text-sm font-bold ${
+              success
+                ? "border-emerald-200 bg-emerald-950/60 text-emerald-300"
+                : "border-red-200 bg-red-950/60 text-red-300"
+            }`}
           >
             {message}
           </div>
         )}
 
         {loading ? (
-          <div>Loading addresses...</div>
-        ) : addresses.length > 0 ? (
-          <div style={grid}>
-            {addresses.map((address) => (
-              <AddressCard
-                key={address.id}
-                address={address}
-                onDelete={() => remove(address.id)}
-              />
-            ))}
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center font-bold text-gray-300">
+            Loading your addresses...
           </div>
+        ) : addresses.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-black">Saved addresses</h2>
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-gray-300">
+                {addresses.length} saved
+              </span>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {addresses.map((address) => (
+                <AddressCard
+                  key={address.id}
+                  address={address}
+                  onDelete={() => remove(address.id)}
+                />
+              ))}
+            </div>
+          </>
         ) : (
-          <div
-            style={{
-              padding: 18,
-              border: "1px solid #eee",
-              borderRadius: 12,
-              color: "#666",
-            }}
-          >
-            No saved addresses yet.
+          <div className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-3xl">
+              📍
+            </div>
+            <h2 className="mt-4 text-xl font-black">No saved addresses yet</h2>
+            <p className="mx-auto mt-1 max-w-md text-sm text-gray-400">
+              Add your first delivery address below so checkout is quicker next
+              time.
+            </p>
           </div>
         )}
-
-        <form
+<form
           onSubmit={createAddress}
-          style={{
-            marginTop: 20,
-            border: "1px solid #eee",
-            borderRadius: 16,
-            padding: 18,
-            maxWidth: 850,
-          }}
+          className="max-w-3xl rounded-3xl border border-gray-200 bg-white p-6 shadow-sm"
         >
-          <div style={formTitle}>Add new address</div>
+          <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <Phone size={16} />
+            </span>
+            <h2 className="text-lg font-black text-gray-900">Add new address</h2>
+          </div>
 
-          <div style={grid2}>
-            <label style={field}>
+          <div className="mt-5 grid gap-5 sm:grid-cols-2">
+            <label className="block text-sm font-black text-gray-900">
               Full name *
               <input
-                style={input}
+                className={inputCls}
                 value={form.full_name}
-                onChange={(e) =>
-                  updateField("full_name", e.target.value)
-                }
+                onChange={(e) => updateField("full_name", e.target.value)}
                 placeholder="John Doe"
               />
             </label>
 
-            <label style={field}>
+            <label className="block text-sm font-black text-gray-900">
               Phone *
               <input
-                style={input}
+                className={inputCls}
                 value={form.phone}
-                onChange={(e) =>
-                  updateField("phone", e.target.value)
-                }
-                placeholder="2547XXXXXXXX"
+                onChange={(e) => updateField("phone", e.target.value)}
+                placeholder="2547XXXXXXX"
               />
             </label>
 
-            <label style={field}>
+            <label className="block text-sm font-black text-gray-900">
               County *
               <input
-                style={input}
+                className={inputCls}
                 value={form.county}
-                onChange={(e) =>
-                  updateField("county", e.target.value)
-                }
+                onChange={(e) => updateField("county", e.target.value)}
                 placeholder="Nairobi"
               />
             </label>
 
-            <label style={field}>
+            <label className="block text-sm font-black text-gray-900">
               City *
               <input
-                style={input}
+                className={inputCls}
                 value={form.city}
-                onChange={(e) =>
-                  updateField("city", e.target.value)
-                }
+                onChange={(e) => updateField("city", e.target.value)}
                 placeholder="Nairobi"
               />
             </label>
 
-            <label
-              style={{
-                ...field,
-                gridColumn: "1 / -1",
-              }}
-            >
+            <label className="block text-sm font-black text-gray-900 sm:col-span-2">
               Address line 1 *
               <input
-                style={input}
+                className={inputCls}
                 value={form.address_line_1}
-                onChange={(e) =>
-                  updateField(
-                    "address_line_1",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => updateField("address_line_1", e.target.value)}
                 placeholder="Street / building / house number"
               />
             </label>
 
-            <label
-              style={{
-                ...field,
-                gridColumn: "1 / -1",
-              }}
-            >
+            <label className="block text-sm font-black text-gray-900 sm:col-span-2">
               Address line 2
               <input
-                style={input}
+                className={inputCls}
                 value={form.address_line_2}
-                onChange={(e) =>
-                  updateField(
-                    "address_line_2",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => updateField("address_line_2", e.target.value)}
                 placeholder="Apartment, floor, landmark..."
               />
             </label>
 
-            <label style={field}>
+            <label className="block text-sm font-black text-gray-900">
               Postal code
               <input
-                style={input}
+                className={inputCls}
                 value={form.postal_code}
-                onChange={(e) =>
-                  updateField(
-                    "postal_code",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => updateField("postal_code", e.target.value)}
                 placeholder="00100"
               />
             </label>
 
-            <label
-              style={{
-                ...field,
-                justifyContent: "center",
-              }}
-            >
-              <span>Default address</span>
-
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontWeight: 600,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.is_default}
-                  onChange={(e) =>
-                    updateField(
-                      "is_default",
-                      e.target.checked
-                    )
-                  }
-                />
-                Make this my default address
-              </label>
+            <label className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-black text-gray-900 sm:mt-6">
+              <input
+                type="checkbox"
+                checked={form.is_default}
+                onChange={(e) => updateField("is_default", e.target.checked)}
+                className="h-4 w-4 accent-blue-600"
+              />
+              Make this my default address
             </label>
           </div>
 
           <button
             type="submit"
             disabled={saving}
-            style={{
-              ...primaryBtn,
-              opacity: saving ? 0.6 : 1,
-            }}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-yellow-400 px-6 py-3 text-sm font-black text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Saving..." : "Save address"}
           </button>
@@ -382,55 +342,3 @@ export default function Addresses() {
     </AccountLayout>
   );
 }
-
-const h2 = {
-  fontSize: 22,
-  fontWeight: 900,
-  marginBottom: 16,
-};
-
-const grid = {
-  display: "grid",
-  gridTemplateColumns:
-    "repeat(auto-fit, minmax(280px, 1fr))",
-  gap: 12,
-};
-
-const grid2 = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 12,
-};
-
-const field = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 6,
-  fontWeight: 800,
-  color: "#111",
-};
-
-const input = {
-  padding: 11,
-  borderRadius: 10,
-  border: "1px solid #ddd",
-  outline: "none",
-  fontSize: 14,
-};
-
-const formTitle = {
-  fontSize: 18,
-  fontWeight: 900,
-  marginBottom: 14,
-};
-
-const primaryBtn = {
-  marginTop: 16,
-  padding: "11px 16px",
-  borderRadius: 12,
-  border: "none",
-  background: "#0ea5e9",
-  color: "#fff",
-  fontWeight: 900,
-  cursor: "pointer",
-};

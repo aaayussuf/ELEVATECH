@@ -4,11 +4,15 @@ import {
   useMemo,
   useState,
 } from "react";
+import { Save, UserRound } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import AccountLayout from "../../layouts/AccountLayout";
 import accountService from "../../services/accountService";
 
 import ProfileCard from "../../components/account/ProfileCard";
+
+const inputCls =
+  "mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100";
 
 export default function Profile() {
   const {
@@ -29,7 +33,6 @@ export default function Profile() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-   
   useEffect(() => {
     if (user) {
       setForm({
@@ -39,7 +42,6 @@ export default function Profile() {
       });
     }
   }, [user]);
-
 
   const canSave = useMemo(() => {
     return form.first_name.trim() && form.last_name.trim();
@@ -86,7 +88,6 @@ export default function Profile() {
     };
   }, [token, isLoading]);
 
-
   async function onSave(e) {
     e.preventDefault();
     if (!canSave || saving) return;
@@ -119,155 +120,107 @@ export default function Profile() {
   }
 
   return (
-    <AccountLayout
+<AccountLayout
       user={user}
       onLogout={logout}
     >
-      <div>
-        <h2 style={h2}>Profile</h2>
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-yellow-400 text-black">
+            <UserRound size={20} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black">My Profile</h1>
+            <p className="text-sm text-gray-400">
+              Keep your personal details up to date.
+            </p>
+          </div>
+        </div>
 
         {error && (
-          <div style={errorBox}>
+          <div className="rounded-2xl border border-red-200 bg-red-950/60 px-5 py-3 text-sm font-bold text-red-300">
             {error}
           </div>
         )}
 
         {message && (
-          <div style={successBox}>
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-950/60 px-5 py-3 text-sm font-bold text-emerald-300">
             {message}
           </div>
         )}
 
-        <div style={{ maxWidth: 900 }}>
+        <div className="max-w-3xl space-y-6">
           <ProfileCard user={user} />
 
           <form
             onSubmit={onSave}
-            style={formBox}
+            className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm"
           >
-            <div style={grid2}>
-              <label style={field}>
+            <h2 className="text-lg font-black text-gray-900">Edit details</h2>
+
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <label className="block text-sm font-black text-gray-900">
                 First name
                 <input
-                  style={input}
+                  className={inputCls}
                   value={form.first_name}
-                  onChange={(e) => setForm((f) => ({ ...f, first_name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      first_name: e.target.value,
+                    }))
+                  }
                 />
               </label>
-              <label style={field}>
+
+              <label className="block text-sm font-black text-gray-900">
                 Last name
                 <input
-                  style={input}
+                  className={inputCls}
                   value={form.last_name}
-                  onChange={(e) => setForm((f) => ({ ...f, last_name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      last_name: e.target.value,
+                    }))
+                  }
                 />
               </label>
-              <label style={{ ...field, gridColumn: "1 / -1" }}>
+
+              <label className="block text-sm font-black text-gray-900 sm:col-span-2">
                 Phone
                 <input
-                  style={input}
+                  className={inputCls}
                   value={form.phone}
-                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      phone: e.target.value,
+                    }))
+                  }
                 />
               </label>
             </div>
 
-            <button
-              type="submit"
-              disabled={!canSave || saving}
-              style={{
-                ...primaryBtn,
-                opacity:
-                  !canSave || saving
-                    ? 0.6
-                    : 1,
-              }}
-            >
-              {saving
-                ? "Saving..."
-                : "Save changes"}
-            </button>
-
-            {loading && (
-              <div
-                style={{
-                  marginTop: 10,
-                  color: "#666",
-                }}
+            <div className="mt-6 flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={!canSave || saving}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-yellow-400 px-6 py-3 text-sm font-black text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Loading profile...
-              </div>
-            )}
+                <Save size={16} />
+                {saving ? "Saving..." : "Save changes"}
+              </button>
+
+              {loading && (
+                <span className="text-sm font-bold text-gray-400">
+                  Loading profile...
+                </span>
+              )}
+            </div>
           </form>
         </div>
       </div>
     </AccountLayout>
   );
 }
-
-
-const h2 = {
-  fontSize: 28,
-  fontWeight: 900,
-  marginBottom: 20,
-};
-
-const grid2 = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 14,
-};
-
-const field = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 6,
-  fontWeight: 800,
-  color: "#111",
-};
-
-const input = {
-  padding: 12,
-  borderRadius: 10,
-  border: "1px solid #ddd",
-  outline: "none",
-  fontSize: 15,
-};
-
-const formBox = {
-  marginTop: 16,
-  border: "1px solid #eee",
-  borderRadius: 16,
-  padding: 20,
-  background: "#fff",
-};
-
-const primaryBtn = {
-  marginTop: 18,
-  padding: "12px 18px",
-  borderRadius: 12,
-  border: "none",
-  background: "#0ea5e9",
-  color: "#fff",
-  fontWeight: 900,
-  cursor: "pointer",
-};
-
-const errorBox = {
-  background: "#fee2e2",
-  color: "#b91c1c",
-  padding: 12,
-  borderRadius: 10,
-  marginBottom: 15,
-  fontWeight: 700,
-};
-
-const successBox = {
-  background: "#dcfce7",
-  color: "#15803d",
-  padding: 12,
-  borderRadius: 10,
-  marginBottom: 15,
-  fontWeight: 700,
-};
-

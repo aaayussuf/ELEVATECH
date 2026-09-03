@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -57,15 +58,20 @@ setCategories(res.data);
               icons[category.name.toLowerCase()] || Laptop;
 
             return (
-              <div
+              <Link
                 key={category.id}
-className="group rounded-3xl border border-slate-800 bg-gradient-to-b from-[#101C31] to-[#0B1425] overflow-hidden hover:border-blue-500 transition duration-300 hover:-translate-y-2"
+                to={`/products?category=${category.id}`}
+className="group rounded-3xl border border-slate-800 bg-gradient-to-b from-[#101C31] to-[#0B1425] overflow-hidden hover:border-blue-500 transition duration-300 hover:-translate-y-2 block"
               >
                 <div className="h-56 bg-[#09101B] flex items-center justify-center">
 
                   {category.image ? (
                     <img
-                      src={`http://127.0.0.1:5000${category.image}`}
+                      src={
+                        category.image?.startsWith("/assets/products/brands/")
+                          ? category.image
+                          : `/assets/products/brands/${category.image?.split("/").pop()}`
+                      }
                       alt={category.name}
                       className="w-40 h-40 object-contain group-hover:scale-110 transition duration-500"
                     />
@@ -88,14 +94,14 @@ className="group rounded-3xl border border-slate-800 bg-gradient-to-b from-[#101
                     {category.description}
                   </p>
 
-                  <button className="mt-6 text-yellow-400 flex items-center gap-2">
+                  <div className="mt-6 text-yellow-400 flex items-center gap-2 group-hover:text-blue-400 transition">
                     Shop Now
-                    <ArrowRight size={16} />
-                  </button>
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition" />
+                  </div>
 
                 </div>
 
-              </div>
+              </Link>
             );
           })}
 

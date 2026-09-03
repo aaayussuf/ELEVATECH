@@ -224,7 +224,7 @@ export default function OrderDetails() {
 
         <Link
           to="/account/orders"
-          className="text-blue-600 hover:underline font-semibold"
+          className="text-blue-400 hover:text-blue-300 hover:underline font-semibold"
         >
           ← Back to Orders
         </Link>
@@ -236,7 +236,7 @@ export default function OrderDetails() {
 
           <div>
 
-            <p className="text-gray-500">
+            <p className="text-gray-400">
               Order
             </p>
 
@@ -244,7 +244,7 @@ export default function OrderDetails() {
               #{order.id}
             </h1>
 
-            <p className="text-gray-500 mt-2">
+            <p className="text-gray-400 mt-2">
               {order.created_at
                 ? new Date(
                     order.created_at
@@ -460,23 +460,49 @@ export default function OrderDetails() {
                   className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-5"
                 >
 
-                  <div>
+                  <div className="flex items-center gap-4">
 
-                    <h3 className="font-bold text-lg">
-                      {item.product_name ||
-                        `Product #${item.product_id}`}
-                    </h3>
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.product_name || "Product"}
+                        className="w-20 h-20 rounded-xl object-cover border"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+                        No image
+                      </div>
+                    )}
 
-                    <p className="text-gray-500 mt-1">
-                      Quantity: {item.quantity}
-                    </p>
+                    <div>
 
-                    <p className="text-gray-500">
-                      Unit price: KSh{" "}
-                      {Number(
-                        item.price || 0
-                      ).toLocaleString()}
-                    </p>
+                      {item.product_slug ? (
+                        <Link
+                          to={`/product/${item.product_slug}`}
+                          className="font-bold text-lg text-gray-900 hover:text-blue-600 transition-colors"
+                        >
+                          {item.product_name ||
+                            `Product #${item.product_id}`}
+                        </Link>
+                      ) : (
+                        <h3 className="font-bold text-lg">
+                          {item.product_name ||
+                            `Product #${item.product_id}`}
+                        </h3>
+                      )}
+
+                      <p className="text-gray-500 mt-1">
+                        Quantity: {item.quantity}
+                      </p>
+
+                      <p className="text-gray-500">
+                        Unit price: KSh{" "}
+                        {Number(
+                          item.price || 0
+                        ).toLocaleString()}
+                      </p>
+
+                    </div>
 
                   </div>
 
@@ -500,127 +526,6 @@ export default function OrderDetails() {
 
         </div>
 
-
-        {/* ORDER TRACKING */}
-
-        <div className="bg-white border rounded-3xl p-6">
-
-          <h2 className="text-2xl font-black mb-6">
-            Order Tracking
-          </h2>
-
-          {order.status === "Cancelled" ? (
-
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
-              <p className="font-bold text-red-700 text-lg">
-                Order Cancelled
-              </p>
-
-              <p className="text-red-600 mt-1">
-                This order has been cancelled.
-              </p>
-            </div>
-
-          ) : (
-
-            <div className="space-y-6">
-
-              {[
-                {
-                  label: "Order Placed",
-                  completed: true,
-                  date: order.created_at,
-                },
-                {
-                  label: "Processing",
-                  completed: [
-                    "Processing",
-                    "Paid",
-                    "Shipped",
-                    "Delivered",
-                  ].includes(order.status),
-                },
-                {
-                  label: "Paid",
-                  completed: [
-                    "Paid",
-                    "Shipped",
-                    "Delivered",
-                  ].includes(order.status),
-                },
-                {
-                  label: "Shipped",
-                  completed: [
-                    "Shipped",
-                    "Delivered",
-                  ].includes(order.status),
-                  date: order.shipped_at,
-                },
-                {
-                  label: "Delivered",
-                  completed: order.status === "Delivered",
-                  date: order.delivered_at,
-                },
-              ].map((step, index) => (
-
-                <div
-                  key={step.label}
-                  className="flex items-start gap-4"
-                >
-
-                  <div className="flex flex-col items-center">
-
-                    <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center font-bold ${
-                        step.completed
-                          ? "bg-green-600 text-white"
-                          : "bg-gray-200 text-gray-500"
-                      }`}
-                    >
-                      {step.completed ? "✓" : index + 1}
-                    </div>
-
-                    {index < 4 && (
-                      <div
-                        className={`w-1 h-10 mt-1 ${
-                          step.completed
-                            ? "bg-green-500"
-                            : "bg-gray-200"
-                        }`}
-                      />
-                    )}
-
-                  </div>
-
-                  <div className="pt-1">
-
-                    <p
-                      className={`font-bold ${
-                        step.completed
-                          ? "text-gray-900"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {step.label}
-                    </p>
-
-                    {step.date && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        {new Date(step.date).toLocaleString()}
-                      </p>
-                    )}
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          )}
-
-        </div>
 
         {(order.courier || order.tracking_number) && (
           <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6">

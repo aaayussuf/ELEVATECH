@@ -60,7 +60,7 @@ export default function Wishlist() {
               My Wishlist
             </h1>
 
-            <p className="text-gray-500 mt-2">
+            <p className="text-gray-400 mt-2">
               Products you've saved for later.
             </p>
 

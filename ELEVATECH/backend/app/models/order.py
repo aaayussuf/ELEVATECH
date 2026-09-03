@@ -137,6 +137,7 @@ class OrderItem(db.Model):
             "id": self.id,
             "product_id": self.product_id,
             "product_name": self.product.name if self.product else None,
+            "product_slug": self.product.slug if self.product else None,
             "image": self.product.image if self.product else None,
             "quantity": self.quantity,
             "price": float(self.price),

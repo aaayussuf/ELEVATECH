@@ -1,10 +1,39 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  ChevronRight,
+  Heart,
+  MapPinned,
+  Package,
+  Plus,
+  ShoppingCart,
+} from "lucide-react";
 
 import { AuthContext } from "../../context/AuthContext";
 import AccountLayout from "../../layouts/AccountLayout";
 import accountService from "../../services/accountService";
 import OrderCard from "../../components/account/OrderCard";
+
+const statCards = [
+  {
+    label: "Total Orders",
+    href: "/account/orders",
+    icon: Package,
+    chip: "from-blue-500 to-cyan-400",
+  },
+  {
+    label: "Wishlist Items",
+    href: "/account/wishlist",
+    icon: Heart,
+    chip: "from-pink-500 to-rose-400",
+  },
+  {
+    label: "Saved Addresses",
+    href: "/account/addresses",
+    icon: MapPinned,
+    chip: "from-yellow-400 to-amber-500",
+  },
+];
 
 export default function Dashboard() {
   const { user, token, isLoading, logout } = useContext(AuthContext);
@@ -18,12 +47,6 @@ export default function Dashboard() {
   const [recentWishlist, setRecentWishlist] = useState([]);
 
   const [loading, setLoading] = useState(true);
-
-  const fullName = useMemo(() => {
-    const first = user?.first_name || "";
-    const last = user?.last_name || "";
-    return `${first} ${last}`.trim() || "Customer";
-  }, [user]);
 
   useEffect(() => {
     let mounted = true;
@@ -50,7 +73,7 @@ export default function Dashboard() {
           savedAddresses: addressesList.length,
         });
 
-        setRecentOrders(ordersList.slice(0, 1_00).slice(0, 4));
+        setRecentOrders(ordersList.slice(0, 100).slice(0, 4));
         setRecentWishlist(wishlistList.slice(0, 3));
       } finally {
         if (mounted) setLoading(false);
@@ -64,65 +87,150 @@ export default function Dashboard() {
     };
   }, [isLoading, token]);
 
+  const statValues = [
+    stats.totalOrders,
+    stats.wishlistCount,
+    stats.savedAddresses,
+  ];
+
   return (
-    <AccountLayout user={user} onLogout={logout}>
-      <div style={{ maxWidth: 980 }}>
-        <div style={{ textAlign: "center", marginBottom: 14 }}>
-          <div style={{ color: "#666", fontWeight: 900, marginBottom: 6 }}>CUSTOMER ACCOUNT</div>
-          <div style={{ fontSize: 18, fontWeight: 900 }}>Welcome {fullName}</div>
+<AccountLayout user={user} onLogout={logout}>
+      <div className="space-y-6">
+        {/* Stat cards */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {statCards.map(({ label, href, icon: Icon, chip }, index) => (
+            <Link
+              key={label}
+              to={href}
+              className="group rounded-3xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">
+                    {label}
+                  </p>
+                  <p className="mt-1 text-3xl font-black text-gray-900">
+                    {loading ? "—" : statValues[index]}
+                  </p>
+                </div>
+
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-black ${chip}`}
+                >
+                  <Icon size={22} />
+                </div>
+              </div>
+
+              <p className="mt-3 inline-flex items-center gap-1 text-sm font-black text-blue-600 transition group-hover:gap-2">
+                Open <ChevronRight size={14} />
+              </p>
+            </Link>
+          ))}
         </div>
 
-        <div style={statsRow}>
-          <div style={statCell}>
-            Orders
-            <div style={statNum}>{stats.totalOrders}</div>
-          </div>
-          <div style={statCell}>
-            Wishlist
-            <div style={statNum}>{stats.wishlistCount}</div>
-          </div>
-          <div style={statCell}>
-            Addresses
-            <div style={statNum}>{stats.savedAddresses}</div>
-          </div>
-        </div>
+        {/* Panels */}
+        <div className="grid gap-6 xl:grid-cols-2">
+<section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-black text-gray-900">Recent Orders</h2>
+              <Link
+                to="/account/orders"
+                className="text-sm font-black text-blue-600 hover:text-blue-700"
+              >
+                View all
+              </Link>
+            </div>
 
-        <div style={grid}>
-          <section style={panel}>
-            <div style={panelTitle}>Recent Orders</div>
             {loading ? (
-              <div>Loading...</div>
+              <p className="py-6 text-center text-sm font-bold text-gray-400">
+                Loading...
+              </p>
             ) : recentOrders.length ? (
-              <div style={cardsGrid}>
+              <div className="grid gap-4">
                 {recentOrders.map((o) => (
                   <OrderCard key={o.id} order={o} />
                 ))}
               </div>
             ) : (
-              <div style={muted}>
-                No recent orders yet. <Link to="/account/orders">View all</Link>
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
+                <Package size={28} className="mx-auto text-gray-300" />
+                <p className="mt-3 font-bold text-gray-700">No orders yet</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Your orders will appear here once you shop.
+                </p>
+                <Link
+                  to="/products"
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-black text-white transition hover:bg-gray-800"
+                >
+                  <ShoppingCart size={15} /> Start shopping
+                </Link>
               </div>
             )}
           </section>
 
-          <section style={panel}>
-            <div style={panelTitle}>Recent Wishlist</div>
+          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-black text-gray-900">Recently Saved</h2>
+              <Link
+                to="/account/wishlist"
+                className="text-sm font-black text-blue-600 hover:text-blue-700"
+              >
+                View all
+              </Link>
+            </div>
+
             {loading ? (
-              <div>Loading...</div>
+              <p className="py-6 text-center text-sm font-bold text-gray-400">
+                Loading...
+              </p>
             ) : recentWishlist.length ? (
-              <div style={list}>
+              <ul className="divide-y divide-gray-100">
                 {recentWishlist.map((w) => {
                   const id = w.id ?? w.wishlist_item_id ?? w.product_id;
-                  const name = w.product_name || w.name || w.title || `Product #${w.product_id || id}`;
+                  const name =
+                    w.product_name ||
+                    w.name ||
+                    w.title ||
+                    `Product #${w.product_id || id}`;
+                  const price = w.price ?? w.product_price;
+
                   return (
-                    <div key={id} style={listItem}>
-                      {name}
-                    </div>
+                    <li key={id} className="flex items-center gap-3 py-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-pink-50 text-pink-600">
+                        <Heart size={16} fill="currentColor" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate font-bold text-gray-800">
+                        {name}
+                      </span>
+                      {price != null && (
+                        <span className="text-sm font-black text-gray-900">
+                          KSh {Number(price).toLocaleString()}
+                        </span>
+                      )}
+                      <Link
+                        to="/account/wishlist"
+                        className="text-sm font-black text-blue-600 hover:text-blue-700"
+                      >
+                        View
+                      </Link>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             ) : (
-              <div style={muted}>Wishlist is empty.</div>
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
+                <Heart size={28} className="mx-auto text-gray-300" />
+                <p className="mt-3 font-bold text-gray-700">Wishlist is empty</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Save products you love for later.
+                </p>
+                <Link
+                  to="/products"
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-black text-white transition hover:bg-gray-800"
+                >
+                  <Plus size={15} /> Browse products
+                </Link>
+              </div>
             )}
           </section>
         </div>
@@ -130,49 +238,3 @@ export default function Dashboard() {
     </AccountLayout>
   );
 }
-
-const statsRow = {
-  display: "flex",
-  gap: 14,
-  justifyContent: "center",
-  marginBottom: 18,
-};
-
-const statCell = {
-  border: "1px solid #eee",
-  borderRadius: 16,
-  padding: "14px 18px",
-  background: "#fff",
-  minWidth: 190,
-  textAlign: "center",
-  fontWeight: 900,
-};
-
-const statNum = { fontSize: 18, marginTop: 6 };
-
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 16,
-};
-
-const panel = {
-  border: "1px solid #eee",
-  borderRadius: 16,
-  padding: 18,
-  background: "#fff",
-};
-
-const panelTitle = { fontWeight: 900, marginBottom: 12 };
-
-const cardsGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-  gap: 12,
-};
-
-const list = { display: "grid", gap: 8 };
-const listItem = { fontWeight: 900 };
-
-const muted = { color: "#666" };
-

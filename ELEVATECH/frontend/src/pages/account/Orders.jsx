@@ -200,11 +200,11 @@ export default function Orders() {
         onLogout={logout}
       >
         <div className="p-8 text-center">
-          <div className="text-2xl font-black text-gray-900">
+          <div className="text-2xl font-black text-gray-100">
             Loading your orders...
           </div>
 
-          <p className="text-gray-500 mt-2">
+          <p className="text-gray-400 mt-2">
             Please wait while we retrieve your order history.
           </p>
         </div>
@@ -238,3 +238,351 @@ export default function Orders() {
       </AccountLayout>
     );
   }
+
+  return (
+    <AccountLayout
+      user={user}
+      onLogout={logout}
+    >
+      <div className="space-y-8">
+
+        {/* PAGE HEADER */}
+
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
+          <div>
+            <p className="text-sm font-bold text-yellow-400 uppercase tracking-wide">
+              Account
+            </p>
+
+            <h1 className="text-4xl font-black text-white mt-1">
+              My Orders
+            </h1>
+
+            <p className="text-gray-400 mt-2">
+              View your order history and track your purchases.
+            </p>
+          </div>
+
+          <Link
+            to="/products"
+            className="inline-flex items-center justify-center bg-gradient-to-r from-blue-500 to-yellow-400 text-black hover:opacity-90 px-5 py-3 rounded-xl font-bold"
+          >
+            Continue Shopping
+          </Link>
+        </div>
+
+        {/* ERROR */}
+
+        {error && orders.length > 0 && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4">
+            {error}
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+
+        {orders.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-3xl p-12 text-center shadow-sm">
+
+            <div className="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center text-2xl">
+              🛍️
+            </div>
+
+            <h2 className="text-2xl font-black text-gray-900 mt-5">
+              No orders yet
+            </h2>
+
+            <p className="text-gray-500 mt-2 max-w-md mx-auto">
+              Your completed and pending orders will appear here
+              after you make a purchase.
+            </p>
+
+            <Link
+              to="/products"
+              className="inline-flex mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold"
+            >
+              Start Shopping
+            </Link>
+
+          </div>
+        ) : (
+
+          /* ORDER LIST */
+
+          <div className="space-y-5">
+
+            {orders.map((order) => {
+              const itemCount = getItemCount(order.items);
+
+              const isPending =
+                String(order.status || "")
+                  .toLowerCase() === "pending";
+
+              const isCancelling =
+                cancellingId === order.id;
+
+              return (
+                <div
+                  key={order.id}
+                  className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden"
+                >
+
+                  {/* ORDER HEADER */}
+
+                  <div className="p-6 border-b bg-gray-50/60">
+
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+
+                      <div>
+                        <p className="text-sm text-gray-500">
+                          Order
+                        </p>
+
+                        <h2 className="text-2xl font-black text-gray-900">
+                          #{order.id}
+                        </h2>
+
+                        <p className="text-sm text-gray-500 mt-1">
+                          {order.created_at
+                            ? new Date(
+                                order.created_at
+                              ).toLocaleString()
+                            : "Date unavailable"}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-3">
+
+                        <span
+                          className={`px-4 py-2 rounded-full font-bold ${getStatusClasses(
+                            order.status
+                          )}`}
+                        >
+                          {order.status || "Pending"}
+                        </span>
+
+                        <span
+                          className={`px-4 py-2 rounded-full font-bold ${getPaymentClasses(
+                            order.payment_status
+                          )}`}
+                        >
+                          {order.payment_status ||
+                            "Payment Pending"}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+
+                  {/* ORDER SUMMARY */}
+
+                  <div className="p-6">
+
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                      <div className="bg-gray-50 rounded-2xl p-4">
+                        <p className="text-sm text-gray-500">
+                          Payment Method
+                        </p>
+
+                        <p className="font-bold text-gray-900 mt-1">
+                          {order.payment_method || "—"}
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-2xl p-4">
+                        <p className="text-sm text-gray-500">
+                          Items
+                        </p>
+
+                        <p className="font-bold text-gray-900 text-xl mt-1">
+                          {itemCount}
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-2xl p-4">
+                        <p className="text-sm text-gray-500">
+                          Discount
+                        </p>
+
+                        <p className="font-bold text-green-600 mt-1">
+                          KSh{" "}
+                          {formatMoney(
+                            order.discount
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="bg-blue-50 rounded-2xl p-4">
+                        <p className="text-sm text-gray-500">
+                          Order Total
+                        </p>
+
+                        <p className="font-black text-xl text-blue-600 mt-1">
+                          KSh{" "}
+                          {formatMoney(
+                            order.total
+                          )}
+                        </p>
+                      </div>
+
+                    </div>
+
+
+                    {/* ITEMS */}
+
+                    <div className="mt-6">
+
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-black text-lg">
+                          Items
+                        </h3>
+
+                        <span className="text-sm text-gray-500">
+                          {itemCount}{" "}
+                          {itemCount === 1
+                            ? "item"
+                            : "items"}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+
+                        {(order.items || []).map(
+                          (item) => (
+                            <div
+                              key={item.id}
+                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gray-50 rounded-2xl p-4"
+                            >
+
+                              <div>
+                                <p className="font-bold text-gray-900">
+                                  {item.product_name ||
+                                    `Product #${item.product_id}`}
+                                </p>
+
+                                <p className="text-sm text-gray-500 mt-1">
+                                  Qty:{" "}
+                                  {item.quantity}{" "}
+                                  · Unit price: KSh{" "}
+                                  {formatMoney(
+                                    item.price
+                                  )}
+                                </p>
+                              </div>
+
+                              <p className="font-black text-gray-900">
+                                KSh{" "}
+                                {formatMoney(
+                                  item.subtotal ??
+                                    Number(
+                                      item.price || 0
+                                    ) *
+                                      Number(
+                                        item.quantity || 0
+                                      )
+                                )}
+                              </p>
+
+                            </div>
+                          )
+                        )}
+
+                      </div>
+
+                    </div>
+
+
+                    {/* SHIPPING */}
+
+                    {(order.courier ||
+                      order.tracking_number) && (
+                      <div className="mt-6 bg-blue-50 border border-blue-100 rounded-2xl p-5">
+
+                        <h3 className="font-black text-lg">
+                          Shipping
+                        </h3>
+
+                        <div className="grid sm:grid-cols-2 gap-4 mt-3">
+
+                          {order.courier && (
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Courier
+                              </p>
+
+                              <p className="font-bold mt-1">
+                                {order.courier}
+                              </p>
+                            </div>
+                          )}
+
+                          {order.tracking_number && (
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Tracking Number
+                              </p>
+
+                              <p className="font-bold mt-1 break-all">
+                                {order.tracking_number}
+                              </p>
+                            </div>
+                          )}
+
+                        </div>
+
+                      </div>
+                    )}
+
+                    {/* ACTIONS */}
+
+                    <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-6">
+
+                      {isPending && (
+                        <button
+                          type="button"
+                          disabled={isCancelling}
+                          onClick={() =>
+                            handleCancelOrder(
+                              order.id
+                            )
+                          }
+                          className={`px-5 py-3 rounded-xl font-bold border ${
+                            isCancelling
+                              ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                              : "bg-white text-red-600 border-red-300 hover:bg-red-50"
+                          }`}
+                        >
+                          {isCancelling
+                            ? "Cancelling..."
+                            : "Cancel Order"}
+                        </button>
+                      )}
+
+                      <Link
+                        to={`/account/orders/${order.id}`}
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-3 rounded-xl font-bold text-center"
+                      >
+                        View Order
+                      </Link>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              );
+            })}
+
+          </div>
+        )}
+
+      </div>
+    </AccountLayout>
+  );
+}
+
+

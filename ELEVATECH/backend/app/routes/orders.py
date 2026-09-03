@@ -47,6 +47,10 @@ def serialize_order(order):
                 "id": item.id,
                 "product_id": item.product_id,
                 "product_name": item.product.name,
+                "product_slug": (
+                    item.product.slug if item.product else None
+                ),
+                "image": item.product.image if item.product else None,
                 "price": item.price,
                 "quantity": item.quantity,
                 "subtotal": item.price * item.quantity
