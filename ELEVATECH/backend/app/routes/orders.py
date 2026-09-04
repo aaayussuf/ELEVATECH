@@ -95,15 +95,24 @@ def create_order():
     data = request.get_json() or {}
 
     items = data.get("items", [])
-
     coupon_code = data.get("coupon_code")
 
-    payment_method = data.get(
-        "payment_method",
-        "Stripe"
-    )
+    # Only allow payment methods supported by the application.
+    payment_method = str(
+        data.get("payment_method", "Stripe")
+    ).strip()
 
-    if not items:
+    allowed_payment_methods = {
+        "Stripe",
+        "M-Pesa",
+    }
+
+    if payment_method not in allowed_payment_methods:
+        return jsonify({
+            "message": "Unsupported payment method."
+        }), 400
+
+    if not isinstance(items, list) or not items:
         return jsonify({
             "message": "Cart is empty"
         }), 400
@@ -126,30 +135,65 @@ def create_order():
 
     for item in items:
 
-        product = Product.query.get(item["product_id"])
-
-        if not product:
+        if not isinstance(item, dict):
             db.session.rollback()
             return jsonify({
-                "message": f"Product {item['product_id']} not found"
-            }), 404
+                "message": "Invalid order item."
+            }), 400
 
-        quantity = int(item["quantity"])
+        product_id = item.get("product_id")
+        requested_quantity = item.get("quantity")
+
+        if product_id is None or requested_quantity is None:
+            db.session.rollback()
+            return jsonify({
+                "message": "Each item must include product_id and quantity."
+            }), 400
+
+        try:
+            product_id = int(product_id)
+            quantity = int(requested_quantity)
+        except (TypeError, ValueError):
+            db.session.rollback()
+            return jsonify({
+                "message": "Invalid product ID or quantity."
+            }), 400
+
+        if product_id <= 0:
+            db.session.rollback()
+            return jsonify({
+                "message": "Invalid product ID."
+            }), 400
 
         if quantity <= 0:
             db.session.rollback()
             return jsonify({
-                "message": "Quantity must be greater than zero"
+                "message": "Quantity must be greater than zero."
+            }), 400
+
+        product = Product.query.get(product_id)
+
+        if not product:
+            db.session.rollback()
+            return jsonify({
+                "message": f"Product {product_id} not found"
+            }), 404
+
+        if not product.active:
+            db.session.rollback()
+            return jsonify({
+                "message": f"{product.name} is currently unavailable."
             }), 400
 
         if product.track_inventory:
 
             if quantity > product.quantity:
-
                 db.session.rollback()
-
                 return jsonify({
-                    "message": f"{product.name} has only {product.quantity} left"
+                    "message": (
+                        f"{product.name} has only "
+                        f"{product.quantity} left"
+                    )
                 }), 400
 
             product.quantity -= quantity
@@ -157,7 +201,6 @@ def create_order():
         product.sold += quantity
 
         line_total = product.price * quantity
-
         total += line_total
 
         db.session.add(
@@ -168,7 +211,6 @@ def create_order():
                 price=product.price
             )
         )
-
     # -------------------------
     # Apply Coupon
     # -------------------------
@@ -178,48 +220,47 @@ def create_order():
     if coupon_code:
 
         coupon = Coupon.query.filter_by(
-            code=coupon_code.upper().strip(),
+            code=str(coupon_code).upper().strip(),
             active=True
         ).first()
 
         if not coupon:
-
             db.session.rollback()
-
             return jsonify({
                 "message": "Invalid coupon."
             }), 400
 
-        if coupon.expires_at and coupon.expires_at < datetime.now(timezone.utc):
-
+        if (
+            coupon.expires_at
+            and coupon.expires_at < datetime.now(timezone.utc)
+        ):
             db.session.rollback()
-
             return jsonify({
                 "message": "Coupon expired."
             }), 400
 
-        if coupon.usage_limit and coupon.usage_limit > 0 and coupon.used >= coupon.usage_limit:
-
+        if (
+            coupon.usage_limit
+            and coupon.usage_limit > 0
+            and coupon.used >= coupon.usage_limit
+        ):
             db.session.rollback()
-
             return jsonify({
                 "message": "Coupon usage limit reached."
             }), 400
 
         if total < coupon.minimum_amount:
-
             db.session.rollback()
-
             return jsonify({
-                "message": f"Minimum order is {coupon.minimum_amount}"
+                "message": (
+                    f"Minimum order is "
+                    f"{coupon.minimum_amount}"
+                )
             }), 400
 
         if coupon.discount_type == "percent":
-
             discount = total * (coupon.value / 100)
-
         else:
-
             discount = coupon.value
 
         if discount > total:
@@ -236,7 +277,10 @@ def create_order():
     # -------------------------
 
     order.discount = round(discount, 2)
-    order.total = round(max(0, total - discount), 2)
+    order.total = round(
+        max(0, total - discount),
+        2
+    )
 
     db.session.commit()
 

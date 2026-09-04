@@ -172,8 +172,8 @@ def create_product():
         slug=data["slug"],
         description=data.get("description"),
         short_description=data.get("short_description"),
-        sku=data.get("sku"),
-        barcode=data.get("barcode"),
+        sku=data.get("sku").strip() if data.get("sku") and data.get("sku").strip() else None,
+        barcode=data.get("barcode").strip() if data.get("barcode") and data.get("barcode").strip() else None,
         price=data["price"],
         discount_price=data.get("discount_price"),
         cost_price=data.get("cost_price"),
@@ -214,11 +214,49 @@ def update_product(id):
 
     product = Product.query.get_or_404(id)
 
-    data = request.get_json()
+    data = request.get_json() or {}
+
+    allowed_fields = {
+        "name",
+        "slug",
+        "description",
+        "short_description",
+        "sku",
+        "barcode",
+        "price",
+        "discount_price",
+        "cost_price",
+        "quantity",
+        "low_stock",
+        "track_inventory",
+        "image",
+        "image2",
+        "image3",
+        "image4",
+        "brand",
+        "featured",
+        "active",
+        "weight",
+        "color",
+        "warranty",
+        "meta_title",
+        "meta_description",
+        "category_id",
+    }
 
     for key, value in data.items():
-        if hasattr(product, key):
-            setattr(product, key, value)
+
+        if key not in allowed_fields:
+            continue
+
+        if key in ["sku", "barcode"]:
+            value = (
+                value.strip()
+                if isinstance(value, str) and value.strip()
+                else None
+            )
+
+        setattr(product, key, value)
 
     db.session.commit()
 

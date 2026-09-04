@@ -13,7 +13,13 @@ export default function CheckoutSuccess() {
       return;
     }
 
-    fetch(`/api/checkout/verify/${sessionId}`)
+    const token = localStorage.getItem("elevatech_token");
+
+    fetch(`/api/checkout/verify/${sessionId}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         console.log(data);

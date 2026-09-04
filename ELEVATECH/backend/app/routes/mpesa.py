@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions import db
 from app.extensions.socketio import emit_customer_order_update
@@ -9,30 +9,13 @@ from app.models.order import Order
 from app.models.payment import Payment
 from app.routes.orders import restore_order_inventory
 from app.services.email_service import send_order_confirmation
-from app.services.mpesa_service import get_access_token, stk_push
+from app.services.mpesa_service import stk_push
 
 mpesa_bp = Blueprint(
     "mpesa",
     __name__,
     url_prefix="/api/mpesa",
 )
-
-
-@mpesa_bp.route("/token", methods=["GET"])
-def test_token():
-    try:
-        token = get_access_token()
-
-        return jsonify({
-            "success": True,
-            "token": token
-        })
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
 
 
 @mpesa_bp.route("/stkpush", methods=["POST"])
@@ -57,7 +40,12 @@ def create_stk_push():
     if not order_id:
         return jsonify({"message": "Order id required"}), 400
 
-    order = db.session.get(Order, order_id)
+    user_id = int(get_jwt_identity())
+
+    order = Order.query.filter_by(
+        id=order_id,
+        user_id=user_id
+    ).first()
 
     if not order:
         return jsonify({"message": "Order not found"}), 404

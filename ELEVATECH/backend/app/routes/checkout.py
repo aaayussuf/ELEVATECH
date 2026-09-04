@@ -94,19 +94,39 @@ def create_checkout():
 
 
 @checkout_bp.route("/verify/<session_id>", methods=["GET"])
+@jwt_required()
 def verify_payment(session_id):
     """
-    Verify a Checkout Session directly with Stripe.
+    Verify a Checkout Session belonging to the authenticated user's order.
     """
 
     try:
+        identity = get_jwt_identity()
+
         session = retrieve_session(session_id)
+
+        order_id = session.metadata.get("order_id")
+
+        if not order_id:
+            return jsonify({"error": "Order not associated with this session"}), 404
+
+        order = Order.query.filter_by(
+            id=int(order_id),
+            user_id=identity,
+        ).first()
+
+        if not order:
+            return jsonify({"error": "Order not found"}), 404
 
         return jsonify({
             "paid": session.payment_status == "paid",
             "status": session.payment_status,
-            "order_id": session.metadata.get("order_id"),
-            "payment_intent": session.payment_intent.id if session.payment_intent else None,
+            "order_id": order.id,
+            "payment_intent": (
+                session.payment_intent.id
+                if session.payment_intent
+                else None
+            ),
         })
 
     except Exception as e:

@@ -75,7 +75,7 @@ export default function Checkout() {
       return;
     }
 
-    if (paymentMethod === "Mpesa" && phone.trim() === "") {
+    if (paymentMethod === "M-Pesa" && phone.trim() === "") {
       setError("Please enter your M-Pesa phone number.");
       return;
     }
@@ -304,14 +304,14 @@ export default function Checkout() {
         <label>
           <input
             type="radio"
-            value="Mpesa"
-            checked={paymentMethod === "Mpesa"}
+            value="M-Pesa"
+            checked={paymentMethod === "M-Pesa"}
             onChange={(e) => setPaymentMethod(e.target.value)}
           />{" "}
           M-Pesa
         </label>
 
-        {paymentMethod === "Mpesa" && (
+        {paymentMethod === "M-Pesa" && (
           <input
             type="tel"
             placeholder="2547XXXXXXXX"
