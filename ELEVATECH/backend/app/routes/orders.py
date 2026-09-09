@@ -63,7 +63,16 @@ def serialize_order(order):
 def restore_order_inventory(order):
     """
     Restore stock when an order is cancelled or payment fails.
+
+    Inventory is restored only for a Pending order so that
+    repeated calls cannot restore stock twice.
     """
+
+    if not order:
+        return False
+
+    if order.status != "Pending":
+        return False
 
     for item in order.items:
 
@@ -81,6 +90,8 @@ def restore_order_inventory(order):
     if order.coupon and order.coupon.used > 0:
         order.coupon.used -= 1
 
+    return True
+
 
 # ======================================================
 # CREATE ORDER
@@ -91,6 +102,20 @@ def restore_order_inventory(order):
 def create_order():
 
     user_id = int(get_jwt_identity())
+
+    # Prevent duplicate checkout orders.
+    # A customer must finish or cancel the current pending order
+    # before creating another one.
+    existing_pending_order = Order.query.filter_by(
+        user_id=user_id,
+        status="Pending"
+    ).first()
+
+    if existing_pending_order:
+        return jsonify({
+            "message": "You already have a pending order.",
+            "order_id": existing_pending_order.id
+        }), 409
 
     data = request.get_json() or {}
 
@@ -313,12 +338,25 @@ def cancel_order(order_id):
             "message": "Order not found"
         }), 404
 
-    if order.status not in ("Pending",):
+    # Only Pending orders can be cancelled.
+    if order.status != "Pending":
         return jsonify({
             "message": f"Cannot cancel order with status '{order.status}'"
         }), 400
 
-    restore_order_inventory(order)
+    # Never cancel an order that is already marked as paid.
+    if order.payment_status == "Paid":
+        return jsonify({
+            "message": "Cannot cancel a paid order"
+        }), 400
+
+    restored = restore_order_inventory(order)
+
+    if not restored:
+        return jsonify({
+            "message": "Order has already been cancelled or inventory restored"
+        }), 400
+
     order.status = "Cancelled"
     order.payment_status = "Failed"
 

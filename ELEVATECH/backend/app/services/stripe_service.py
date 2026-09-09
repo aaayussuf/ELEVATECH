@@ -55,6 +55,11 @@ def create_checkout_session(order_id, order=None, success_url=None, cancel_url=N
         metadata={
             "order_id": str(order.id)
         },
+        payment_intent_data={
+            "metadata": {
+                "order_id": str(order.id)
+            }
+        },
     )
 
     return session
