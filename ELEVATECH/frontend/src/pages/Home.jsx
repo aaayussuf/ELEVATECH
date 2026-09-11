@@ -1,5 +1,3 @@
-import MainLayout from "../layouts/MainLayout";
-
 import Hero from "../components/home/Hero";
 import FeatureCards from "../components/home/FeatureCards";
 import CategoriesSection from "../components/home/CategoriesSection";
@@ -9,24 +7,27 @@ import Brands from "../components/home/Brands";
 import Newsletter from "../components/home/Newsletter";
 
 export default function Home() {
-    return (
-        <MainLayout>
+  return (
+    <div className="min-h-screen bg-[#050B14] text-white">
 
-            <Hero />
+      <main>
 
-            <FeatureCards />
+        <Hero />
 
-            <CategoriesSection />
+        <FeatureCards />
 
-            <FeaturedProducts />
+        <CategoriesSection />
 
-            <DealsBanner />
+        <FeaturedProducts />
 
-            <Brands />
+        <DealsBanner />
 
-            <Newsletter />
+        <Brands />
 
-        </MainLayout>
-    );
+        <Newsletter />
+
+      </main>
+
+    </div>
+  );
 }
-

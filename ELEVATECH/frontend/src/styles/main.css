@@ -13,3 +13,54 @@ body {
   color: white;
   font-family: Inter, Arial, sans-serif;
 }
+
+/* ============================================
+   Homepage motion utilities
+   ============================================ */
+
+@keyframes elevate-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: elevate-marquee 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
+
+@keyframes elevate-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+.animate-float {
+  animation: elevate-float 6s ease-in-out infinite;
+}
+
+@keyframes elevate-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
+  }
+  50% {
+    box-shadow: 0 0 24px 4px rgba(250, 204, 21, 0.28);
+  }
+}
+
+.animate-glow {
+  animation: elevate-glow 2.4s ease-in-out infinite;
+}

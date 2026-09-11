@@ -1,13 +1,54 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import axios from "axios";
+
 import {
   Laptop,
   Smartphone,
   Printer,
   Headphones,
-  ArrowRight,
+  ArrowUpRight,
 } from "lucide-react";
+
+const fallback = [
+  {
+    id: 1,
+    name: "Laptops",
+    description:
+      "Workstations for work, study and creation.",
+    image:
+      "/assets/products/brands/laptops.png",
+  },
+  {
+    id: 3,
+    name: "Phones",
+    description:
+      "Powerful smartphones for every day.",
+    image:
+      "/assets/products/brands/phones.png",
+  },
+  {
+    id: 2,
+    name: "Printers",
+    description:
+      "Reliable printing for home and office.",
+    image:
+      "/assets/products/brands/printers.png",
+  },
+  {
+    id: 4,
+    name: "Accessories",
+    description:
+      "The finishing touches for your setup.",
+    image:
+      "/assets/products/brands/accessories.png",
+  },
+];
 
 const icons = {
   laptops: Laptop,
@@ -17,96 +58,140 @@ const icons = {
 };
 
 export default function CategoriesSection() {
-  const [categories, setCategories] = useState([]);
+
+  const [categories, setCategories] =
+    useState(fallback);
 
   useEffect(() => {
+
     axios
       .get("http://127.0.0.1:5000/api/categories")
       .then((res) => {
-setCategories(res.data);
+
+        if (
+          Array.isArray(res.data) &&
+          res.data.length
+        ) {
+          setCategories(res.data);
+        }
+
       })
-      .catch((err) => {
-        console.error(err);
-      });
+      .catch(() => {});
+
   }, []);
 
   return (
-    <section className="bg-[#07101D] py-24">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="bg-[#07101D] py-20 sm:py-24">
 
-        <div className="flex items-center justify-between mb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-10">
+
           <div>
-            <p className="text-blue-500 font-semibold uppercase tracking-widest">
-              Browse
+
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-400">
+              Explore the collection
             </p>
 
-            <h2 className="text-5xl font-black mt-2">
-              Shop By Category
+            <h2 className="mt-3 text-4xl sm:text-5xl font-black tracking-tight">
+              Shop by category
             </h2>
+
+            <p className="mt-3 text-slate-400 max-w-xl">
+              Start with the technology that fits your world.
+            </p>
+
           </div>
 
-          <button className="text-blue-400 flex items-center gap-2 hover:text-yellow-400 transition">
-            View All
-            <ArrowRight size={18} />
-          </button>
+          <Link
+            to="/products"
+            className="inline-flex items-center gap-2 text-sm font-bold text-white hover:text-yellow-400 transition"
+          >
+            View all products
+            <ArrowUpRight size={17} />
+          </Link>
+
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {categories.map((category) => {
-            const Icon =
-              icons[category.name.toLowerCase()] || Laptop;
+          {categories
+            .slice(0, 4)
+            .map((category) => {
 
-            return (
-              <Link
-                key={category.id}
-                to={`/products?category=${category.id}`}
-className="group rounded-3xl border border-slate-800 bg-gradient-to-b from-[#101C31] to-[#0B1425] overflow-hidden hover:border-blue-500 transition duration-300 hover:-translate-y-2 block"
-              >
-                <div className="h-56 bg-[#09101B] flex items-center justify-center">
+              const Icon =
+                icons[
+                  category.name?.toLowerCase()
+                ] || Laptop;
 
-                  {category.image ? (
-                    <img
-                      src={
-                        category.image?.startsWith("/assets/products/brands/")
-                          ? category.image
-                          : `/assets/products/brands/${category.image?.split("/").pop()}`
-                      }
-                      alt={category.name}
-                      className="w-40 h-40 object-contain group-hover:scale-110 transition duration-500"
-                    />
-                  ) : (
-                    <Icon
-                      size={90}
-                      className="text-blue-500"
-                    />
-                  )}
+              const image = category.image
+                ? category.image.startsWith(
+                    "/assets/products/brands/"
+                  )
+                  ? category.image
+                  : `/assets/products/brands/${
+                      category.image.split("/").pop()
+                    }`
+                : "";
 
-                </div>
+              return (
+                <Link
+                  key={category.id}
+                  to={`/products?category=${category.id}`}
+                  className="group relative min-h-[330px] overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#101C31] to-[#091321] p-5 flex flex-col justify-between hover:border-blue-400/50 transition"
+                >
 
-                <div className="p-6">
+                  <div className="flex items-start justify-between relative z-10">
 
-                  <h3 className="text-2xl font-bold">
-                    {category.name}
-                  </h3>
+                    <span className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-300">
+                      <Icon size={19} />
+                    </span>
 
-                  <p className="text-gray-400 mt-3 text-sm">
-                    {category.description}
-                  </p>
+                    <span className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-yellow-400 group-hover:text-black transition">
+                      <ArrowUpRight size={17} />
+                    </span>
 
-                  <div className="mt-6 text-yellow-400 flex items-center gap-2 group-hover:text-blue-400 transition">
-                    Shop Now
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition" />
                   </div>
 
-                </div>
+                  <div className="absolute inset-x-5 top-16 h-44 flex items-center justify-center">
 
-              </Link>
-            );
-          })}
+                    {image ? (
+                      <img
+                        src={image}
+                        alt=""
+                        className="max-h-40 max-w-[78%] object-contain opacity-90 group-hover:scale-105 transition duration-500"
+                      />
+                    ) : (
+                      <Icon
+                        size={100}
+                        className="text-blue-500/60"
+                      />
+                    )}
+
+                  </div>
+
+                  <div className="relative z-10">
+
+                    <h3 className="text-2xl font-black">
+                      {category.name}
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                      {category.description ||
+                        "Explore our latest selection."}
+                    </p>
+
+                  </div>
+
+                </Link>
+              );
+
+            })}
 
         </div>
+
       </div>
+
     </section>
   );
 }

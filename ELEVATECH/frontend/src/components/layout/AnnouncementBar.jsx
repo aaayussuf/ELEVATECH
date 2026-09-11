@@ -1,32 +1,22 @@
 export default function AnnouncementBar() {
+  return (
+    <div className="bg-[#0A1423] border-b border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
-    return (
+        <div className="min-h-9 flex items-center justify-center text-center">
 
-        <div className="bg-[#03101F] border-b border-slate-800/50 text-xs tracking-wide">
+          <p className="text-[11px] sm:text-xs text-slate-400 tracking-wide">
+            <span className="text-yellow-400 font-bold">
+              ELEVATECH
+            </span>
 
-            <div className="max-w-7xl mx-auto px-6">
-
-                <div className="h-10 flex items-center justify-between text-sm">
-
-                    <span>
-
-                        🚚 Free Shipping on Orders Above KSh 5,000
-
-                    </span>
-
-                    <span>
-
-                        📞 +254 700 000 000
-
-                    </span>
-
-                </div>
-
-            </div>
+            {" "}
+            — Smarter technology for work, life and everything in between.
+          </p>
 
         </div>
 
-    );
-
+      </div>
+    </div>
+  );
 }
-

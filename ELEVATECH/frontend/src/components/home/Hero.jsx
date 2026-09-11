@@ -1,153 +1,174 @@
+import { Link } from "react-router-dom";
+
 import {
   ArrowRight,
+  ChevronRight,
   ShieldCheck,
   Truck,
-  CreditCard,
+  Zap,
 } from "lucide-react";
 
-import heroImage from "../../assets/hero/hero-banner.png";
+const products = [
+  {
+    src: "/assets/products/macbook-pro-m4.png",
+    label: "MacBook Pro M4",
+    className:
+      "w-[72%] top-7 left-[-2%] rotate-[-5deg]",
+  },
+
+  {
+    src: "/assets/products/iphone-17.png",
+    label: "iPhone 17",
+    className:
+      "w-[35%] bottom-3 right-[2%] rotate-[5deg]",
+  },
+
+  {
+    src: "/assets/products/gaming-keyboard.png",
+    label: "Gaming",
+    className:
+      "w-[43%] bottom-5 left-[7%] rotate-[2deg]",
+  },
+];
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[#07101D]">
+    <section className="relative overflow-hidden bg-[#050B14]">
 
-      {/* Background Glow */}
+      {/* BACKGROUND GLOWS */}
+      <div className="pointer-events-none absolute -top-48 -right-32 w-[700px] h-[700px] rounded-full bg-blue-600/20 blur-[160px]" />
 
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600 opacity-20 blur-[180px] rounded-full"></div>
+      <div className="pointer-events-none absolute bottom-[-300px] left-[-200px] w-[600px] h-[600px] rounded-full bg-yellow-400/10 blur-[160px]" />
 
-      <div className="max-w-7xl mx-auto px-6 py-24 relative">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.025] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:24px_24px]" />
 
-        <div className="grid lg:grid-cols-2 items-center gap-20">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-14 lg:pt-20 lg:pb-20">
 
-          {/* LEFT SIDE */}
+        <div className="grid lg:grid-cols-[1.02fr_.98fr] gap-12 lg:gap-16 items-center">
 
+          {/* LEFT */}
           <div>
 
-            <span className="inline-flex items-center px-4 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-semibold">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-[11px] font-black tracking-[0.14em] text-blue-300 uppercase">
 
-              🚀 NEW ARRIVALS 2026
+              <Zap
+                size={14}
+                className="text-yellow-400"
+              />
 
-            </span>
+              Premium technology. Better selected.
 
-            <h1 className="mt-8 text-5xl lg:text-7xl font-black leading-tight">
+            </div>
 
-              Upgrade
+            <h1 className="mt-7 text-5xl sm:text-6xl lg:text-7xl xl:text-[78px] font-black leading-[0.96] tracking-[-0.045em]">
+
+              Smarter
 
               <br />
 
-              Your Digital
+              <span className="text-white">
+                tech.
+              </span>
+
+              <br />
 
               <span className="text-yellow-400">
-
-                {" "}Lifestyle
-
+                Better living.
               </span>
 
             </h1>
 
-            <p className="mt-8 text-slate-300 text-lg leading-8 max-w-xl">
+            <p className="mt-7 max-w-xl text-base sm:text-lg leading-8 text-slate-300">
 
-              Discover premium laptops,
-              smartphones, printers,
-              gaming accessories and office
-              electronics from the world's
-              leading brands.
+              Discover premium laptops, smartphones,
+              printers, gaming gear and accessories
+              from trusted brands — carefully selected
+              for the way you live, work and create.
 
             </p>
+<div className="mt-9 flex flex-wrap gap-3">
 
-            <div className="flex flex-wrap gap-5 mt-10">
-
-              <button className="bg-yellow-400 hover:bg-yellow-300 transition duration-300 text-black font-bold px-8 py-4 rounded-xl shadow-lg">
-
-                Shop Now
-
-              </button>
-
-              <button className="border border-blue-500 hover:bg-blue-600 transition duration-300 px-8 py-4 rounded-xl flex items-center gap-3">
-
-                Explore Deals
+              <Link
+                to="/products"
+                className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-7 py-4 font-black text-[#050B14] hover:bg-yellow-300 transition shadow-xl shadow-yellow-400/10"
+              >
+                Shop Collection
 
                 <ArrowRight size={18} />
+              </Link>
 
-              </button>
+              <Link
+                to="/products?featured=true"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-7 py-4 font-bold text-white hover:bg-white/[0.08] transition"
+              >
+                Explore Deals
+
+                <ChevronRight size={18} />
+              </Link>
 
             </div>
 
-            {/* FEATURES */}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-14">
+            <div className="mt-9 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl">
 
               <div className="flex items-center gap-3">
 
-                <ShieldCheck
-                  className="text-blue-400"
-                  size={24}
-                />
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-400/10 flex items-center justify-center">
+                  <ShieldCheck
+                    size={18}
+                    className="text-blue-400"
+                  />
+                </div>
 
                 <div>
-
-                  <p className="font-semibold">
-
-                    Secure Payment
-
+                  <p className="text-xs font-bold text-white">
+                    Trusted shopping
                   </p>
 
-                  <span className="text-sm text-gray-400">
-
-                    Stripe & M-Pesa
-
-                  </span>
-
+                  <p className="text-[10px] text-slate-500">
+                    Secure checkout
+                  </p>
                 </div>
 
               </div>
 
               <div className="flex items-center gap-3">
 
-                <Truck
-                  className="text-blue-400"
-                  size={24}
-                />
+                <div className="w-9 h-9 rounded-xl bg-yellow-400/10 border border-yellow-400/10 flex items-center justify-center">
+                  <Truck
+                    size={18}
+                    className="text-yellow-400"
+                  />
+                </div>
 
                 <div>
-
-                  <p className="font-semibold">
-
-                    Fast Delivery
-
+                  <p className="text-xs font-bold text-white">
+                    Kenya-wide
                   </p>
 
-                  <span className="text-sm text-gray-400">
-
-                    Across Kenya
-
-                  </span>
-
+                  <p className="text-[10px] text-slate-500">
+                    Delivery available
+                  </p>
                 </div>
 
               </div>
 
               <div className="flex items-center gap-3">
 
-                <CreditCard
-                  className="text-blue-400"
-                  size={24}
-                />
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-400/10 flex items-center justify-center">
+                  <Zap
+                    size={18}
+                    className="text-blue-400"
+                  />
+                </div>
 
                 <div>
-
-                  <p className="font-semibold">
-
-                    Easy Checkout
-
+                  <p className="text-xs font-bold text-white">
+                    Curated tech
                   </p>
 
-                  <span className="text-sm text-gray-400">
-
-                    Safe & Secure
-
-                  </span>
-
+                  <p className="text-[10px] text-slate-500">
+                    Built for modern life
+                  </p>
                 </div>
 
               </div>
@@ -156,19 +177,86 @@ export default function Hero() {
 
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT PRODUCT COMPOSITION */}
+          <div className="relative min-h-[430px] sm:min-h-[540px]">
+<div className="absolute inset-10 rounded-full bg-blue-500/15 blur-[100px]" />
 
-          <div className="relative">
+            <div className="absolute inset-0 rounded-[42px] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.025] to-transparent overflow-hidden">
 
-            <div className="absolute inset-0 bg-blue-500 blur-[140px] opacity-25 rounded-full"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]" />
 
-            <div className="relative rounded-3xl overflow-hidden">
+              <div className="absolute bottom-0 left-0 w-56 h-56 bg-yellow-400/5 rounded-full blur-[70px]" />
+
+            </div>
+
+            {/* LOGO BADGE */}
+            <div className="absolute top-5 left-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/90 backdrop-blur-xl p-3 shadow-2xl">
 
               <img
-                src={heroImage}
-                alt="ElevaTech Hero"
-                className="w-full h-[600px] object-contain"
+                src="/elevatech-logo.svg"
+                alt="ELEVATECH"
+                className="w-[135px]"
               />
+
+            </div>
+
+            {/* STANDARD BADGE */}
+            <div className="absolute top-5 right-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/90 backdrop-blur-xl px-4 py-3 shadow-2xl">
+
+              <p className="text-[9px] uppercase tracking-[0.18em] text-slate-500">
+                ELEVATECH standard
+              </p>
+
+              <div className="mt-1 flex items-center gap-2 font-bold text-xs text-white">
+
+                <ShieldCheck
+                  size={15}
+                  className="text-yellow-400"
+                />
+
+                Smarter choices
+
+              </div>
+
+            </div>
+
+            {/* PRODUCTS */}
+            {products.map((product) => (
+              <div
+                key={product.src}
+                className={`absolute ${product.className}`}
+              >
+
+                <div className="rounded-3xl border border-white/10 bg-[#08111F]/80 backdrop-blur-md p-4 shadow-2xl shadow-black/50">
+
+                  <img
+                    src={product.src}
+                    alt={product.label}
+                    className="w-full h-auto object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,.55)]"
+                  />
+
+                </div>
+
+              </div>
+            ))}
+{/* BOTTOM CARD */}
+            <div className="absolute bottom-5 right-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/95 backdrop-blur-xl p-4 shadow-2xl max-w-[220px]">
+
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+
+                <Truck
+                  size={17}
+                  className="text-blue-400"
+                />
+
+                Kenya-wide delivery
+
+              </div>
+
+              <p className="mt-1 text-xs leading-5 text-slate-400">
+                Professional service from checkout
+                through delivery.
+              </p>
 
             </div>
 

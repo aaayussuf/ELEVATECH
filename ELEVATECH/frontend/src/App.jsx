@@ -45,6 +45,7 @@ import OrderDetails from "./pages/account/OrderDetails";
 import Wishlist from "./pages/account/Wishlist";
 import Addresses from "./pages/account/Addresses";
 import ChangePassword from "./pages/account/ChangePassword";
+import MainLayout from "./layouts/MainLayout";
 
 function ProtectedAccountRoutes() {
   return (
@@ -70,11 +71,11 @@ function ProtectedAccountRoutes() {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<MainLayout><Home /></MainLayout>} />
       <Route path="/test-upload" element={<TestUpload />} />
-      <Route path="/products" element={<Products />} />
-      <Route path="/product/:slug" element={<ProductDetails />} />
-      <Route path="/cart" element={<Cart />} />
+      <Route path="/products" element={<MainLayout><Products /></MainLayout>} />
+      <Route path="/product/:slug" element={<MainLayout><ProductDetails /></MainLayout>} />
+      <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/checkout" element={<Checkout />} />
@@ -82,13 +83,13 @@ function App() {
       <Route path="/checkout/cancel" element={<PaymentCancel />} />
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/payment-cancel" element={<PaymentCancel />} />
-      <Route path="/about" element={<About />} />
+      <Route path="/about" element={<MainLayout><About /></MainLayout>} />
 
       <Route
         path="/my-orders"
         element={
           <ProtectedRoute>
-            <MyOrders />
+            <MainLayout><MyOrders /></MainLayout>
           </ProtectedRoute>
         }
       />
