@@ -209,151 +209,122 @@ export default function Checkout() {
 
   if (cartItems.length === 0) {
     return (
-      <div
-        style={{
-          maxWidth: 550,
-          margin: "60px auto",
-          padding: 20,
-          textAlign: "center",
-        }}
-      >
-        <h2>Your Cart is Empty</h2>
-        <p style={{ color: "#666", marginBottom: 20 }}>
+      <div className="min-h-[60vh] bg-[#07101D] px-4 py-14 text-center text-white">
+        <h2 className="text-2xl font-black sm:text-3xl">Your Cart is Empty</h2>
+        <p className="mx-auto mt-2 max-w-md text-slate-400">
           Add items to your cart before proceeding to checkout.
         </p>
-        <Link to="/products">
-          <button style={{ padding: "10px 20px", cursor: "pointer" }}>
-            Browse Products
-          </button>
+        <Link
+          to="/products"
+          className="mt-6 inline-flex min-h-[52px] items-center justify-center rounded-2xl bg-yellow-400 px-8 font-black text-black transition hover:bg-yellow-300"
+        >
+          Browse Products
         </Link>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        maxWidth: 550,
-        margin: "40px auto",
-        padding: 20,
-      }}
-    >
-      <h2>Checkout</h2>
+    <div className="min-h-screen bg-[#07101D] pb-24 text-white lg:pb-16">
+      <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+          Secure checkout
+        </p>
+        <h2 className="mt-2 text-3xl font-black text-balance min-[480px]:text-4xl">Checkout</h2>
 
-      <p style={{ color: "#666" }}>
-        Choose your preferred payment method.
-      </p>
+        <p className="mt-2 text-sm text-slate-400 sm:text-base">
+          Choose your preferred payment method.
+        </p>
 
-      <form
-        onSubmit={handlePay}
-        style={{
-          display: "grid",
-          gap: 18,
-        }}
-      >
-        <div
-          style={{
-            border: "1px solid #ddd",
-            padding: 15,
-            borderRadius: 8,
-          }}
+        <form
+          onSubmit={handlePay}
+          className="mt-6 grid gap-4 sm:gap-5"
         >
-          <h3>Coupon</h3>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+            <h3 className="font-bold">Coupon</h3>
 
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-            }}
-          >
+            <div className="mt-3 flex flex-col gap-2 min-[480px]:flex-row sm:gap-3">
             <input
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              placeholder="WELCOME10"
-              style={{
-                flex: 1,
-                padding: 10,
-              }}
+              placeholder="Enter promo code"
+              className="min-h-[52px] w-full min-w-0 flex-1 rounded-xl border border-white/10 bg-[#0B1628] px-4 text-base text-white placeholder:text-slate-500 focus:border-yellow-400/60 focus:outline-none"
             />
 
             <button
               type="button"
               onClick={applyCoupon}
+              className="min-h-[52px] shrink-0 rounded-xl bg-white/10 px-6 font-bold text-white transition hover:bg-white/15 active:scale-95"
             >
               Apply
             </button>
           </div>
 
           {couponMessage && (
-            <p style={{ marginTop: 10 }}>
+            <p className="mt-3 text-sm text-slate-300">
               {couponMessage}
             </p>
           )}
         </div>
 
-        <label>
+        <div className="grid gap-2 sm:gap-3">
+        <label className="flex min-h-[56px] cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4">
           <input
             type="radio"
             value="Stripe"
             checked={paymentMethod === "Stripe"}
             onChange={(e) => setPaymentMethod(e.target.value)}
-          />{" "}
-          Stripe
+            className="h-5 w-5 shrink-0 accent-yellow-400"
+          />
+          <span className="font-semibold">Stripe <span className="text-xs font-normal text-slate-400">· Card</span></span>
         </label>
 
-        <label>
+        <label className="flex min-h-[56px] cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4">
           <input
             type="radio"
             value="M-Pesa"
             checked={paymentMethod === "M-Pesa"}
             onChange={(e) => setPaymentMethod(e.target.value)}
-          />{" "}
-          M-Pesa
+            className="h-5 w-5 shrink-0 accent-yellow-400"
+          />
+          <span className="font-semibold">M-Pesa <span className="text-xs font-normal text-slate-400">Mobile money</span></span>
         </label>
+        </div>
 
         {paymentMethod === "M-Pesa" && (
           <input
             type="tel"
-            placeholder="2547XXXXXXXX"
+            placeholder="Enter M-Pesa phone e.g. 0712 345 678"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            style={{
-              padding: 12,
-              width: "100%",
-            }}
+            className="min-h-[52px] w-full rounded-xl border border-white/10 bg-[#0B1628] px-4 text-base text-white placeholder:text-slate-500 focus:border-yellow-400/60 focus:outline-none"
           />
 )}
 
-        <div
-          style={{
-            border: "1px solid #ddd",
-            padding: 20,
-            borderRadius: 8,
-          }}
-        >
-          <h3>Order Summary</h3>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+          <h3 className="font-bold">Order Summary</h3>
 
-          <p>
+          <p className="mt-3 flex items-center justify-between gap-3 text-slate-300">
             Subtotal:
-            <strong>
+            <strong className="text-white">
               {" "}
               KES {subtotal.toFixed(2)}
             </strong>
           </p>
 
-          <p>
+          <p className="mt-1.5 flex items-center justify-between gap-3 text-slate-300">
             Discount:
-            <strong>
+            <strong className="text-emerald-300">
               {" "}
               -KES {discount.toFixed(2)}
             </strong>
           </p>
 
-          <hr />
+          <hr className="my-4 border-white/10" />
 
-          <h3>
+          <h3 className="flex items-center justify-between gap-3 text-lg">
             Total:
-            <strong>
+            <strong className="text-yellow-300">
               {" "}
               KES {total.toFixed(2)}
             </strong>
@@ -363,26 +334,18 @@ export default function Checkout() {
         <button
           type="submit"
           disabled={loading}
-          style={{
-            padding: 12,
-            fontWeight: "bold",
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
+          className="min-h-[56px] w-full rounded-2xl bg-yellow-400 px-6 font-black text-black transition hover:bg-yellow-300 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Processing..." : "Pay Now"}
         </button>
 
         {error && (
-          <div
-            style={{
-              color: "red",
-              fontWeight: "bold",
-            }}
-          >
+          <div className="rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm font-bold text-red-200">
             {error}
           </div>
         )}
       </form>
+      </div>
     </div>
   );
 }

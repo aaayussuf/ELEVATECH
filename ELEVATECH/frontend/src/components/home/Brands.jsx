@@ -11,7 +11,7 @@ const brands = [
 
 export default function Brands() {
   return (
-    <section className="bg-[#07101D] py-16 border-y border-white/5">
+    <section className="bg-[#07101D] py-8 border-y border-white/5">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
 

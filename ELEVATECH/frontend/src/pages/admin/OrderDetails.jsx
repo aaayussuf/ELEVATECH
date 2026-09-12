@@ -505,7 +505,7 @@ export default function OrderDetails() {
               name="courier"
               value={form.courier}
               onChange={handleChange}
-              placeholder="e.g. Fargo Courier"
+              placeholder="Enter courier name"
               className="w-full border rounded-xl px-4 py-3"
             />
 
@@ -524,7 +524,7 @@ export default function OrderDetails() {
               name="tracking_number"
               value={form.tracking_number}
               onChange={handleChange}
-              placeholder="e.g. TRK-123456"
+              placeholder="Enter tracking number"
               className="w-full border rounded-xl px-4 py-3"
             />
 

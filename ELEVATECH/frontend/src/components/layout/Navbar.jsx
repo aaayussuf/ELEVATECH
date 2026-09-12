@@ -37,12 +37,21 @@ export default function Navbar() {
       setCategoriesOpen(false);
     };
 
-    window.addEventListener("scroll", close);
+    window.addEventListener("scroll", close, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", close);
     };
   }, []);
+
+  /* Lock background scroll while the mobile panel is open */
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   function submitSearch(event) {
     event.preventDefault();
@@ -90,13 +99,13 @@ export default function Navbar() {
           {/* LOGO */}
           <Link
             to="/"
-            className="flex items-center shrink-0"
+            className="flex items-center shrink-0 min-w-0"
             onClick={() => setMobileOpen(false)}
           >
             <img
               src="/elevatech-logo.svg"
               alt="ELEVATECH"
-              className="w-[190px] sm:w-[215px] h-auto"
+              className="w-[148px] xs:w-[168px] sm:w-[200px] xl:w-[215px] h-auto"
             />
           </Link>
 
@@ -223,7 +232,7 @@ export default function Navbar() {
           </form>
 
           {/* ACTIONS */}
-          <div className="flex items-center gap-4 ml-auto lg:ml-0">
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto lg:ml-0 shrink-0">
 
             <Link
               to="/account/wishlist"
@@ -261,12 +270,13 @@ export default function Navbar() {
               onClick={() =>
                 setMobileOpen((value) => !value)
               }
-              className="xl:hidden w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-slate-200 hover:bg-white/5"
+              className="xl:hidden w-11 h-11 rounded-xl border border-white/10 flex items-center justify-center text-slate-200 hover:bg-white/5 active:scale-95"
               aria-label={
                 mobileOpen
                   ? "Close menu"
                   : "Open menu"
               }
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? (
                 <X size={21} />
@@ -280,7 +290,7 @@ export default function Navbar() {
         </div>
 {/* MOBILE NAV */}
         {mobileOpen && (
-          <div className="xl:hidden border-t border-white/10 py-4 pb-5">
+          <div className="mobile-nav-panel xl:hidden border-t border-white/10 py-4 pb-5 max-h-[calc(100dvh-76px)] overflow-y-auto overscroll-contain">
 
             <form
               onSubmit={submitSearch}
@@ -305,7 +315,7 @@ export default function Navbar() {
               </div>
             </form>
 
-            <div className="grid sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-2">
 
               <Link
                 onClick={() => setMobileOpen(false)}

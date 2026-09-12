@@ -1,0 +1,96 @@
+/* ============================================================
+   ELEVATECH · Auth pages shared styles
+   Login / Register / Verify / Forgot password
+   ============================================================ */
+
+.auth-input {
+  background: rgba(10, 18, 34, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
+  color: #e2e8f0;
+  font-size: 0.925rem;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.auth-input::placeholder {
+  color: #64748b;
+}
+
+.auth-input:focus {
+  border-color: rgba(250, 204, 21, 0.55);
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.12);
+  background: rgba(11, 21, 38, 0.96);
+}
+
+.auth-input--error {
+  border-color: rgba(239, 68, 68, 0.55);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.auth-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ─── One-time password boxes ────────────────────────────── */
+
+.otp-box {
+  width: 3.25rem;
+  height: 3.75rem;
+  background: rgba(10, 18, 34, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.8rem;
+  color: #facc14;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+  caret-color: #facc14;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.otp-box:focus {
+  border-color: rgba(250, 204, 21, 0.65);
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.15);
+  transform: translateY(-1px);
+}
+
+.otp-box--invalid {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  animation: auth-shake 0.4s ease;
+}
+
+.otp-box:disabled {
+  opacity: 0.55;
+}
+
+@keyframes auth-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+}
+
+/* ─── Small helpers ──────────────────────────────────────── */
+
+.h-px {
+  height: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .otp-box--invalid {
+    animation: none;
+  }
+}
+

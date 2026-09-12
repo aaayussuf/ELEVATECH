@@ -56,12 +56,12 @@ function getUnitPrice(item) {
 function CartHeader({ totalItems }) {
   return (
     <header className="bg-white border-b">
-      <div className="max-w-7xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <p className="text-sm text-gray-500">Home / Cart</p>
 
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-5xl font-black mt-2">Your Cart</h1>
+        <div className="flex flex-col min-[480px]:flex-row min-[480px]:items-end justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-3xl min-[480px]:text-4xl sm:text-5xl font-black mt-2 text-balance">Your Cart</h1>
 
             <p className="text-gray-500 mt-2">
               {totalItems > 0
@@ -70,7 +70,7 @@ function CartHeader({ totalItems }) {
             </p>
           </div>
 
-          <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
+          <div className="hidden min-[480px]:flex w-14 h-14 rounded-2xl bg-blue-50 items-center justify-center shrink-0">
             <ShoppingCart size={26} className="text-blue-600" />
           </div>
         </div>
@@ -376,17 +376,17 @@ export default function Cart() {
   // ------------------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-slate-100 pb-16">
+    <div className="min-h-screen bg-slate-100 pb-24 lg:pb-16">
       <CartHeader totalItems={totalItems} />
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="grid lg:grid-cols-3 gap-8 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
           {/* ---------------------------------------- */}
           {/* Items column                            */}
           {/* ---------------------------------------- */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="md:col-span-2 lg:col-span-2 space-y-5 sm:space-y-6 min-w-0">
             {/* Free delivery progress */}
-            <div className="bg-white rounded-3xl shadow-sm border p-6">
+            <div className="bg-white rounded-3xl shadow-sm border p-5 sm:p-6">
               <div className="flex items-center gap-4">
                 <div className="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
                   <Truck size={22} className="text-blue-600" />
@@ -418,13 +418,13 @@ export default function Cart() {
 
             {/* Cart items */}
             <div className="bg-white rounded-3xl shadow-sm border overflow-hidden">
-              <div className="px-6 py-5 border-b flex items-center justify-between gap-4">
-                <h2 className="text-xl font-black">Items ({totalItems})</h2>
+              <div className="px-4 sm:px-6 py-5 border-b flex items-center justify-between gap-4">
+                <h2 className="text-lg sm:text-xl font-black">Items ({totalItems})</h2>
 
                 <button
                   type="button"
                   onClick={handleClearCart}
-                  className="text-sm text-red-500 hover:text-red-600 font-semibold transition"
+                  className="min-h-[44px] px-2 text-sm text-red-500 hover:text-red-600 font-semibold transition"
                 >
                   Clear Cart
                 </button>
@@ -439,7 +439,7 @@ export default function Cart() {
                   return (
                     <div
                       key={item.id}
-                      className="px-6 py-6 flex flex-col sm:flex-row gap-5"
+                      className="px-4 sm:px-6 py-5 sm:py-6 flex flex-col min-[520px]:flex-row gap-4 sm:gap-5"
                     >
                       <Link
                         to={`/product/${item.slug}`}
@@ -448,7 +448,8 @@ export default function Cart() {
                         <img
                           src={item.image || FALLBACK_IMAGE}
                           alt={item.name}
-                          className="w-full sm:w-28 h-56 sm:h-28 object-contain border rounded-2xl bg-white p-2"
+                          loading="lazy"
+                          className="w-full min-[520px]:w-28 h-48 min-[520px]:h-28 object-contain border rounded-2xl bg-white p-2"
                         />
                       </Link>
 
@@ -541,8 +542,8 @@ export default function Cart() {
             </div>
           </div>
 
-<aside className="lg:col-span-1">
-            <div className="bg-white rounded-3xl shadow-sm border p-6 sticky top-6 space-y-5">
+<aside className="md:col-span-2 lg:col-span-1 min-w-0">
+            <div className="bg-white rounded-3xl shadow-sm border p-5 sm:p-6 lg:sticky lg:top-6 space-y-5">
               {/* Coupon */}
               <div>
                 <p className="flex items-center gap-2 font-bold text-sm mb-3">
@@ -573,7 +574,7 @@ export default function Cart() {
                       onChange={(e) =>
                         setCouponCode(e.target.value.toUpperCase())
                       }
-                      placeholder="Enter code (e.g. WELCOME10)"
+                      placeholder="Enter promo code"
                       className="flex-1 min-w-0 border rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
 

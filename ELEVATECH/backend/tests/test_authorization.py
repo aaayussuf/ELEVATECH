@@ -34,6 +34,18 @@ def login_user(client, email="customer@example.com"):
 
 
 def auth_header(client, email="customer@example.com"):
+    # Users must complete email + phone verification before signing in.
+    # The app context is active during tests, so codes are read straight
+    # from the database (mirroring what would arrive by email/SMS).
+    user = User.query.filter_by(email=email).one()
+    client.post(
+        "/api/auth/verify-email",
+        json={"email": email, "code": user.email_otp},
+    )
+    client.post(
+        "/api/auth/verify-phone",
+        json={"email": email, "code": user.phone_otp},
+    )
     response = login_user(client, email)
     token = response.get_json()["token"]
 
@@ -52,6 +64,8 @@ def make_admin(email="admin@example.com"):
             email=email,
             phone="0711111111",
             role="admin",
+            email_verified=True,
+            phone_verified=True,
         )
         user.set_password("AdminPass123")
 
@@ -60,6 +74,8 @@ def make_admin(email="admin@example.com"):
 
     else:
         user.role = "admin"
+        user.email_verified = True
+        user.phone_verified = True
         db.session.commit()
 
     return user

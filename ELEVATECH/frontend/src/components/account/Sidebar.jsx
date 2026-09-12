@@ -31,7 +31,7 @@ export default function Sidebar({ onLogout, basePath = "/account" }) {
         </div>
       </div>
 
-      <nav className="space-y-1.5">
+      <nav className="grid grid-cols-2 gap-1.5 min-[480px]:flex min-[480px]:flex-col min-[480px]:space-y-1.5 lg:space-y-1.5">
         {links.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}

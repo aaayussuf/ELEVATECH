@@ -255,7 +255,7 @@ export default function Addresses() {
                 className={inputCls}
                 value={form.full_name}
                 onChange={(e) => updateField("full_name", e.target.value)}
-                placeholder="John Doe"
+                placeholder="Enter recipient name"
               />
             </label>
 
@@ -265,7 +265,7 @@ export default function Addresses() {
                 className={inputCls}
                 value={form.phone}
                 onChange={(e) => updateField("phone", e.target.value)}
-                placeholder="2547XXXXXXX"
+                placeholder="Enter phone number"
               />
             </label>
 

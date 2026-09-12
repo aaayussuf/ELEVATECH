@@ -327,7 +327,7 @@ export default function Coupons() {
                   className="w-full border rounded-xl px-4 py-2.5"
                   value={form.description}
                   onChange={handleChange}
-                  placeholder="e.g. 10% off your first order"
+                  placeholder="Enter coupon description"
                 />
               </div>
 

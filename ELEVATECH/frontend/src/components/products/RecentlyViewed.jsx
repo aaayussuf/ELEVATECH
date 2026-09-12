@@ -1,72 +1,40 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useContext, useState } from "react";
+import { toast } from "react-toastify";
+
+import ProductCard from "../ProductCard";
+import { CartContext } from "../../context/CartContext";
 
 export default function RecentlyViewed() {
+  const { addToCart } = useContext(CartContext);
 
-    const [products] = useState(() => JSON.parse(localStorage.getItem("recentProducts")) || []);
+  const [products] = useState(
+    () => JSON.parse(localStorage.getItem("recentProducts")) || []
+  );
 
-    if (products.length === 0) return null;
+  if (!products.length) {
+    return null;
+  }
 
-    return (
+  function handleAdd(product) {
+    addToCart(product);
+    toast.success("Added to cart");
+  }
 
-        <section className="mt-24">
+  return (
+    <section className="mt-16">
+      <h2 className="text-xl md:text-2xl font-bold text-[#0F1111]">
+        Recently viewed
+      </h2>
 
-            <h2 className="text-4xl font-black mb-8">
-
-                Recently Viewed
-
-            </h2>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-
-                {products.map(product => (
-
-                    <div
-                        key={product.id}
-                        className="bg-white rounded-3xl shadow overflow-hidden"
-                    >
-
-                        <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-52 object-contain bg-gray-100"
-                        />
-
-                        <div className="p-5">
-
-                            <h3 className="font-bold">
-
-                                {product.name}
-
-                            </h3>
-
-                            <p className="text-blue-600 font-black mt-2">
-
-                                KSh {product.price}
-
-                            </p>
-
-                            <Link to={`/product/${product.slug}`}>
-
-                                <button className="mt-5 w-full bg-blue-600 text-white py-3 rounded-xl">
-
-                                    View Again
-
-                                </button>
-
-                            </Link>
-
-                        </div>
-
-                    </div>
-
-                ))}
-
-            </div>
-
-        </section>
-
-    );
-
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        {products.slice(0, 4).map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            onAddToCart={handleAdd}
+          />
+        ))}
+      </div>
+    </section>
+  );
 }
-

@@ -6,11 +6,17 @@ import socket from "../services/socketService";
 export const AuthContext = createContext(null);
 
 const TOKEN_KEY = "elevatech_token";
+const PENDING_VERIFICATION_KEY = "elevatech_pending_verification";
 
 export default function AuthProvider({ children }) {
   const [token, setToken] = useState(() => {
     try {
-      return localStorage.getItem(TOKEN_KEY);
+      // Session token (remember me unchecked) takes priority, then the
+      // longer-lived persistent token.
+      return (
+        sessionStorage.getItem(TOKEN_KEY) ||
+        localStorage.getItem(TOKEN_KEY)
+      );
     } catch {
       return null;
     }
@@ -19,11 +25,50 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const persistToken = useCallback((nextToken) => {
+  const persistToken = useCallback((nextToken, remember = true) => {
     setToken(nextToken);
     try {
-      if (nextToken) localStorage.setItem(TOKEN_KEY, nextToken);
-      else localStorage.removeItem(TOKEN_KEY);
+      if (nextToken) {
+        // Store in both so the token survives browser-restart refreshes
+        // regardless of which storage the session started in.
+        localStorage.setItem(TOKEN_KEY, nextToken);
+        if (remember) {
+          sessionStorage.setItem(TOKEN_KEY, nextToken);
+        } else {
+          sessionStorage.removeItem(TOKEN_KEY);
+        }
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(TOKEN_KEY);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  // ------------------------------------------------------------------
+  // Pending verification helpers — used by Register -> VerifyAccount
+  // ------------------------------------------------------------------
+  const savePendingVerification = useCallback((data) => {
+    try {
+      localStorage.setItem(PENDING_VERIFICATION_KEY, JSON.stringify(data));
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  const getPendingVerification = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(PENDING_VERIFICATION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const clearPendingVerification = useCallback(() => {
+    try {
+      localStorage.removeItem(PENDING_VERIFICATION_KEY);
     } catch {
       // ignore storage errors
     }
@@ -47,7 +92,6 @@ export default function AuthProvider({ children }) {
     }
   }, [persistToken, token]);
 
-   
   useEffect(() => {
     bootstrap();
   }, [bootstrap]);
@@ -79,8 +123,20 @@ export default function AuthProvider({ children }) {
       isLoading,
       login: persistToken,
       logout,
+      savePendingVerification,
+      getPendingVerification,
+      clearPendingVerification,
     }),
-    [token, user, isLoading, persistToken, logout]
+    [
+      token,
+      user,
+      isLoading,
+      persistToken,
+      logout,
+      savePendingVerification,
+      getPendingVerification,
+      clearPendingVerification,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

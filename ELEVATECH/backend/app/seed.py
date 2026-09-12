@@ -29,6 +29,9 @@ def seed_database():
         },
     ]
 
+    def _slugify(name: str) -> str:
+        return "".join(ch.lower() if ch.isalnum() else "-" for ch in name).strip("-")
+
     for spec in category_specs:
         category = Category.query.filter_by(name=spec["name"]).first()
         if not category:
@@ -38,15 +41,15 @@ def seed_database():
                 image=spec["image"],
             )
             db.session.add(category)
+        elif not category.slug:
+            # Backfill the slug for categories created before this field existed.
+            category.slug = _slugify(category.name)
 
     db.session.commit()
 
     # ---- Products (at least 10) ----
-    # Note: explicit IDs are requested; if your DB/model uses autoincrement
-    # and the BaseModel primary key is an integer, these should work.
     products = [
         {
-            "id": 1,
             "name": "MacBook Pro M4",
             "description": "Apple MacBook Pro with M4 chip for blazing-fast performance and battery life.",
             "image": "/assets/products/macbook-pro-m4.png",
@@ -57,7 +60,6 @@ def seed_database():
             "quantity": 20,
         },
         {
-            "id": 2,
             "name": "Dell XPS 15",
             "description": "A premium 15-inch ultrabook with stunning display and powerful performance.",
             "image": "/assets/products/dell-xps-15.png",
@@ -68,7 +70,6 @@ def seed_database():
             "quantity": 15,
         },
         {
-            "id": 3,
             "name": "HP EliteBook",
             "description": "Business-ready EliteBook with dependable build quality and security features.",
             "image": "/assets/products/hp-elitebook.png",
@@ -79,7 +80,6 @@ def seed_database():
             "quantity": 18,
         },
         {
-            "id": 4,
             "name": "Lenovo ThinkPad X1",
             "description": "Legendary ThinkPad reliability with a sleek design and productivity-focused keyboard.",
             "image": "/assets/products/lenovo-thinkpad-x1.png",
@@ -90,7 +90,6 @@ def seed_database():
             "quantity": 12,
         },
         {
-            "id": 5,
             "name": "Canon Printer",
             "description": "Efficient Canon printer for crisp documents and consistent everyday output.",
             "image": "/assets/products/canon-printer.png",
@@ -101,7 +100,6 @@ def seed_database():
             "quantity": 30,
         },
         {
-            "id": 6,
             "name": "HP LaserJet",
             "description": "Fast, sharp laser printing built for small offices and reliable day-to-day work.",
             "image": "/assets/products/hp-laserjet.png",
@@ -112,7 +110,6 @@ def seed_database():
             "quantity": 25,
         },
         {
-            "id": 7,
             "name": "iPhone 17",
             "description": "Latest iPhone experience with advanced performance, camera features, and smooth performance.",
             "image": "/assets/products/iphone-17.png",
@@ -123,7 +120,6 @@ def seed_database():
             "quantity": 22,
         },
         {
-            "id": 8,
             "name": "Samsung S26",
             "description": "A flagship Samsung phone with a brilliant display and top-tier hardware.",
             "image": "/assets/products/samsung-s26.png",
@@ -134,7 +130,6 @@ def seed_database():
             "quantity": 28,
         },
         {
-            "id": 9,
             "name": "Gaming Keyboard",
             "description": "Mechanical-feel gaming keyboard with customizable keys and responsive actuation.",
             "image": "/assets/products/gaming-keyboard.png",
@@ -145,7 +140,6 @@ def seed_database():
             "quantity": 40,
         },
         {
-            "id": 10,
             "name": "Wireless Mouse",
             "description": "Comfortable wireless mouse with precise tracking and long battery life.",
             "image": "/assets/products/wireless-mouse.png",
@@ -156,9 +150,6 @@ def seed_database():
             "quantity": 60,
         },
     ]
-
-    def slugify(name: str) -> str:
-        return "".join(ch.lower() if ch.isalnum() else "-" for ch in name).strip("-")
 
     for item in products:
         # idempotency by name
@@ -171,10 +162,11 @@ def seed_database():
             # should not happen because we create categories above
             continue
 
+        # NOTE: no explicit `id` is passed so the database autoincrement
+        # sequence stays in sync with the actual row ids on PostgreSQL.
         product = Product(
-            id=item["id"],
             name=item["name"],
-            slug=slugify(item["name"]),
+            slug=_slugify(item["name"]),
             description=item["description"],
             price=item["price"],
             quantity=item.get("quantity", 0),

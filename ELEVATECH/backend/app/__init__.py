@@ -31,6 +31,7 @@ from app.routes.coupons import coupons_bp
 from app.routes.reviews import reviews_bp
 from app.routes.admin_inventory import inventory_bp
 from app.socket_events import send_test_notification
+from app.seed import seed_database
 
 
 def create_app():
@@ -38,9 +39,19 @@ def create_app():
 
     app.config.from_object(Config)
 
+    configured_origins = {
+        origin.strip()
+        for origin in Config.CORS_ORIGINS.split(",")
+        if origin.strip()
+    }
+    configured_origins.update({
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    })
+
     CORS(
         app,
-        resources={r"/api/*": {"origins": Config.CORS_ORIGINS.split(",")}},
+        resources={r"/api/*": {"origins": list(configured_origins)}},
         supports_credentials=True,
     )
 
@@ -83,5 +94,18 @@ def create_app():
     def test_notification():
         send_test_notification()
         return {"message": "Test notification sent"}
+
+    # ------------------------------------------------------------------
+    # Auto-initialize the database on startup.
+    #
+    # Any tables that don't exist yet are created from the SQLAlchemy
+    # models, then the initial storefront data (categories/products) is
+    # seeded. Both steps are idempotent, so this is safe to run every
+    # time the app boots. Set AUTO_INIT_DB=false to disable.
+    # ------------------------------------------------------------------
+    if app.config.get("AUTO_INIT_DB", True):
+        with app.app_context():
+            db.create_all()
+            seed_database()
 
     return app

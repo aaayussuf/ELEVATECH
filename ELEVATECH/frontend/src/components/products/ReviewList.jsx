@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Star } from "lucide-react";
+import { CircleCheckBig, Star } from "lucide-react";
 
 import reviewService from "../../services/reviewService";
 
@@ -125,7 +125,11 @@ export default function ReviewList({ reviews = [] }) {
                         "Customer"}
                     </h3>
 
-                    <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                    <span
+                      title="This customer purchased the product from ELEVATECH"
+                      className="text-[11px] bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1"
+                    >
+                      <CircleCheckBig size={12} className="shrink-0" />
                       Verified Purchase
                     </span>
 

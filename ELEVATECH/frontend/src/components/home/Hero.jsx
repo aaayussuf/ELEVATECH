@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   Truck,
   Zap,
+  Check,
 } from "lucide-react";
 
 const products = [
@@ -33,7 +34,7 @@ const products = [
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[#050B14]">
+    <section className="relative overflow-hidden bg-[#07101D]">
 
       {/* BACKGROUND GLOWS */}
       <div className="pointer-events-none absolute -top-48 -right-32 w-[700px] h-[700px] rounded-full bg-blue-600/20 blur-[160px]" />
@@ -42,73 +43,62 @@ export default function Hero() {
 
       <div className="pointer-events-none absolute inset-0 opacity-[0.025] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:24px_24px]" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-14 lg:pt-20 lg:pb-20">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-10 lg:pt-10 lg:pb-12 elevatech-hero-inner">
 
-        <div className="grid lg:grid-cols-[1.02fr_.98fr] gap-12 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-[1.02fr_.98fr] hero-grid-tablet gap-8 lg:gap-12 items-center">
 
           {/* LEFT */}
-          <div>
+          <div className="min-w-0">
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-[11px] font-black tracking-[0.14em] text-blue-300 uppercase">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-yellow-400/25 bg-yellow-400/10 px-4 py-2 text-[11px] font-black tracking-[0.14em] text-yellow-300 uppercase">
 
               <Zap
                 size={14}
-                className="text-yellow-400"
+                className="text-yellow-400 shrink-0"
               />
 
-              Premium technology. Better selected.
+              <span className="truncate">The smarter way to shop tech</span>
 
             </div>
 
-            <h1 className="mt-7 text-5xl sm:text-6xl lg:text-7xl xl:text-[78px] font-black leading-[0.96] tracking-[-0.045em]">
+            <h1 className="text-display mt-7 max-w-2xl font-black">
 
               Smarter
 
               <br />
 
-              <span className="text-white">
-                tech.
-              </span>
-
-              <br />
-
-              <span className="text-yellow-400">
-                Better living.
-              </span>
+              <span className="text-yellow-400">made for more.</span>
 
             </h1>
 
-            <p className="mt-7 max-w-xl text-base sm:text-lg leading-8 text-slate-300">
+            <p className="mt-7 max-w-xl text-base sm:text-lg leading-7 sm:leading-8 text-slate-300">
 
-              Discover premium laptops, smartphones,
-              printers, gaming gear and accessories
-              from trusted brands — carefully selected
-              for the way you live, work and create.
+              Premium laptops, smartphones, printers and accessories from trusted brands, carefully selected for the way you live, work and create.
 
             </p>
-<div className="mt-9 flex flex-wrap gap-3">
+<div className="mt-9 flex flex-col min-[480px]:flex-row min-[480px]:flex-wrap gap-3">
 
               <Link
                 to="/products"
-                className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-7 py-4 font-black text-[#050B14] hover:bg-yellow-300 transition shadow-xl shadow-yellow-400/10"
+                className="inline-flex w-full min-[480px]:w-auto items-center justify-center gap-2 rounded-xl bg-yellow-400 px-7 py-4 min-h-[52px] font-black text-[#050B14] hover:bg-yellow-300 transition shadow-xl shadow-yellow-400/10"
               >
-                Shop Collection
+                Shop the collection
 
                 <ArrowRight size={18} />
               </Link>
 
               <Link
                 to="/products?featured=true"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-7 py-4 font-bold text-white hover:bg-white/[0.08] transition"
+                className="inline-flex w-full min-[480px]:w-auto items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-7 py-4 min-h-[52px] font-bold text-white hover:bg-white/[0.08] transition"
               >
-                Explore Deals
+                Browse best sellers
 
                 <ChevronRight size={18} />
               </Link>
 
             </div>
 
-            <div className="mt-9 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl">
+            <div className="mt-9 grid grid-cols-1 min-[480px]:grid-cols-3 gap-x-5 gap-y-4 max-w-xl">
 
               <div className="flex items-center gap-3">
 
@@ -125,7 +115,7 @@ export default function Hero() {
                   </p>
 
                   <p className="text-[10px] text-slate-500">
-                    Secure checkout
+                    M-Pesa & card ready
                   </p>
                 </div>
 
@@ -178,10 +168,10 @@ export default function Hero() {
           </div>
 
           {/* RIGHT PRODUCT COMPOSITION */}
-          <div className="relative min-h-[430px] sm:min-h-[540px]">
+          <div className="hero-visual relative min-h-[380px] min-[480px]:min-h-[430px] sm:min-h-[540px] min-w-0">
 <div className="absolute inset-10 rounded-full bg-blue-500/15 blur-[100px]" />
 
-            <div className="absolute inset-0 rounded-[42px] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.025] to-transparent overflow-hidden">
+            <div className="absolute inset-0 rounded-[42px] border border-white/10 bg-gradient-to-br from-[#142A49] via-[#0B182B] to-[#091321] overflow-hidden">
 
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]" />
 
@@ -189,8 +179,16 @@ export default function Hero() {
 
             </div>
 
+            <div className="absolute bottom-5 left-5 z-30 hidden sm:block rounded-2xl border border-white/10 bg-[#091321]/95 px-4 py-3 shadow-2xl">
+              <p className="text-[9px] uppercase tracking-[0.18em] text-slate-500">Shopping, simplified</p>
+              <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-white">
+                <Check size={14} className="text-emerald-400" />
+                Carefully checked. Clearly priced.
+              </p>
+            </div>
+
             {/* LOGO BADGE */}
-            <div className="absolute top-5 left-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/90 backdrop-blur-xl p-3 shadow-2xl">
+            <div className="hero-badge-top absolute top-5 left-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/90 backdrop-blur-xl p-3 shadow-2xl">
 
               <img
                 src="/elevatech-logo.svg"
@@ -201,7 +199,7 @@ export default function Hero() {
             </div>
 
             {/* STANDARD BADGE */}
-            <div className="absolute top-5 right-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/90 backdrop-blur-xl px-4 py-3 shadow-2xl">
+            <div className="hero-badge-standard absolute top-5 right-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/90 backdrop-blur-xl px-4 py-3 shadow-2xl max-w-[46%] sm:max-w-none">
 
               <p className="text-[9px] uppercase tracking-[0.18em] text-slate-500">
                 ELEVATECH standard
@@ -240,7 +238,7 @@ export default function Hero() {
               </div>
             ))}
 {/* BOTTOM CARD */}
-            <div className="absolute bottom-5 right-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/95 backdrop-blur-xl p-4 shadow-2xl max-w-[220px]">
+            <div className="hero-bottom-card absolute bottom-5 right-5 z-30 rounded-2xl border border-white/10 bg-[#091321]/95 backdrop-blur-xl p-4 shadow-2xl max-w-[200px] min-[480px]:max-w-[220px]">
 
               <div className="flex items-center gap-2 text-sm font-bold text-white">
 

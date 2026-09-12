@@ -72,7 +72,7 @@ export default function FlashDeals() {
   ];
 
   return (
-    <section className="bg-[#050B14] py-20 sm:py-24 overflow-hidden">
+    <section className="bg-[#050B14] py-10 sm:py-14 overflow-hidden">
       <div className="relative">
         <div className="pointer-events-none absolute -top-24 -left-24 w-96 h-96 rounded-full bg-yellow-400/5 blur-3xl" />
 
@@ -114,11 +114,11 @@ export default function FlashDeals() {
                 Offers end in
               </p>
 
-              <div className="mt-3 flex items-center gap-2 rounded-2xl border border-yellow-400/25 bg-[#0B1628] p-4">
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 min-[480px]:gap-2 rounded-2xl border border-yellow-400/25 bg-[#0B1628] p-3 min-[480px]:p-4">
                 {units.map(({ value, label }, index) => (
                   <div
                     key={label}
-                    className={`flex flex-col items-center rounded-xl bg-yellow-400/10 px-3 py-2 min-w-[58px] ${
+                    className={`flex flex-1 min-[480px]:flex-none flex-col items-center rounded-xl bg-yellow-400/10 px-2 min-[480px]:px-3 py-2 min-w-[62px] ${
                       index < units.length - 1 ? "" : "ring-2 ring-yellow-400/40"
                     }`}
                   >
@@ -136,7 +136,7 @@ export default function FlashDeals() {
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-10">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mt-8 sm:mt-10">
           {products.slice(0, 4).map((product) => (
             <div
               key={product.id}

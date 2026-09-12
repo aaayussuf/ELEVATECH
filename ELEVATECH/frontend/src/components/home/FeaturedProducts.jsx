@@ -50,7 +50,7 @@ export default function FeaturedProducts() {
   }
 
   return (
-    <section className="bg-slate-50 py-20 sm:py-24 text-slate-900">
+    <section className="bg-slate-50 py-10 sm:py-14 text-slate-900">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
@@ -66,7 +66,7 @@ export default function FeaturedProducts() {
 
             </p>
 
-            <h2 className="mt-3 text-4xl sm:text-5xl font-black tracking-tight">
+            <h2 className="mt-3 text-3xl min-[480px]:text-4xl sm:text-5xl font-black tracking-tight text-balance">
               Featured technology
             </h2>
 
@@ -86,7 +86,7 @@ export default function FeaturedProducts() {
 
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
 
           {products
             .slice(0, 4)

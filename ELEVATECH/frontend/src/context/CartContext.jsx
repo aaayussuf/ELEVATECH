@@ -15,19 +15,22 @@ export default function CartProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
-  function addToCart(product) {
+  function addToCart(product, qty = 1) {
+    const amount =
+      Number.isInteger(qty) && qty > 0 ? qty : 1;
+
     setCartItems((items) => {
       const existing = items.find((i) => i.id === product.id);
 
       if (existing) {
         return items.map((i) =>
           i.id === product.id
-            ? { ...i, quantity: i.quantity + 1 }
+            ? { ...i, quantity: i.quantity + amount }
             : i
         );
       }
 
-      return [...items, { ...product, quantity: 1 }];
+      return [...items, { ...product, quantity: amount }];
     });
   }
 

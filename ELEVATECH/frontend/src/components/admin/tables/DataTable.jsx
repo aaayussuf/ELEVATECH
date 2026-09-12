@@ -23,52 +23,56 @@ export default function DataTable({
 
   return (
     <div className="bg-white rounded-xl shadow overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-gray-100">
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={column.key}
-                className="text-left px-6 py-4 font-semibold"
-              >
-                {column.title}
-              </th>
-            ))}
-
-            {actions && (
-              <th className="text-left px-6 py-4">
-                Actions
-              </th>
-            )}
-          </tr>
-        </thead>
-
-        <tbody>
-          {data.map((row) => (
-            <tr
-              key={row.id}
-              className="border-t hover:bg-gray-50"
-            >
+      <div className="table-responsive">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-100">
+            <tr>
               {columns.map((column) => (
-                <td
+                <th
                   key={column.key}
-                  className="px-6 py-4"
+                  className="whitespace-nowrap text-left px-4 sm:px-6 py-4 font-semibold"
                 >
-                  {column.render
-                    ? column.render(row)
-                    : row[column.key]}
-                </td>
+                  {column.title}
+                </th>
               ))}
 
               {actions && (
-                <td className="px-6 py-4">
-                  {actions(row)}
-                </td>
+                <th className="whitespace-nowrap text-left px-4 sm:px-6 py-4">
+                  Actions
+                </th>
               )}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {data.map((row) => (
+              <tr
+                key={row.id}
+                className="border-t hover:bg-gray-50"
+              >
+                {columns.map((column) => (
+                  <td
+                    key={column.key}
+                    className="px-4 sm:px-6 py-4 align-top"
+                  >
+                    {column.render
+                      ? column.render(row)
+                      : row[column.key]}
+                  </td>
+                ))}
+
+                {actions && (
+                  <td className="px-4 sm:px-6 py-4">
+                    <div className="flex min-w-[120px] flex-wrap items-center gap-2">
+                      {actions(row)}
+                    </div>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

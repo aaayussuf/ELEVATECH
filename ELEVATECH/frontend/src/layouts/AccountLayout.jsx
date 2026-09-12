@@ -80,13 +80,15 @@ export default function AccountLayout({ children, onLogout, user }) {
         </header>
 
         {/* Body */}
-        <div className="grid items-start gap-6 lg:grid-cols-[280px_1fr]">
-          <Sidebar
-            onLogout={onLogout || (() => navigate("/login"))}
-            basePath="/account"
-          />
+        <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <div className="lg:sticky lg:top-6 min-w-0">
+            <Sidebar
+              onLogout={onLogout || (() => navigate("/login"))}
+              basePath="/account"
+            />
+          </div>
 
-          <main className="min-h-[60vh]">{children}</main>
+          <main className="min-h-[60vh] min-w-0">{children}</main>
         </div>
       </div>
     </div>

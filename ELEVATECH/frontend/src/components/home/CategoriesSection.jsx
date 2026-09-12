@@ -81,7 +81,7 @@ export default function CategoriesSection() {
   }, []);
 
   return (
-    <section className="bg-[#07101D] py-20 sm:py-24">
+    <section className="bg-[#07101D] py-10 sm:py-14">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
@@ -93,7 +93,7 @@ export default function CategoriesSection() {
               Explore the collection
             </p>
 
-            <h2 className="mt-3 text-4xl sm:text-5xl font-black tracking-tight">
+            <h2 className="mt-3 text-3xl min-[480px]:text-4xl sm:text-5xl font-black tracking-tight text-balance">
               Shop by category
             </h2>
 
@@ -113,7 +113,7 @@ export default function CategoriesSection() {
 
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 min-[520px]:grid-cols-2 lg:grid-cols-4 gap-4">
 
           {categories
             .slice(0, 4)

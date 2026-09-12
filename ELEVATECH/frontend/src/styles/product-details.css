@@ -1,0 +1,199 @@
+/* ============================================================
+   ELEVATECH — Amazon-style Product Details Page
+   Light, trustworthy layout with clear hierarchy.
+   ============================================================ */
+
+.pdp-shell {
+  background: #f5f6f6;
+  color: #0f1111;
+}
+
+.pdp-shell > div {
+  padding-bottom: 5rem;
+}
+
+.pdp-main-grid {
+  align-items: start;
+}
+
+.pdp-main-grid > div:nth-child(2) {
+  position: sticky;
+  top: 1rem;
+}
+
+.pdp-detail-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 2rem;
+  padding: 2rem;
+  background: #ffffff;
+  border: 1px solid #e1e4e4;
+  border-radius: 8px;
+}
+
+.pdp-detail-band > .pdp-card {
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.pdp-detail-band > .pdp-card:hover {
+  box-shadow: none;
+}
+
+.pdp-eyebrow {
+  margin: 0 0 0.35rem;
+  color: #6b21a8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pdp-recommendations {
+  border-top: 1px solid #d5d9d9;
+  padding-top: 1.5rem;
+}
+
+.pdp-recommendation-grid > div {
+  border: 1px solid #e1e4e4;
+  border-radius: 6px;
+  box-shadow: none;
+  transform: none;
+}
+
+.pdp-recommendation-grid > div:hover {
+  box-shadow: 0 3px 10px rgba(15, 17, 17, 0.1);
+  transform: translateY(-2px);
+}
+
+.pdp-recommendation-grid > div > div:last-child {
+  padding: 0.8rem;
+}
+
+.pdp-recommendation-grid img {
+  height: 10rem;
+}
+
+.pdp-recommendation-grid a.text-xl {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.pdp-recommendation-grid .text-3xl {
+  font-size: 1rem;
+}
+
+.pdp-recommendation-grid button {
+  padding: 0.55rem;
+  border-radius: 5px;
+  font-size: 0.72rem;
+}
+
+/* White card with Amazon's subtle gray border */
+.pdp-card {
+  background: #ffffff;
+  border: 1px solid #d5d9d9;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.pdp-card-hover {
+  transition: box-shadow 200ms ease;
+}
+
+.pdp-card-hover:hover {
+  box-shadow: 0 2px 7px rgba(15, 17, 17, 0.12);
+}
+
+/* Amazon teal link colour */
+.pdp-link {
+  color: #007185;
+  text-decoration: none;
+}
+
+.pdp-link:hover {
+  color: #c7511f;
+  text-decoration: underline;
+}
+
+/* Amazon-style amber "Add to Cart" pill */
+.pdp-btn-add {
+  background-color: #ffd814;
+  color: #0f1111;
+  border: 1px solid #fcd200;
+  border-radius: 8px;
+  font-weight: 700;
+  transition: background-color 150ms ease;
+}
+
+.pdp-btn-add:hover {
+  background-color: #f7ca00;
+}
+
+.pdp-btn-add:disabled {
+  background-color: #e7e9ec;
+  color: #9c9ea0;
+  cursor: not-allowed;
+}
+
+/* Amazon-style orange "Buy Now" pill */
+.pdp-btn-buy {
+  background-color: #ffa41c;
+  color: #0f1111;
+  border: 1px solid #ff8f0f;
+  border-radius: 8px;
+  font-weight: 700;
+  transition: background-color 150ms ease;
+}
+
+.pdp-btn-buy:hover {
+  background-color: #fa8900;
+}
+
+.pdp-btn-buy:disabled {
+  background-color: #e7e9ec;
+  color: #9c9ea0;
+  cursor: not-allowed;
+}
+
+/* Loading shimmer */
+.pdp-skeleton {
+  background: linear-gradient(90deg, #e7e9ec 0%, #d5d9d9 50%, #e7e9ec 100%);
+  background-size: 200% 100%;
+  animation: pdp-shimmer 1.2s linear infinite;
+}
+
+@keyframes pdp-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdp-skeleton {
+    animation: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .pdp-main-grid > div:nth-child(2) {
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  .pdp-shell > div {
+    padding-bottom: 4.5rem;
+  }
+
+  .pdp-detail-band {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1.25rem;
+  }
+
+}

@@ -1,3 +1,9 @@
+import os
+
+# Keep tests isolated: never auto-create/seed the real database (PostgreSQL)
+# when the app factory runs. Tests create/drop their own in-memory SQLite DB.
+os.environ["AUTO_INIT_DB"] = "false"
+
 import pytest
 
 from app import create_app

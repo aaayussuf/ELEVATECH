@@ -74,7 +74,7 @@ export default function ShippingDetails({ order, onUpdated }) {
                         onChange={(e) =>
                             setCourier(e.target.value)
                         }
-                        placeholder="e.g. Fargo Courier"
+                        placeholder="Enter courier name"
                         className="w-full border rounded-lg px-3 py-2"
                     />
                 </div>
@@ -90,7 +90,7 @@ export default function ShippingDetails({ order, onUpdated }) {
                         onChange={(e) =>
                             setTrackingNumber(e.target.value)
                         }
-                        placeholder="e.g. TRK-123456"
+                        placeholder="Enter tracking number"
                         className="w-full border rounded-lg px-3 py-2"
                     />
                 </div>

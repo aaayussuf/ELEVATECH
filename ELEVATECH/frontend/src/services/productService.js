@@ -71,6 +71,22 @@ const productService = {
 
     return data;
   },
+
+  async getRelatedProducts(productId) {
+    const response = await fetch(
+      `${API_BASE}/related/${productId}`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Unable to load related products"
+      );
+    }
+
+    return data;
+  },
 };
 
 export default productService;

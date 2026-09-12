@@ -27,7 +27,7 @@ export default function Newsletter() {
   }
 
   return (
-    <section className="bg-[#07101D] py-20">
+    <section className="bg-[#07101D] py-10">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
 

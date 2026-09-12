@@ -108,7 +108,7 @@ export default function ReviewForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={150}
-          placeholder="Example: Excellent laptop"
+          placeholder="Enter a review title"
           className="w-full border rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>

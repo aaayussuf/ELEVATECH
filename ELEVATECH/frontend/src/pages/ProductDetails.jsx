@@ -1,16 +1,40 @@
 import { useContext, useEffect, useState } from "react";
-import { Heart, ShoppingCart } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Star } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import "../styles/product-details.css";
 
 import productService from "../services/productService";
+
+import ProductBreadcrumb from "../components/products/ProductBreadcrumb";
+import ProductGallery from "../components/products/ProductGallery";
+import BuyBox from "../components/products/BuyBox";
+import TrustSidebar from "../components/products/TrustSidebar";
+import ProductHighlights from "../components/products/ProductHighlights";
+import ProductInfoTable from "../components/products/ProductInfoTable";
 import ProductActions from "../components/products/ProductActions";
-import RecentlyViewed from "../components/products/RecentlyViewed";
 import ReviewSection from "../components/products/ReviewSection";
+import ProductFaq from "../components/products/ProductFaq";
+import RelatedProducts from "../components/products/RelatedProducts";
+import RecentlyViewed from "../components/products/RecentlyViewed";
+import StickyBuyBar from "../components/products/StickyBuyBar";
+
 import { CartContext } from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
 
+function scrollTop() {
+  return (
+    window.scrollY ||
+    document.documentElement.scrollTop ||
+    0
+  );
+}
+
 export default function ProductDetails() {
   const { slug } = useParams();
+  const navigate = useNavigate();
 
   const { addToCart } = useContext(CartContext);
   const { wishlist, toggleWishlist } = useContext(WishlistContext);
@@ -18,8 +42,8 @@ export default function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("description");
-
+  const [justAdded, setJustAdded] = useState(false);
+  const [showSticky, setShowSticky] = useState(false);
   const [reviewStats, setReviewStats] = useState({
     rating: 0,
     count: 0,
@@ -41,533 +65,228 @@ export default function ProductDetails() {
     }
   }
 
-   
   useEffect(() => {
-     
     loadProduct();
   }, [slug]);
 
   useEffect(() => {
-    if (!product) return;
+    if (!product) {
+      return;
+    }
 
     let viewed =
       JSON.parse(localStorage.getItem("recentProducts")) || [];
 
-    viewed = viewed.filter((p) => p.id !== product.id);
-
+    viewed = viewed.filter((item) => item.id !== product.id);
     viewed.unshift(product);
-
     viewed = viewed.slice(0, 8);
 
-    localStorage.setItem(
-      "recentProducts",
-      JSON.stringify(viewed)
-    );
+    localStorage.setItem("recentProducts", JSON.stringify(viewed));
   }, [product]);
 
-  function handleAddToCart() {
-    if (!product) return;
+  // Show the sticky mobile buy bar once the customer
+  // scrolls past the main buy box.
+  useEffect(() => {
+    const onScroll = () => setShowSticky(scrollTop() > 900);
 
-    const stock = Number(product.quantity || 0);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const stock = Number(product?.quantity || 0);
+  const saved = wishlist?.some(
+    (item) => item.product?.id === product?.id
+  );
+
+  function handleAddToCart() {
+    if (!product) {
+      return;
+    }
 
     if (stock <= 0) {
-      alert("This product is currently out of stock.");
+      toast.error("This product is currently out of stock.");
       return;
     }
 
     if (quantity > stock) {
-      alert(`Only ${stock} units are available.`);
+      toast.error(`Only ${stock} units are available.`);
       return;
     }
 
-    addToCart({
-      ...product,
-      quantity,
-    });
+    addToCart(product, quantity);
 
-    alert(
-      `${quantity} × ${product.name} added to cart.`
-    );
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 2000);
+
+    toast.success(`${quantity} × ${product.name} added to cart`);
   }
 
-  function increaseQuantity() {
-    const stock = Number(product?.quantity || 0);
-
-    if (quantity >= stock) {
+  function handleBuyNow() {
+    if (!product || stock <= 0) {
       return;
     }
 
-    setQuantity((current) => current + 1);
-  }
-
-  function decreaseQuantity() {
-    setQuantity((current) =>
-      current > 1 ? current - 1 : 1
-    );
+    addToCart(product, quantity);
+    navigate("/checkout");
   }
 
   function handleWishlist() {
-    if (!product) return;
+    if (!product) {
+      return;
+    }
 
+    const wasSaved = saved;
     toggleWishlist(product);
+
+    toast.success(wasSaved ? "Removed from wishlist" : "Added to wishlist");
+  }
+
+  function increaseQuantity() {
+    setQuantity((current) => Math.min(current + 1, stock));
+  }
+
+  function decreaseQuantity() {
+    setQuantity((current) => Math.max(current - 1, 1));
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 p-10">
-        <h2 className="text-2xl font-bold">
-          Loading product...
-        </h2>
+      <div className="pdp-shell min-h-screen" aria-busy="true">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-5">
+          <div className="pdp-skeleton h-4 w-1/3 rounded" />
+
+          <div className="grid lg:grid-cols-12 gap-8 mt-8">
+            <div className="lg:col-span-5 pdp-skeleton h-[420px] rounded-xl" />
+            <div className="lg:col-span-4 pdp-skeleton h-[420px] rounded-xl" />
+            <div className="lg:col-span-3 pdp-skeleton h-[420px] rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-slate-100 p-10">
-        <h2 className="text-2xl font-bold">
-          Product not found.
-        </h2>
+      <div className="pdp-shell min-h-screen">
+        <div className="max-w-3xl mx-auto pdp-card px-6 py-16 text-center">
+          <h2 className="text-2xl font-bold text-[#0F1111]">
+            Product not found
+          </h2>
 
-        <p className="text-gray-500 mt-2">
-          The product may have been removed or is unavailable.
-        </p>
+          <p className="mt-3 text-[#565959]">
+            The product may have been removed or is temporarily unavailable.
+          </p>
+
+          <Link to="/products" className="mt-8 pdp-btn-add inline-block px-8 py-3">
+            Browse products
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const stock = Number(product.quantity || 0);
+  const titleRating =
+    reviewStats.count > 0
+      ? reviewStats.rating.toFixed(1)
+      : Number(product.rating || 0) > 0
+        ? Number(product.rating).toFixed(1)
+        : "New";
 
-  const saved = wishlist?.some(
-    (item) => item.id === product.id
-  );
-
-  const hasDiscount = Boolean(product.has_discount);
-
-  const price = Number(product.price || 0);
-
-  const discountPrice = Number(
-    product.discount_price || 0
-  );
-
-  const savings =
-    hasDiscount && discountPrice
-      ? price - discountPrice
-      : 0;
+  const titleReviewCount =
+    reviewStats.count > 0 ? reviewStats.count : Number(product.reviews || 0);
 
   return (
-    <div className="bg-slate-100 min-h-screen">
+    <div className="pdp-shell min-h-screen">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-5">
+        <ProductBreadcrumb category={product.category} name={product.name} />
 
-      <div className="max-w-7xl mx-auto px-6 py-16">
+        {/* TITLE + RATING + SOCIAL PROOF */}
+        <div className="mt-4">
+          <h1 className="text-2xl md:text-[28px] font-medium text-[#0F1111] leading-snug">
+            {product.name}
+          </h1>
 
-        <div className="grid lg:grid-cols-2 gap-16">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-bold text-[#0F1111]">{titleRating}</span>
 
-          {/* PRODUCT IMAGE */}
+            <span className="flex gap-0.5" aria-hidden="true">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={16}
+                  fill={
+                    star <= Math.round(Number(titleRating === "New" ? 0 : titleRating))
+                      ? "#FACC15"
+                      : "none"
+                  }
+                  color="#FACC15"
+                />
+              ))}
+            </span>
 
-          <div>
-            <div className="bg-white rounded-2xl p-6">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full max-h-[600px] object-contain rounded-xl"
-              />
-            </div>
+            <a href="#reviews" className="pdp-link underline">
+              {titleReviewCount} {titleReviewCount === 1 ? "rating" : "ratings"}
+            </a>
+
+            {Number(product.sold || 0) > 0 && (
+              <span className="text-[#565959]">
+                · {Number(product.sold).toLocaleString()}+ sold
+              </span>
+            )}
           </div>
 
-          {/* PRODUCT INFORMATION */}
-
-          <div>
-
-            <p className="text-blue-600 font-semibold">
-              {product.brand}
+          {product.short_description && (
+            <p className="mt-2 text-sm text-[#565959] leading-6">
+              {product.short_description}
             </p>
+          )}
+        </div>
 
-            <h1 className="text-5xl font-black mt-2">
-              {product.name}
-            </h1>
+        {/* MAIN GRID: GALLERY | BUY BOX | TRUST SIDEBAR */}
+        <div className="pdp-main-grid grid lg:grid-cols-12 gap-8 mt-6">
+          <div className="lg:col-span-5">
+            <ProductGallery product={product} />
+          </div>
 
-            {/* Rating */}
-
-            <div className="flex items-center gap-3 mt-3">
-
-              <div className="text-yellow-500 text-xl">
-                {"★".repeat(Math.round(Number(product.rating || 0)))}
-                {"☆".repeat(5 - Math.round(Number(product.rating || 0)))}
-              </div>
-
-              <span className="font-semibold">
-                {reviewStats.count > 0
-                  ? reviewStats.rating.toFixed(1)
-                  : "0.0"}
-              </span>
-
-              <span className="text-gray-500">
-                ({reviewStats.count} Reviews)
-              </span>
-
-            </div>
-
-            {/* Discount */}
-
-            {hasDiscount && (
-              <div className="inline-flex bg-red-600 text-white px-4 py-2 rounded-full font-bold mt-6">
-                SAVE {product.discount_percent}%
-              </div>
-            )}
-
-            {/* PRICE */}
-
-            <div className="mt-6">
-
-              {hasDiscount ? (
-                <>
-                  <div className="flex items-center gap-5">
-
-                    <h2 className="text-5xl font-black text-blue-600">
-                      KSh{" "}
-                      {discountPrice.toLocaleString()}
-                    </h2>
-
-                    <span className="line-through text-2xl text-gray-400">
-                      KSh {price.toLocaleString()}
-                    </span>
-
-                  </div>
-
-                  <p className="text-green-600 mt-2 font-semibold">
-                    You save KSh{" "}
-                    {savings.toLocaleString()}
-                  </p>
-                </>
-              ) : (
-                <h2 className="text-5xl font-black text-blue-600">
-                  KSh {price.toLocaleString()}
-                </h2>
-              )}
-
-            </div>
-
-            {/* STOCK */}
-
-            <div className="mt-6">
-
-              {stock > 10 ? (
-                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold">
-                  ✔ In Stock
-                </span>
-              ) : stock > 0 ? (
-                <span className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-semibold">
-                  Only {stock} left
-                </span>
-              ) : (
-                <span className="bg-red-100 text-red-700 px-4 py-2 rounded-full font-semibold">
-                  Out of Stock
-                </span>
-              )}
-
-            </div>
-
-            {/* DELIVERY */}
-
-            <div className="mt-8 bg-blue-50 rounded-xl p-5">
-
-              <h4 className="font-bold text-lg">
-                Delivery
-              </h4>
-
-              <p className="text-gray-600 mt-2">
-                Nairobi: 1-2 Days
-              </p>
-
-              <p className="text-gray-600">
-                Other Counties: 2-4 Days
-              </p>
-
-            </div>
-
-            {/* PAYMENT */}
-
-            <div className="mt-8">
-
-              <h4 className="font-bold mb-4">
-                Secure Payments
-              </h4>
-
-              <div className="flex gap-4 flex-wrap">
-
-                <span className="px-5 py-3 rounded-xl bg-green-100 font-semibold">
-                  M-Pesa
-                </span>
-
-                <span className="px-5 py-3 rounded-xl bg-blue-100 font-semibold">
-                  Visa
-                </span>
-
-                <span className="px-5 py-3 rounded-xl bg-purple-100 font-semibold">
-                  MasterCard
-                </span>
-
-                <span className="px-5 py-3 rounded-xl bg-gray-100 font-semibold">
-                  Stripe
-                </span>
-
-              </div>
-
-            </div>
-
-            {/* DESCRIPTION */}
-
-            <p className="mt-8 text-gray-600 leading-8">
-              {product.description ||
-                "No description available."}
-            </p>
-
-            {/* BASIC DETAILS */}
-
-            <div className="mt-10 space-y-3">
-
-              <p>
-                <strong>Category:</strong>{" "}
-                {product.category || "-"}
-              </p>
-
-              <p>
-                <strong>Brand:</strong>{" "}
-                {product.brand || "-"}
-              </p>
-
-              <p>
-                <strong>SKU:</strong>{" "}
-                {product.sku || "-"}
-              </p>
-
-            </div>
-
-            {/* QUANTITY */}
-
-            <div className="mt-10">
-
-              <label className="font-semibold">
-                Quantity
-              </label>
-
-              <div className="flex items-center gap-4 mt-3">
-
-                <button
-                  onClick={decreaseQuantity}
-                  disabled={stock <= 0 || quantity <= 1}
-                  className="w-10 h-10 rounded-lg border bg-white disabled:opacity-40"
-                >
-                  -
-                </button>
-
-                <span className="text-xl font-bold min-w-8 text-center">
-                  {quantity}
-                </span>
-
-                <button
-                  onClick={increaseQuantity}
-                  disabled={
-                    stock <= 0 || quantity >= stock
-                  }
-                  className="w-10 h-10 rounded-lg border bg-white disabled:opacity-40"
-                >
-                  +
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* MAIN ACTIONS */}
-
-            <div className="flex gap-4 mt-8">
-
-              <button
-                onClick={handleAddToCart}
-                disabled={stock <= 0}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ShoppingCart size={20} />
-
-                {stock <= 0
-                  ? "Out of Stock"
-                  : "Add To Cart"}
-              </button>
-
-              <button
-                disabled={stock <= 0}
-                className="border bg-white px-8 py-4 rounded-xl disabled:opacity-50"
-              >
-                Buy Now
-              </button>
-
-              <button
-                onClick={handleWishlist}
-                className="border bg-white p-4 rounded-xl"
-                aria-label="Add to wishlist"
-              >
-                <Heart
-                  fill={saved ? "red" : "none"}
-                  color="red"
-                />
-              </button>
-
-            </div>
-
-            {/* EXISTING PRODUCT ACTIONS */}
+          <div className="lg:col-span-4">
+            <BuyBox
+              product={product}
+              quantity={quantity}
+              onIncrease={increaseQuantity}
+              onDecrease={decreaseQuantity}
+              onAddToCart={handleAddToCart}
+              onBuyNow={handleBuyNow}
+              onToggleWishlist={handleWishlist}
+              saved={saved}
+              justAdded={justAdded}
+            />
 
             <ProductActions product={product} />
-
-            {/* BENEFITS */}
-
-            <div className="grid grid-cols-2 gap-4 mt-10">
-
-              <div className="bg-gray-100 rounded-xl p-5 text-center">
-                🚚
-                <h4 className="font-bold mt-2">
-                  Free Delivery
-                </h4>
-              </div>
-
-              <div className="bg-gray-100 rounded-xl p-5 text-center">
-                🔒
-                <h4 className="font-bold mt-2">
-                  Secure Checkout
-                </h4>
-              </div>
-
-              <div className="bg-gray-100 rounded-xl p-5 text-center">
-                ↩
-                <h4 className="font-bold mt-2">
-                  Easy Returns
-                </h4>
-              </div>
-
-              <div className="bg-gray-100 rounded-xl p-5 text-center">
-                ✔
-                <h4 className="font-bold mt-2">
-                  Genuine Products
-                </h4>
-              </div>
-
-            </div>
-
           </div>
 
+          <div className="lg:col-span-3">
+            <TrustSidebar product={product} />
+          </div>
         </div>
 
-      </div>
-
-      {/* TABS */}
-
-      <section className="max-w-7xl mx-auto mt-20 px-6">
-
-        <div className="border-b flex gap-10">
-
-          <button
-            onClick={() => setActiveTab("description")}
-            className={`pb-4 font-semibold ${
-              activeTab === "description"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500"
-            }`}
-          >
-            Description
-          </button>
-
-          <button
-            onClick={() => setActiveTab("specifications")}
-            className={`pb-4 font-semibold ${
-              activeTab === "specifications"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500"
-            }`}
-          >
-            Specifications
-          </button>
-
-          <button
-            onClick={() => setActiveTab("reviews")}
-            className={`pb-4 font-semibold ${
-              activeTab === "reviews"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500"
-            }`}
-          >
-            Reviews
-          </button>
-
+        {/* PRODUCT SUMMARY + SPECIFICATIONS */}
+        <div className="pdp-detail-band mt-12">
+          <ProductHighlights product={product} />
+          <ProductInfoTable product={product} />
         </div>
 
-        <div className="bg-white rounded-b-2xl shadow p-8">
+        {/* SUGGESTED PRODUCTS */}
+        <RelatedProducts productId={product.id} />
 
-          {activeTab === "description" && (
-            <div>
+        {/* REVIEWS */}
+        <section id="reviews" className="mt-16 scroll-mt-24">
+          <h2 className="text-xl md:text-2xl font-bold text-[#0F1111]">
+            Customer reviews
+          </h2>
 
-              <h3 className="text-2xl font-bold mb-4">
-                Product Description
-              </h3>
-
-              <p className="text-gray-600 leading-8">
-                {product.description ||
-                  "No description available."}
-              </p>
-
-            </div>
-          )}
-
-          {activeTab === "specifications" && (
-            <table className="w-full">
-
-              <tbody>
-
-                <tr className="border-b">
-                  <td className="py-4 font-semibold">
-                    Brand
-                  </td>
-
-                  <td>
-                    {product.brand || "-"}
-                  </td>
-                </tr>
-
-                <tr className="border-b">
-                  <td className="py-4 font-semibold">
-                    Category
-                  </td>
-
-                  <td>
-                    {product.category || "-"}
-                  </td>
-                </tr>
-
-                <tr className="border-b">
-                  <td className="py-4 font-semibold">
-                    Warranty
-                  </td>
-
-                  <td>
-                    {product.warranty || "1 Year"}
-                  </td>
-                </tr>
-
-                <tr className="border-b">
-                  <td className="py-4 font-semibold">
-                    SKU
-                  </td>
-
-                  <td>
-                    {product.sku || "-"}
-                  </td>
-                </tr>
-
-              </tbody>
-
-            </table>
-          )}
-
-          {activeTab === "reviews" && (
+          <div className="mt-6">
             <ReviewSection
               productId={product.id}
               onReviewsChange={(reviews) => {
@@ -586,20 +305,36 @@ export default function ProductDetails() {
                 });
               }}
             />
-          )}
+          </div>
+        </section>
 
-        </div>
+        {/* FAQ */}
+        <ProductFaq />
 
-      </section>
-
-      {/* RECENTLY VIEWED */}
-
-      <div className="max-w-7xl mx-auto px-6">
-
+        {/* RECENTLY VIEWED */}
         <RecentlyViewed />
 
-      </div>
+        {/* MOBILE STICKY BUY BAR */}
+        <StickyBuyBar
+          product={product}
+          quantity={quantity}
+          visible={showSticky}
+          onIncrease={increaseQuantity}
+          onDecrease={decreaseQuantity}
+          onAddToCart={handleAddToCart}
+          onBuyNow={handleBuyNow}
+        />
 
+        <ToastContainer
+          position="bottom-center"
+          autoClose={2200}
+          newestOnTop
+          hideProgressBar
+          closeOnClick
+          theme="light"
+          limit={4}
+        />
+      </div>
     </div>
   );
 }

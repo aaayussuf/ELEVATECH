@@ -62,6 +62,20 @@ def get_products():
     if max_price is not None:
         query = query.filter(Product.price <= max_price)
 
+    # ---------------- Availability ----------------
+    in_stock = request.args.get("in_stock")
+
+    if in_stock == "true":
+        query = query.filter(Product.quantity > 0)
+
+    on_sale = request.args.get("on_sale")
+
+    if on_sale == "true":
+        query = query.filter(
+            Product.discount_price.isnot(None),
+            Product.discount_price < Product.price,
+        )
+
     # ---------------- Featured ----------------
     featured = request.args.get("featured")
 

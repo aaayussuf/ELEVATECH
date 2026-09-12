@@ -10,6 +10,8 @@ import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import VerifyAccount from "./pages/VerifyAccount";
+import ForgotPassword from "./pages/ForgotPassword";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
@@ -78,6 +80,8 @@ function App() {
       <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/verify" element={<VerifyAccount />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/checkout/success" element={<PaymentSuccess />} />
       <Route path="/checkout/cancel" element={<PaymentCancel />} />

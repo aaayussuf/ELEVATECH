@@ -12,6 +12,14 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # ==========================
+    # AUTO-INITIALIZE DATABASE
+    # ==========================
+    # When True, the app creates any missing tables and seeds the initial
+    # storefront data (categories/products) automatically on startup.
+    # Set AUTO_INIT_DB=false to disable this behaviour.
+    AUTO_INIT_DB = os.getenv("AUTO_INIT_DB", "true").lower() == "true"
+
+    # ==========================
     # FLASK
     # ==========================
     SECRET_KEY = os.getenv("SECRET_KEY")
@@ -27,7 +35,7 @@ class Config:
 
     CORS_ORIGINS = os.getenv(
         "CORS_ORIGINS",
-        "http://localhost:5173"
+        "http://localhost:5173,http://127.0.0.1:5173"
     )
 
     # ==========================
@@ -99,3 +107,22 @@ class Config:
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
+
+    # ==========================
+    # ACCOUNT VERIFICATION (OTP)
+    # ==========================
+    OTP_LENGTH = int(os.getenv("OTP_LENGTH", 6))
+    # How long a single code stays valid (seconds)
+    OTP_EXPIRY_SECONDS = int(os.getenv("OTP_EXPIRY_SECONDS", 600))
+    # Minimum wait before a user can request a new code (seconds)
+    OTP_RESEND_COOLDOWN_SECONDS = int(
+        os.getenv("OTP_RESEND_COOLDOWN_SECONDS", 60)
+    )
+
+    # ==========================
+    # SMS (Twilio) — phone OTP
+    # ==========================
+    # When blank the OTP is printed to the server console (development).
+    TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+    TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+    TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")
