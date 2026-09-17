@@ -71,7 +71,7 @@ export default function Register() {
   async function onSubmit(data) {
     setApiError(null);
     try {
-      await authService.register({
+      const result = await authService.register({
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
@@ -85,7 +85,13 @@ export default function Register() {
         phone: data.phone,
       });
 
-      toast.success("Account created — let's verify it!");
+      if (result?.sms_sent === false) {
+        toast.warning(
+          "Account created! Email code sent — but SMS delivery failed. You can resend the SMS code on the next screen."
+        );
+      } else {
+        toast.success("Account created — let's verify it!");
+      }
       navigate("/verify");
     } catch (err) {
       setApiError(

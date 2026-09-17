@@ -56,6 +56,8 @@ export default function VerifyAccount() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  const [smsFailed, setSmsFailed] = useState(false);
+  const [devCode, setDevCode] = useState("");
 
   // ------------------------------------------------------------------
   // Live countdown for the resend button.
@@ -101,14 +103,30 @@ export default function VerifyAccount() {
   async function requestCode(channel, { silent = false } = {}) {
     setError(null);
     try {
-      await authService.resendVerification({ email, channel });
+      const result = await authService.resendVerification({ email, channel });
+      if (result?.dev_code) {
+        setDevCode(String(result.dev_code));
+      }
+      const delivered = result?.sent !== false;
+      if (channel === "phone") {
+        setSmsFailed(!delivered);
+      }
       startResendCountdown();
       if (!silent) {
-        toast.success(
-          channel === "email"
-            ? "Verification code sent to your email."
-            : "Verification code sent by SMS."
-        );
+        if (channel === "email") {
+          toast.success("Verification code sent to your email.");
+        } else if (delivered) {
+          toast.success("Verification code sent by SMS.");
+        } else {
+          toast.warning(
+            result?.notice ||
+              "SMS provider did not deliver the code. Wait a minute and press Resend."
+          );
+          setError(
+            result?.notice ||
+              "We could not deliver the SMS right now. Press Resend in a minute, or confirm the number format is 07XXXXXXXX."
+          );
+        }
       }
     } catch (err) {
       if (err?.retryAfter) {
@@ -121,6 +139,8 @@ export default function VerifyAccount() {
 
   function enterPhoneStep() {
     setStep("phone");
+    setSmsFailed(false);
+    setDevCode("");
     // Ensure a fresh phone code is (re)generated server-side.
     requestCode("phone", { silent: true });
   }
@@ -331,6 +351,26 @@ return (
                     We sent a 6-digit code by SMS to
                     <span className="text-slate-200 font-semibold"> {maskPhone(phone)}</span>
                   </p>
+
+                  {smsFailed && (
+                    <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-6 text-amber-200">
+                      <p className="font-bold">SMS not delivered yet.</p>
+                      <p className="mt-1 text-amber-200/90">
+                        This usually means no live SMS provider is configured, or
+                        the number is unreachable. Check that you entered a valid
+                        Kenyan number like <span className="font-semibold">0712 345 678</span>,
+                        wait for the timer, then press Resend.
+                      </p>
+                      {devCode && (
+                        <p className="mt-2 text-[13px]">
+                          Local dev code:{" "}
+                          <span className="font-black tracking-widest text-yellow-300">
+                            {devCode}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div className="mt-6 flex justify-center">
                     <OtpInput

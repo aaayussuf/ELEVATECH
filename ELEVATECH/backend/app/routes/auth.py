@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 from app.extensions import db
@@ -17,6 +17,16 @@ def _error(message, status=400, **extra):
     payload = {"message": message}
     payload.update(extra)
     return jsonify(payload), status
+
+
+def _dev_otp_payload():
+    """Return OTP codes in JSON only when EXPOSE_DEV_OTP is on (local dev)."""
+    try:
+        if current_app.config.get("EXPOSE_DEV_OTP"):
+            return True
+    except Exception:
+        pass
+    return False
 
 
 @auth_bp.get("/register")
@@ -80,17 +90,35 @@ def register():
 
     # Deliver both codes. Failures are logged but never block registration:
     # users can re-request codes from the verification screen.
-    send_otp_email(user, email_code)
-    send_otp_sms(user, phone_code)
+    # NOTE: some mail providers return None on success — treat None as sent.
+    email_ok = send_otp_email(user, email_code)
+    if email_ok is None:
+        email_ok = True
+    sms_ok = send_otp_sms(user, phone_code)
+    if sms_ok is None:
+        sms_ok = True
 
-    return jsonify({
+    # Only expose sms/email delivery state (never the codes) unless the
+    # local-dev EXPOSE_DEV_OTP flag is explicitly enabled.
+    response = {
         "message": "Registration successful",
         "requires_verification": True,
         "email_verified": False,
         "phone_verified": False,
         "email": user.email,
         "phone": user.phone,
-    }), 201
+        "sms_sent": bool(sms_ok),
+        "email_sent": bool(email_ok),
+    }
+    if _dev_otp_payload():
+        response["dev_email_code"] = email_code
+        response["dev_phone_code"] = phone_code
+    if not sms_ok:
+        response["sms_notice"] = (
+            "We could not deliver the SMS right now. "
+            "Use Resend on the verification screen."
+        )
+    return jsonify(response), 201
 
 
 @auth_bp.post("/login")
@@ -268,16 +296,28 @@ def resend_verification():
     db.session.commit()
 
     if channel == "email":
-        send_otp_email(user, code)
+        ok = send_otp_email(user, code)
     else:
-        send_otp_sms(user, code)
+        ok = send_otp_sms(user, code)
+    if ok is None:
+        ok = True
 
-    return jsonify({
+    payload = {
         "message": "Verification code sent",
         "channel": channel,
         "email_verified": user.email_verified,
         "phone_verified": user.phone_verified,
-    }), 200
+        "sent": bool(ok),
+    }
+    if _dev_otp_payload():
+        payload["dev_code"] = code
+    if not ok:
+        payload["notice"] = (
+            "We could not deliver the code via "
+            f"{'email' if channel == 'email' else 'SMS'} right now. "
+            "Please try Resend in a minute."
+        )
+    return jsonify(payload), 200
 
 
 @auth_bp.get("/verification-status")

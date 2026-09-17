@@ -211,8 +211,8 @@ export default function Products() {
     if (!inStockProduct) {
       return;
     }
+    // CartContext already shows a structured "Added to cart" toast.
     addToCart(product);
-    alert(`${product.name} added to cart.`);
   }
   const activeCategories = categories.length ? categories : fallbackCategories;
   function categoryName(id) {

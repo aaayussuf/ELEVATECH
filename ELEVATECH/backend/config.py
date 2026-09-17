@@ -120,9 +120,16 @@ class Config:
     )
 
     # ==========================
-    # SMS (Twilio) — phone OTP
+    # SMS (Twilio / Africa's Talking) — phone OTP
     # ==========================
     # When blank the OTP is printed to the server console (development).
     TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
     TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
     TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")
+    # Africa's Talking (recommended for real Kenyan SMS delivery)
+    AT_API_KEY = os.getenv("AT_API_KEY")
+    AT_USERNAME = os.getenv("AT_USERNAME", "sandbox")
+    AT_SENDER_ID = os.getenv("AT_SENDER_ID", "")
+    # Set EXPOSE_DEV_OTP=true ONLY on local dev to return the code in the
+    # register/resend JSON response so you can test without real SMS.
+    EXPOSE_DEV_OTP = os.getenv("EXPOSE_DEV_OTP", "false").lower() == "true"
