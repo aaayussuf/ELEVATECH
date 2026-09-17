@@ -1,7 +1,35 @@
 export default function CategoryCard({ title }) {
   return (
-    <div className="category-card">
-      <h3>{title}</h3>
+    <div
+      className="
+        category-card
+        w-full
+        min-w-0
+        rounded-2xl
+        p-4
+        sm:rounded-3xl
+        sm:p-5
+        md:p-6
+        transition
+        duration-300
+        hover:-translate-y-1
+        active:scale-[0.99]
+      "
+    >
+      <h3
+        className="
+          min-w-0
+          break-words
+          text-base
+          font-bold
+          leading-6
+          sm:text-lg
+          sm:leading-7
+          md:text-xl
+        "
+      >
+        {title}
+      </h3>
     </div>
   );
 }

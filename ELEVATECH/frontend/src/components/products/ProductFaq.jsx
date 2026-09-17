@@ -38,38 +38,49 @@ export default function ProductFaq() {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <section id="faq" className="mt-16 scroll-mt-24">
-      <h2 className="text-xl md:text-2xl font-bold text-[#0F1111]">
+    <section
+      id="faq"
+      className="mt-10 min-w-0 scroll-mt-24 sm:mt-12 md:mt-14 lg:mt-16"
+    >
+      <h2 className="text-lg font-bold leading-tight text-[#0F1111] sm:text-xl md:text-2xl">
         Frequently asked questions
       </h2>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-4 min-w-0 space-y-2.5 sm:mt-6 sm:space-y-3">
         {FAQ_ITEMS.map((item, index) => {
           const open = openIndex === index;
 
           return (
             <div
               key={item.question}
-              className="pdp-card overflow-hidden"
+              className="pdp-card w-full min-w-0 overflow-hidden"
             >
               <button
                 type="button"
                 onClick={() => setOpenIndex(open ? -1 : index)}
                 aria-expanded={open}
-                className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left text-[#0F1111] font-semibold"
+                aria-controls={`faq-answer-${index}`}
+                className="flex min-h-12 w-full min-w-0 items-center justify-between gap-3 px-4 py-3.5 text-left text-sm font-semibold text-[#0F1111] transition hover:bg-black/[0.02] sm:min-h-14 sm:px-5 sm:py-4 sm:text-base"
               >
-                <span>{item.question}</span>
+                <span className="min-w-0 flex-1 break-words leading-6">
+                  {item.question}
+                </span>
 
-                <ChevronDown
-                  size={18}
-                  className={`shrink-0 transition-transform ${
-                    open ? "rotate-180" : ""
-                  }`}
-                />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-black/[0.03]">
+                  <ChevronDown
+                    size={18}
+                    className={`transition-transform duration-200 ${
+                      open ? "rotate-180" : ""
+                    }`}
+                  />
+                </span>
               </button>
 
               {open && (
-                <p className="px-5 py-4 text-sm text-[#565959] leading-6">
+                <p
+                  id={`faq-answer-${index}`}
+                  className="border-t border-black/5 px-4 py-3.5 text-sm leading-6 text-[#565959] sm:px-5 sm:py-4"
+                >
                   {item.answer}
                 </p>
               )}

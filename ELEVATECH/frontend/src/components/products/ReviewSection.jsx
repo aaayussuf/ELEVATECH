@@ -3,13 +3,10 @@ import { useCallback, useEffect, useState } from "react";
 import reviewService from "../../services/reviewService";
 
 import ReviewForm from "./ReviewForm";
-
 import ReviewList from "./ReviewList";
-
 import RatingSummary from "./RatingSummary";
 
 export default function ReviewSection({ productId, onReviewsChange }) {
-
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,9 +15,12 @@ export default function ReviewSection({ productId, onReviewsChange }) {
     try {
       setLoading(true);
       setError("");
+
       const data = await reviewService.getReviews(productId);
       const nextReviews = Array.isArray(data) ? data : [];
+
       setReviews(nextReviews);
+
       if (onReviewsChange) {
         onReviewsChange(nextReviews);
       }
@@ -30,51 +30,57 @@ export default function ReviewSection({ productId, onReviewsChange }) {
     } finally {
       setLoading(false);
     }
-  }, [productId]);
+  }, [productId, onReviewsChange]);
 
-   
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);
 
   if (loading) {
-    return <div className="py-8 text-gray-500">Loading reviews...</div>;
+    return (
+      <div
+        className="w-full min-w-0 py-6 text-sm text-gray-500 sm:py-8"
+        aria-busy="true"
+      >
+        Loading reviews...
+      </div>
+    );
   }
 
   return (
+    <section className="w-full min-w-0">
+      <div className="space-y-6 sm:space-y-8">
+        {error && (
+          <div className="w-full min-w-0 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:rounded-2xl sm:p-5">
+            <p className="break-words leading-6">
+              {error}
+            </p>
 
-    <div className="space-y-8">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5">
-          {error}
-          <button
-            onClick={loadReviews}
-            className="block mt-3 font-bold underline"
-          >
-            Try Again
-          </button>
+            <button
+              type="button"
+              onClick={loadReviews}
+              className="mt-3 min-h-11 rounded-lg px-1 font-bold underline underline-offset-2 transition hover:text-red-900"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        <div className="w-full min-w-0">
+          <RatingSummary reviews={reviews} />
         </div>
-      )}
 
-      <RatingSummary
+        <div className="w-full min-w-0">
+          <ReviewForm
+            productId={productId}
+            reload={loadReviews}
+          />
+        </div>
 
-        reviews={reviews}
-
-      />
-
-      <ReviewForm
-
-        productId={productId}
-
-        reload={loadReviews}
-
-      />
-
-      <ReviewList reviews={reviews} />
-
-    </div>
-
+        <div className="w-full min-w-0">
+          <ReviewList reviews={reviews} />
+        </div>
+      </div>
+    </section>
   );
-
 }
-

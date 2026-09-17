@@ -21,18 +21,23 @@ export default function RecentlyViewed() {
   }
 
   return (
-    <section className="mt-16">
-      <h2 className="text-xl md:text-2xl font-bold text-[#0F1111]">
-        Recently viewed
-      </h2>
+    <section className="mt-10 min-w-0 sm:mt-12 md:mt-14 lg:mt-16">
+      <div className="min-w-0">
+        <p className="pdp-eyebrow">Your browsing history</p>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight text-[#0F1111]">
+          Recently viewed
+        </h2>
+      </div>
+
+      <div className="mt-5 grid min-w-0 grid-cols-2 gap-2.5 sm:mt-6 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:gap-6">
         {products.slice(0, 4).map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onAddToCart={handleAdd}
-          />
+          <div key={product.id} className="min-w-0">
+            <ProductCard
+              product={product}
+              onAddToCart={handleAdd}
+            />
+          </div>
         ))}
       </div>
     </section>

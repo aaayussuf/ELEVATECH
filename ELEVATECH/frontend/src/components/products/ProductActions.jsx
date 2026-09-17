@@ -37,7 +37,10 @@ export default function ProductActions({ product }) {
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: product.name, url });
+        await navigator.share({
+          title: product.name,
+          url,
+        });
         return;
       } catch {
         /* fall through to copy fallback */
@@ -74,65 +77,98 @@ export default function ProductActions({ product }) {
 
     localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
     setCompareState({ [product.id]: !exists });
-    toast.success(exists ? "Removed from compare" : "Added to compare");
+
+    toast.success(
+      exists ? "Removed from compare" : "Added to compare"
+    );
   }
 
   function wishlistToggle() {
     const wasSaved = saved;
+
     toggleWishlist(product);
-    toast.success(wasSaved ? "Removed from wishlist" : "Added to wishlist");
+
+    toast.success(
+      wasSaved
+        ? "Removed from wishlist"
+        : "Added to wishlist"
+    );
   }
 
+  const buttonBase =
+    "flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2.5 text-xs font-semibold transition active:scale-[0.98] sm:gap-2 sm:px-3 sm:text-sm";
+
   return (
-    <div className="grid grid-cols-2 gap-3 mt-4">
+    <div className="mt-4 grid w-full min-w-0 grid-cols-2 gap-2.5 sm:gap-3">
+      {/* WISHLIST */}
       <button
         type="button"
         onClick={wishlistToggle}
-        className={`flex items-center justify-center gap-2 border rounded-lg py-2.5 text-sm transition ${
+        className={`${buttonBase} ${
           saved
-            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-            : "bg-white text-[#0F1111] border-[#D5D9D9] hover:bg-[#E3E6E6]"
+            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+            : "border-[#D5D9D9] bg-white text-[#0F1111] hover:bg-[#E3E6E6]"
         }`}
+        aria-label={
+          saved
+            ? "Remove product from wishlist"
+            : "Add product to wishlist"
+        }
       >
         <Heart
           size={16}
+          className="shrink-0"
           fill={saved ? "red" : "none"}
           color="red"
         />
 
-        {saved ? "Wishlisted" : "Wishlist"}
+        <span className="truncate">
+          {saved ? "Wishlisted" : "Wishlist"}
+        </span>
       </button>
 
+      {/* COMPARE */}
       <button
         type="button"
         onClick={toggleCompare}
-        className={`flex items-center justify-center gap-2 border rounded-lg py-2.5 text-sm transition ${
+        className={`${buttonBase} ${
           compareState[product.id]
-            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-            : "bg-white text-[#0F1111] border-[#D5D9D9] hover:bg-[#E3E6E6]"
+            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+            : "border-[#D5D9D9] bg-white text-[#0F1111] hover:bg-[#E3E6E6]"
         }`}
+        aria-label={
+          compareState[product.id]
+            ? "Remove product from comparison"
+            : "Add product to comparison"
+        }
       >
-        <Scale size={16} />
+        <Scale size={16} className="shrink-0" />
 
-        {compareState[product.id] ? "Added ✓" : "Compare"}
+        <span className="truncate">
+          {compareState[product.id] ? "Added ✓" : "Compare"}
+        </span>
       </button>
 
+      {/* SHARE */}
       <button
         type="button"
         onClick={share}
-        className="flex items-center justify-center gap-2 border rounded-lg py-2.5 text-sm bg-white text-[#0F1111] border-[#D5D9D9] hover:bg-[#E3E6E6] transition"
+        className={`${buttonBase} border-[#D5D9D9] bg-white text-[#0F1111] hover:bg-[#E3E6E6]`}
+        aria-label="Share product"
       >
-        <Share2 size={16} />
-        Share
+        <Share2 size={16} className="shrink-0" />
+        <span className="truncate">Share</span>
       </button>
 
+      {/* COPY LINK */}
       <button
         type="button"
         onClick={copyLink}
-        className="flex items-center justify-center gap-2 border rounded-lg py-2.5 text-sm bg-white text-[#0F1111] border-[#D5D9D9] hover:bg-[#E3E6E6] transition"
+        className={`${buttonBase} border-[#D5D9D9] bg-white text-[#0F1111] hover:bg-[#E3E6E6]`}
+        aria-label="Copy product link"
       >
-        <Link2 size={16} />
-        Copy Link
+        <Link2 size={16} className="shrink-0" />
+        <span className="truncate">Copy Link</span>
       </button>
     </div>
   );

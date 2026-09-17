@@ -34,21 +34,28 @@ export default function ProductHighlights({ product }) {
   }
 
   return (
-    <div className="pdp-card pdp-card-hover p-6">
-      <h2 className="text-xl font-bold text-[#0F1111]">About this item</h2>
+    <section className="pdp-card pdp-card-hover w-full min-w-0 p-4 sm:p-5 md:p-6">
+      <h2 className="text-lg sm:text-xl font-bold leading-tight text-[#0F1111]">
+        About this item
+      </h2>
 
-      <ul className="mt-4 space-y-3 text-[#0F1111]">
+      <ul className="mt-4 space-y-3 sm:space-y-3.5 text-[#0F1111]">
         {bullets.map((bullet, index) => (
-          <li key={index} className="flex items-start gap-2.5">
+          <li
+            key={index}
+            className="flex items-start gap-2.5 sm:gap-3"
+          >
             <CircleCheckBig
               size={17}
-              className="text-emerald-600 shrink-0 mt-0.5"
+              className="mt-1 shrink-0 text-emerald-600"
             />
 
-            <span className="flex-1 leading-6">{bullet}</span>
+            <span className="min-w-0 flex-1 text-sm sm:text-base leading-6">
+              {bullet}
+            </span>
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

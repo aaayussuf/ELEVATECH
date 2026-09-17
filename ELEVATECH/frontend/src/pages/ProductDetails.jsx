@@ -199,7 +199,7 @@ export default function ProductDetails() {
 
   return (
     <div className="pdp-shell min-h-screen">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-5">
+      <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5">
         <ProductBreadcrumb category={product.category} name={product.name} />
 
         {/* TITLE + RATING + SOCIAL PROOF */}
@@ -245,12 +245,14 @@ export default function ProductDetails() {
         </div>
 
         {/* MAIN GRID: GALLERY | BUY BOX | TRUST SIDEBAR */}
-        <div className="pdp-main-grid grid lg:grid-cols-12 gap-8 mt-6">
-          <div className="lg:col-span-5">
+        <div className="pdp-main-grid grid grid-cols-1 gap-5 mt-5 sm:gap-6 md:gap-7 lg:grid-cols-12 lg:gap-8 lg:mt-6">
+          {/* PRODUCT GALLERY */}
+          <div className="min-w-0 lg:col-span-5">
             <ProductGallery product={product} />
           </div>
 
-          <div className="lg:col-span-4">
+          {/* BUY BOX + ACTIONS */}
+          <div className="min-w-0 lg:col-span-4">
             <BuyBox
               product={product}
               quantity={quantity}
@@ -263,10 +265,13 @@ export default function ProductDetails() {
               justAdded={justAdded}
             />
 
-            <ProductActions product={product} />
+            <div className="mt-4">
+              <ProductActions product={product} />
+            </div>
           </div>
 
-          <div className="lg:col-span-3">
+          {/* TRUST SIDEBAR */}
+          <div className="min-w-0 lg:col-span-3">
             <TrustSidebar product={product} />
           </div>
         </div>

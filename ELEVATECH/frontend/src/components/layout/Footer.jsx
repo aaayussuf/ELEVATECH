@@ -11,24 +11,25 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-[#02060D] border-t border-white/10">
+    <footer className="w-full overflow-hidden border-t border-white/10 bg-[#02060D]">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+      <div className="mx-auto w-full max-w-7xl px-3 py-10 sm:px-5 sm:py-12 md:px-6 md:py-14 lg:px-8 lg:py-16">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+        {/* MAIN FOOTER */}
+        <div className="grid min-w-0 grid-cols-1 gap-9 min-[640px]:grid-cols-2 md:gap-10 lg:grid-cols-5 lg:gap-8">
 
           {/* BRAND */}
-          <div className="lg:col-span-2">
+          <div className="min-w-0 min-[640px]:col-span-2 lg:col-span-2">
 
-            <Link to="/">
+            <Link to="/" className="inline-flex max-w-full" aria-label="ELEVATECH home">
               <img
                 src="/elevatech-logo.svg"
-                alt="ELEVATECH"
-                className="w-[210px]"
+                alt="ELEVATECH — Smarter Tech. Better Living."
+                className="h-auto w-[190px] max-w-full object-contain object-left min-[375px]:w-[210px] sm:w-[230px] lg:w-[250px]"
               />
             </Link>
 
-            <p className="mt-5 max-w-md text-sm leading-7 text-slate-400">
+            <p className="mt-4 max-w-md text-sm leading-6 text-slate-400 sm:mt-5 sm:leading-7">
 
               Premium technology for modern life.
               Discover carefully selected laptops,
@@ -37,12 +38,12 @@ export default function Footer() {
 
             </p>
 
-            <div className="mt-6 flex items-center gap-3">
-
+            {/* SOCIAL */}
+            <div className="mt-5 flex flex-wrap items-center gap-2.5 sm:mt-6 sm:gap-3">
               <a
                 href="#"
                 aria-label="Facebook"
-                className="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.97]"
               >
                 <Globe size={17} />
               </a>
@@ -50,7 +51,7 @@ export default function Footer() {
               <a
                 href="#"
                 aria-label="Instagram"
-                className="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.97]"
               >
                 <AtSign size={17} />
               </a>
@@ -58,173 +59,159 @@ export default function Footer() {
               <a
                 href="#"
                 aria-label="Twitter"
-                className="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.97]"
               >
                 <Send size={17} />
               </a>
-
             </div>
 
           </div>
-{/* SHOP */}
-          <div>
+          {/* SHOP */}
+          <div className="min-w-0">
 
             <h3 className="text-sm font-black text-white">
               Shop
             </h3>
 
-            <div className="mt-5 space-y-3">
-
+            <div className="mt-4 space-y-1 sm:mt-5 sm:space-y-2">
               <Link
                 to="/products"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 Shop All
               </Link>
 
               <Link
                 to="/products?category=1"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 Laptops
               </Link>
 
               <Link
                 to="/products?category=3"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 Smartphones
               </Link>
 
               <Link
                 to="/products?category=2"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 Printers
               </Link>
 
               <Link
                 to="/products?category=4"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 Accessories
               </Link>
-
             </div>
 
           </div>
 
           {/* COMPANY */}
-          <div>
+          <div className="min-w-0">
 
             <h3 className="text-sm font-black text-white">
               Company
             </h3>
 
-            <div className="mt-5 space-y-3">
-
+            <div className="mt-4 space-y-1 sm:mt-5 sm:space-y-2">
               <Link
                 to="/about"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 About ELEVATECH
               </Link>
 
               <Link
                 to="/contact"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 Contact
               </Link>
 
               <Link
                 to="/account"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 My Account
               </Link>
 
               <Link
                 to="/account/orders"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 My Orders
               </Link>
 
               <Link
                 to="/account/wishlist"
-                className="block text-sm text-slate-400 hover:text-white transition"
+                className="flex min-h-10 items-center text-sm text-slate-400 transition hover:text-white"
               >
                 Wishlist
               </Link>
-
             </div>
 
           </div>
-{/* CONTACT */}
-          <div>
+          {/* CONTACT */}
+          <div className="min-w-0">
 
             <h3 className="text-sm font-black text-white">
               Contact
             </h3>
 
-            <div className="mt-5 space-y-4">
-
-              <div className="flex gap-3">
-
+            <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
+              <div className="flex min-w-0 gap-3">
                 <MapPin
                   size={17}
-                  className="text-yellow-400 shrink-0 mt-0.5"
+                  className="mt-0.5 shrink-0 text-yellow-400"
                 />
 
-                <p className="text-sm leading-6 text-slate-400">
+                <p className="min-w-0 text-sm leading-6 text-slate-400">
                   Nairobi, Kenya
                 </p>
-
               </div>
 
-              <div className="flex gap-3">
-
+              <div className="flex min-w-0 gap-3">
                 <Phone
                   size={17}
-                  className="text-yellow-400 shrink-0 mt-0.5"
+                  className="mt-0.5 shrink-0 text-yellow-400"
                 />
 
-                <p className="text-sm leading-6 text-slate-400">
+                <p className="min-w-0 text-sm leading-6 text-slate-400">
                   +254 700 000 000
                 </p>
-
               </div>
 
-              <div className="flex gap-3">
-
+              <div className="flex min-w-0 gap-3">
                 <Mail
                   size={17}
-                  className="text-yellow-400 shrink-0 mt-0.5"
+                  className="mt-0.5 shrink-0 text-yellow-400"
                 />
 
-                <p className="text-sm leading-6 text-slate-400 break-all">
+                <p className="min-w-0 break-all text-sm leading-6 text-slate-400">
                   store.elevatech@gmail.com
                 </p>
-
               </div>
-
             </div>
 
           </div>
 
         </div>
 
-        <div className="mt-14 pt-7 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-
-          <p className="text-xs text-slate-500">
+        {/* BOTTOM BAR */}
+        <div className="mt-9 flex min-w-0 flex-col gap-3 border-t border-white/10 pt-6 sm:mt-12 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-7">
+          <p className="text-center text-[11px] leading-5 text-slate-500 sm:text-left sm:text-xs">
             © {new Date().getFullYear()} ELEVATECH. All rights reserved.
           </p>
 
-          <p className="text-xs text-slate-600">
+          <p className="text-center text-[10px] font-semibold tracking-[0.14em] text-slate-600 sm:text-right sm:text-xs sm:tracking-[0.18em]">
             SMARTER TECH. BETTER LIVING.
           </p>
-
         </div>
 
       </div>

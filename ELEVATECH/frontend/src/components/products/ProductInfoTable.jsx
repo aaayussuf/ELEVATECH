@@ -33,29 +33,31 @@ export default function ProductInfoTable({ product }) {
   }
 
   return (
-    <div className="pdp-card pdp-card-hover p-6">
-      <h2 className="text-xl font-bold text-[#0F1111]">
+    <section className="pdp-card pdp-card-hover w-full min-w-0 p-4 sm:p-5 md:p-6">
+      <h2 className="text-lg sm:text-xl font-bold leading-tight text-[#0F1111]">
         Product information
       </h2>
 
-      <table className="w-full mt-4 text-sm">
-        <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row.label}
-              className="border-b border-[#E3E6E6] last:border-0"
-            >
-              <td className="py-2.5 font-semibold text-[#0F1111]">
-                {row.label}
-              </td>
+      <div className="mt-4 w-full min-w-0 overflow-hidden rounded-lg border border-[#E3E6E6]">
+        <table className="w-full table-fixed text-xs sm:text-sm">
+          <tbody>
+            {rows.map((row) => (
+              <tr
+                key={row.label}
+                className="border-b border-[#E3E6E6] last:border-0"
+              >
+                <td className="w-[38%] bg-slate-50 px-2.5 py-3 text-left font-semibold leading-5 text-[#0F1111] sm:w-2/5 sm:px-3 sm:py-3.5">
+                  {row.label}
+                </td>
 
-              <td className="py-2.5 text-[#565959] text-right">
-                {row.value}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                <td className="w-[62%] break-words px-2.5 py-3 text-right leading-5 text-[#565959] sm:w-3/5 sm:px-3 sm:py-3.5">
+                  {row.value}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

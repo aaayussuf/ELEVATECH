@@ -56,15 +56,13 @@ export default function ReviewForm({
       setMessage("Thank you! Your review has been submitted.");
 
       await reload();
-
     } catch (err) {
       console.error("Review submission error:", err);
 
       setError(
         err.message ||
-        "Unable to create review. Please try again."
+          "Unable to create review. Please try again."
       );
-
     } finally {
       setSubmitting(false);
     }
@@ -73,31 +71,31 @@ export default function ReviewForm({
   return (
     <form
       onSubmit={submit}
-      className="bg-white rounded-2xl shadow p-8"
+      className="w-full min-w-0 rounded-xl bg-white p-4 shadow-sm sm:rounded-2xl sm:p-6 md:p-8"
     >
-      <h3 className="text-2xl font-bold mb-6">
+      <h3 className="text-lg font-bold leading-tight text-[#0F1111] sm:text-xl md:text-2xl">
         Write a Review
       </h3>
 
-      {/* Rating */}
-
-      <div>
-        <label className="block font-semibold mb-3">
+      {/* RATING */}
+      <div className="mt-5 sm:mt-6">
+        <label className="mb-3 block text-sm font-semibold text-[#0F1111] sm:text-base">
           Your Rating
         </label>
 
-        <ReviewStars
-          rating={rating}
-          setRating={setRating}
-        />
+        <div className="min-h-11 flex items-center">
+          <ReviewStars
+            rating={rating}
+            setRating={setRating}
+          />
+        </div>
       </div>
 
-      {/* Title */}
-
-      <div className="mt-6">
+      {/* TITLE */}
+      <div className="mt-5 sm:mt-6">
         <label
           htmlFor="review-title"
-          className="block font-semibold mb-2"
+          className="mb-2 block text-sm font-semibold text-[#0F1111] sm:text-base"
         >
           Review Title
         </label>
@@ -109,16 +107,15 @@ export default function ReviewForm({
           onChange={(e) => setTitle(e.target.value)}
           maxLength={150}
           placeholder="Enter a review title"
-          className="w-full border rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="min-h-11 w-full min-w-0 rounded-xl border border-gray-300 bg-white px-3.5 py-3 text-sm text-[#0F1111] outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:px-4 sm:text-base"
         />
       </div>
 
-      {/* Comment */}
-
-      <div className="mt-6">
+      {/* COMMENT */}
+      <div className="mt-5 sm:mt-6">
         <label
           htmlFor="review-comment"
-          className="block font-semibold mb-2"
+          className="mb-2 block text-sm font-semibold text-[#0F1111] sm:text-base"
         >
           Your Review
         </label>
@@ -127,43 +124,44 @@ export default function ReviewForm({
           id="review-comment"
           rows="5"
           maxLength={2000}
-          className="w-full border rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Tell us what you think..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
+          className="w-full min-w-0 resize-y rounded-xl border border-gray-300 bg-white px-3.5 py-3 text-sm leading-6 text-[#0F1111] outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:px-4 sm:py-4 sm:text-base"
         />
 
-        <div className="text-sm text-gray-400 mt-2 text-right">
+        <div className="mt-2 text-right text-xs text-gray-400 sm:text-sm">
           {comment.length}/2000
         </div>
       </div>
 
-      {/* Error */}
-
+      {/* ERROR */}
       {error && (
-        <div className="mt-5 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
+        <div
+          role="alert"
+          className="mt-4 w-full min-w-0 break-words rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm leading-6 text-red-700 sm:mt-5 sm:p-4"
+        >
           {error}
         </div>
       )}
 
-      {/* Success */}
-
+      {/* SUCCESS */}
       {message && (
-        <div className="mt-5 bg-green-50 border border-green-200 text-green-700 rounded-xl p-4">
+        <div
+          role="status"
+          className="mt-4 w-full min-w-0 break-words rounded-xl border border-green-200 bg-green-50 p-3.5 text-sm leading-6 text-green-700 sm:mt-5 sm:p-4"
+        >
           {message}
         </div>
       )}
 
-      {/* Submit */}
-
+      {/* SUBMIT */}
       <button
         type="submit"
         disabled={submitting}
-        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-5 min-h-11 w-full rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:mt-6 sm:w-auto sm:text-base"
       >
-        {submitting
-          ? "Submitting..."
-          : "Submit Review"}
+        {submitting ? "Submitting..." : "Submit Review"}
       </button>
     </form>
   );

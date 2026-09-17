@@ -1,25 +1,53 @@
 /* ============================================================
-   ELEVATECH — Amazon-style Product Details Page
-   Light, trustworthy layout with clear hierarchy.
+   ELEVATECH — Product Details Responsive System
+   Phone → Tablet → Laptop → Desktop → Large Monitor
    ============================================================ */
 
 .pdp-shell {
   background: #f5f6f6;
   color: #0f1111;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: clip;
 }
 
 .pdp-shell > div {
   padding-bottom: 5rem;
 }
 
+/* ------------------------------------------------------------
+   Main product layout
+   ------------------------------------------------------------ */
+
 .pdp-main-grid {
   align-items: start;
+  min-width: 0;
+}
+
+.pdp-main-grid > div {
+  min-width: 0;
 }
 
 .pdp-main-grid > div:nth-child(2) {
   position: sticky;
   top: 1rem;
+  z-index: 2;
 }
+
+/* Prevent long product information from creating overflow */
+.pdp-shell h1,
+.pdp-shell h2,
+.pdp-shell h3,
+.pdp-shell h4,
+.pdp-shell p,
+.pdp-shell a,
+.pdp-shell span {
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------
+   Product detail band
+   ------------------------------------------------------------ */
 
 .pdp-detail-band {
   display: grid;
@@ -41,6 +69,10 @@
   box-shadow: none;
 }
 
+/* ------------------------------------------------------------
+   Typography
+   ------------------------------------------------------------ */
+
 .pdp-eyebrow {
   margin: 0 0 0.35rem;
   color: #6b21a8;
@@ -50,16 +82,129 @@
   text-transform: uppercase;
 }
 
+.pdp-link {
+  color: #007185;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.pdp-link:hover {
+  color: #c7511f;
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------
+   Cards
+   ------------------------------------------------------------ */
+
+.pdp-card {
+  background: #ffffff;
+  border: 1px solid #d5d9d9;
+  border-radius: 8px;
+  box-shadow: none;
+  min-width: 0;
+}
+
+.pdp-card-hover {
+  transition:
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+.pdp-card-hover:hover {
+  box-shadow: 0 2px 7px rgba(15, 17, 17, 0.12);
+}
+
+/* ------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------ */
+
+.pdp-btn-add,
+.pdp-btn-buy {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.pdp-btn-add {
+  background-color: #ffd814;
+  color: #0f1111;
+  border: 1px solid #fcd200;
+  border-radius: 8px;
+  font-weight: 700;
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.pdp-btn-add:hover {
+  background-color: #f7ca00;
+}
+
+.pdp-btn-add:active {
+  transform: scale(0.98);
+}
+
+.pdp-btn-add:disabled {
+  background-color: #e7e9ec;
+  color: #9c9ea0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pdp-btn-buy {
+  background-color: #ffa41c;
+  color: #0f1111;
+  border: 1px solid #ff8f0f;
+  border-radius: 8px;
+  font-weight: 700;
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.pdp-btn-buy:hover {
+  background-color: #fa8900;
+}
+
+.pdp-btn-buy:active {
+  transform: scale(0.98);
+}
+
+.pdp-btn-buy:disabled {
+  background-color: #e7e9ec;
+  color: #9c9ea0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ------------------------------------------------------------
+   Recommendations
+   ------------------------------------------------------------ */
+
 .pdp-recommendations {
   border-top: 1px solid #d5d9d9;
   padding-top: 1.5rem;
 }
 
+.pdp-recommendation-grid {
+  min-width: 0;
+}
+
 .pdp-recommendation-grid > div {
+  min-width: 0;
   border: 1px solid #e1e4e4;
   border-radius: 6px;
   box-shadow: none;
   transform: none;
+  overflow: hidden;
+  transition:
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 .pdp-recommendation-grid > div:hover {
@@ -72,7 +217,9 @@
 }
 
 .pdp-recommendation-grid img {
+  width: 100%;
   height: 10rem;
+  object-fit: contain;
 }
 
 .pdp-recommendation-grid a.text-xl {
@@ -85,81 +232,23 @@
 }
 
 .pdp-recommendation-grid button {
+  min-height: 40px;
   padding: 0.55rem;
   border-radius: 5px;
   font-size: 0.72rem;
 }
 
-/* White card with Amazon's subtle gray border */
-.pdp-card {
-  background: #ffffff;
-  border: 1px solid #d5d9d9;
-  border-radius: 8px;
-  box-shadow: none;
-}
+/* ------------------------------------------------------------
+   Loading
+   ------------------------------------------------------------ */
 
-.pdp-card-hover {
-  transition: box-shadow 200ms ease;
-}
-
-.pdp-card-hover:hover {
-  box-shadow: 0 2px 7px rgba(15, 17, 17, 0.12);
-}
-
-/* Amazon teal link colour */
-.pdp-link {
-  color: #007185;
-  text-decoration: none;
-}
-
-.pdp-link:hover {
-  color: #c7511f;
-  text-decoration: underline;
-}
-
-/* Amazon-style amber "Add to Cart" pill */
-.pdp-btn-add {
-  background-color: #ffd814;
-  color: #0f1111;
-  border: 1px solid #fcd200;
-  border-radius: 8px;
-  font-weight: 700;
-  transition: background-color 150ms ease;
-}
-
-.pdp-btn-add:hover {
-  background-color: #f7ca00;
-}
-
-.pdp-btn-add:disabled {
-  background-color: #e7e9ec;
-  color: #9c9ea0;
-  cursor: not-allowed;
-}
-
-/* Amazon-style orange "Buy Now" pill */
-.pdp-btn-buy {
-  background-color: #ffa41c;
-  color: #0f1111;
-  border: 1px solid #ff8f0f;
-  border-radius: 8px;
-  font-weight: 700;
-  transition: background-color 150ms ease;
-}
-
-.pdp-btn-buy:hover {
-  background-color: #fa8900;
-}
-
-.pdp-btn-buy:disabled {
-  background-color: #e7e9ec;
-  color: #9c9ea0;
-  cursor: not-allowed;
-}
-
-/* Loading shimmer */
 .pdp-skeleton {
-  background: linear-gradient(90deg, #e7e9ec 0%, #d5d9d9 50%, #e7e9ec 100%);
+  background: linear-gradient(
+    90deg,
+    #e7e9ec 0%,
+    #d5d9d9 50%,
+    #e7e9ec 100%
+  );
   background-size: 200% 100%;
   animation: pdp-shimmer 1.2s linear infinite;
 }
@@ -168,6 +257,7 @@
   from {
     background-position: 100% 0;
   }
+
   to {
     background-position: -100% 0;
   }
@@ -177,23 +267,265 @@
   .pdp-skeleton {
     animation: none;
   }
-}
 
-@media (max-width: 1023px) {
-  .pdp-main-grid > div:nth-child(2) {
-    position: static;
+  .pdp-card-hover,
+  .pdp-recommendation-grid > div,
+  .pdp-btn-add,
+  .pdp-btn-buy {
+    transition: none;
   }
 }
 
-@media (max-width: 767px) {
+/* ============================================================
+   PHONE
+   320px – 639px
+   ============================================================ */
+
+@media (max-width: 639px) {
   .pdp-shell > div {
-    padding-bottom: 4.5rem;
+    padding-bottom: 5.5rem;
+  }
+
+  .pdp-main-grid {
+    display: block;
+    margin-top: 1rem;
+  }
+
+  .pdp-main-grid > div {
+    width: 100%;
+  }
+
+  .pdp-main-grid > div:nth-child(2) {
+    position: static;
+    margin-top: 1rem;
   }
 
   .pdp-detail-band {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 1.25rem;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
   }
 
+  .pdp-recommendations {
+    padding-top: 1rem;
+  }
+
+  .pdp-recommendation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .pdp-recommendation-grid img {
+    height: 8rem;
+  }
+
+  .pdp-recommendation-grid > div > div:last-child {
+    padding: 0.65rem;
+  }
+
+  .pdp-recommendation-grid button {
+    width: 100%;
+  }
+
+  .pdp-btn-add,
+  .pdp-btn-buy {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+/* ============================================================
+   SMALL PHONE
+   320px – 374px
+   ============================================================ */
+
+@media (max-width: 374px) {
+  .pdp-detail-band {
+    padding: 0.8rem;
+  }
+
+  .pdp-recommendation-grid {
+    gap: 0.5rem;
+  }
+
+  .pdp-recommendation-grid img {
+    height: 7rem;
+  }
+}
+
+/* ============================================================
+   LARGE PHONE
+   375px – 639px
+   ============================================================ */
+
+@media (min-width: 375px) and (max-width: 639px) {
+  .pdp-recommendation-grid img {
+    height: 9rem;
+  }
+}
+
+/* ============================================================
+   TABLET
+   640px – 1023px
+   ============================================================ */
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .pdp-shell > div {
+    padding-bottom: 5rem;
+  }
+
+  .pdp-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .pdp-main-grid > div:nth-child(2) {
+    position: static;
+  }
+
+  .pdp-detail-band {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .pdp-recommendation-grid img {
+    height: 10rem;
+  }
+
+  .pdp-btn-add,
+  .pdp-btn-buy {
+    min-height: 46px;
+  }
+}
+
+/* ============================================================
+   TABLET LANDSCAPE / SMALL LAPTOP
+   768px – 1023px
+   ============================================================ */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .pdp-main-grid {
+    gap: 2rem;
+  }
+
+  .pdp-detail-band {
+    gap: 2rem;
+    padding: 1.75rem;
+  }
+}
+
+/* ============================================================
+   LAPTOP
+   1024px – 1279px
+   ============================================================ */
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .pdp-main-grid {
+    gap: 1.5rem;
+  }
+
+  .pdp-main-grid > div:nth-child(2) {
+    position: sticky;
+    top: 1rem;
+  }
+
+  .pdp-detail-band {
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+}
+
+/* ============================================================
+   LARGE LAPTOP
+   1280px – 1535px
+   ============================================================ */
+
+@media (min-width: 1280px) and (max-width: 1535px) {
+  .pdp-main-grid {
+    gap: 2rem;
+  }
+
+  .pdp-detail-band {
+    gap: 2rem;
+    padding: 2rem;
+  }
+}
+
+/* ============================================================
+   DESKTOP / LARGE MONITOR
+   1536px+
+   ============================================================ */
+
+@media (min-width: 1536px) {
+  .pdp-shell > div {
+    padding-bottom: 6rem;
+  }
+
+  .pdp-detail-band {
+    gap: 2.5rem;
+    padding: 2.25rem;
+  }
+
+  .pdp-recommendation-grid img {
+    height: 11rem;
+  }
+}
+
+/* ============================================================
+   TOUCH DEVICES
+   ============================================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  .pdp-card-hover:hover,
+  .pdp-recommendation-grid > div:hover {
+    box-shadow: none;
+    transform: none;
+  }
+
+  .pdp-btn-add:hover,
+  .pdp-btn-buy:hover {
+    background-color: inherit;
+  }
+
+  .pdp-btn-add,
+  .pdp-btn-buy {
+    min-height: 48px;
+  }
+}
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+
+.pdp-btn-add:focus-visible,
+.pdp-btn-buy:focus-visible,
+.pdp-link:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   VERY NARROW DEVICES
+   ============================================================ */
+
+@media (max-width: 340px) {
+  .pdp-shell > div {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .pdp-detail-band {
+    border-radius: 6px;
+  }
+
+  .pdp-recommendation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdp-recommendation-grid img {
+    height: 10rem;
+  }
 }
