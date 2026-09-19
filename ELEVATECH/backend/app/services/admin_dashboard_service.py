@@ -111,13 +111,20 @@ def sales_last_7_days():
         )
         .filter(
             Order.status == "Paid",
-            func.date(Order.created_at) >= start
+            func.date(Order.created_at) >= start.isoformat()
         )
         .group_by(func.date(Order.created_at))
         .all()
     )
 
-    totals = {r[0]: float(r[1]) for r in rows}
+    # SQLite returns DATE as 'YYYY-MM-DD' strings — normalise keys to strings.
+    totals = {}
+    for day_key, total in rows:
+        key = str(day_key)[:10] if day_key is not None else ""
+        try:
+            totals[key] = float(total or 0)
+        except (TypeError, ValueError):
+            totals[key] = 0.0
 
     labels = []
     values = []
@@ -125,7 +132,7 @@ def sales_last_7_days():
     for i in range(7):
         day = start + timedelta(days=i)
         labels.append(day.strftime("%a"))
-        values.append(totals.get(day, 0))
+        values.append(round(totals.get(day.isoformat(), 0.0), 2))
 
     return {
         "labels": labels,
@@ -139,10 +146,10 @@ def top_products(limit=5):
             Product.name,
             func.sum(OrderItem.quantity).label("sold")
         )
-        .join(OrderItem)
-        .join(Order)
+        .join(OrderItem, OrderItem.product_id == Product.id)
+        .join(Order, Order.id == OrderItem.order_id)
         .filter(Order.status == "Paid")
-        .group_by(Product.id)
+        .group_by(Product.id, Product.name)
         .order_by(func.sum(OrderItem.quantity).desc())
         .limit(limit)
         .all()
@@ -151,7 +158,7 @@ def top_products(limit=5):
     return [
         {
             "name": r.name,
-            "sold": int(r.sold)
+            "sold": int(r.sold or 0)
         }
         for r in rows
     ]

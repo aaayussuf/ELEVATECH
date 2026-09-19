@@ -8,14 +8,12 @@ const uploadService = {
 
         formData.append("image", file);
 
+        // NOTE: do NOT set Content-Type manually — the browser must add
+        // the multipart boundary, otherwise Flask sees no file and the
+        // upload fails.
         const { data } = await api.post(
             "/admin/upload",
             formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            }
         );
 
         return data.url;

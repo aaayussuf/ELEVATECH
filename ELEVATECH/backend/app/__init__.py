@@ -1,5 +1,7 @@
-from flask import Flask  # type: ignore
+from flask import Flask, send_from_directory  # type: ignore
 from flask_cors import CORS  # type: ignore
+
+import os
 
 from config import Config
 from app.extensions import db, migrate, jwt, mail, socketio
@@ -90,6 +92,16 @@ def create_app():
     def home():
         return {"message": "Welcome to ELEVATECH API"}
 
+    @app.route("/uploads/<path:filename>")
+    def serve_uploads(filename):
+        upload_root = app.config.get("UPLOAD_FOLDER", "uploads")
+        if not os.path.isabs(upload_root):
+            base_dir = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "..")
+            )
+            upload_root = os.path.join(base_dir, upload_root)
+        return send_from_directory(upload_root, filename)
+
     @app.route("/api/test-notification")
     def test_notification():
         send_test_notification()
@@ -106,6 +118,48 @@ def create_app():
     if app.config.get("AUTO_INIT_DB", True):
         with app.app_context():
             db.create_all()
+            _ensure_schema_columns()
             seed_database()
 
     return app
+
+
+def _ensure_schema_columns():
+    """Add model columns missing from an older on-disk DB (e.g. categories.slug).
+
+    db.create_all() only creates missing *tables*, not missing *columns*,
+    so a stale SQLite file would crash seed/startup with
+    'no such column: categories.slug'. This lightweight check issues
+    ALTER TABLE ... ADD COLUMN for any gap. Safe/idempotent; on Postgres
+    prefer real Flask-Migrate migrations.
+    """
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(db.engine)
+    for model in (Category, Product):
+        table = model.__tablename__
+        try:
+            existing = {c["name"] for c in inspector.get_columns(table)}
+        except Exception:
+            continue
+        for column in model.__table__.columns:
+            if column.name in existing:
+                continue
+            coltype = column.type.compile(dialect=db.engine.dialect)
+            nullable = " NOT NULL" if (not column.nullable and column.default is None) else ""
+            default = ""
+            if column.default is not None and getattr(column.default, "arg", None) is not None:
+                arg = column.default.arg
+                if isinstance(arg, bool):
+                    default = " DEFAULT 1" if arg else " DEFAULT 0"
+                elif isinstance(arg, (int, float)):
+                    default = f" DEFAULT {arg}"
+                elif isinstance(arg, str):
+                    default = f" DEFAULT '{arg}'"
+            try:
+                with db.engine.begin() as conn:
+                    conn.execute(
+                        text(f'ALTER TABLE "{table}" ADD COLUMN "{column.name}" {coltype}{nullable}{default}')
+                    )
+            except Exception:
+                pass

@@ -4,11 +4,26 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _str_to_bool(value, default=False):
+    """Parse env booleans case-insensitively: true/1/yes/on -> True."""
+    if value is None or value == "":
+        return default
+    return str(value).strip().lower() in ("1", "true", "yes", "y", "on")
+
+
 class Config:
     # ==========================
     # DATABASE
     # ==========================
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
+    # DATABASE_URL (Postgres) when set; otherwise local SQLite dev DB at
+    # backend/instance/elevatech.db so `python run.py` works with no .env.
+    SQLALCHEMY_DATABASE_URI = (
+        os.getenv("DATABASE_URL", "").replace("postgres://", "postgresql://", 1)
+        or "sqlite:///"
+        + os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "instance", "elevatech.db")
+        ).replace("\\", "/")
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # ==========================
@@ -22,8 +37,8 @@ class Config:
     # ==========================
     # FLASK
     # ==========================
-    SECRET_KEY = os.getenv("SECRET_KEY")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret-change-me")
 
     # ==========================
     # CORS / FRONTEND
@@ -99,14 +114,16 @@ class Config:
     # ==========================
     # MAIL
     # ==========================
-    MAIL_SERVER = os.getenv("MAIL_SERVER")
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
     MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
-    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS") == "True"
-    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL") == "True"
+    MAIL_USE_TLS = _str_to_bool(os.getenv("MAIL_USE_TLS", "true"), default=True)
+    MAIL_USE_SSL = _str_to_bool(os.getenv("MAIL_USE_SSL", "false"), default=False)
 
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
+    # Default the sender to the login address so Gmail accepts it even when
+    # MAIL_DEFAULT_SENDER is not set explicitly.
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER") or os.getenv("MAIL_USERNAME")
 
     # ==========================
     # ACCOUNT VERIFICATION (OTP)

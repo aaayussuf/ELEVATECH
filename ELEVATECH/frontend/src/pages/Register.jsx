@@ -85,6 +85,20 @@ export default function Register() {
         phone: data.phone,
       });
 
+      // Dev mode (no SMTP): backend returns the code in the response and
+      // prints it in the backend terminal — stash it so the verify screen
+      // can show it for testing.
+      try {
+        if (result?.dev_email_code) {
+          sessionStorage.setItem(
+            `elevatech_dev_email_${String(data.email).toLowerCase()}`,
+            String(result.dev_email_code)
+          );
+        }
+      } catch {
+        // sessionStorage unavailable — non-fatal.
+      }
+
       if (result?.sms_sent === false) {
         toast.warning(
           "Account created! Email code sent — but SMS delivery failed. You can resend the SMS code on the next screen."

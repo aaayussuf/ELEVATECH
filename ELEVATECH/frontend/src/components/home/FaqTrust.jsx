@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: "What if item is wrong or faulty?",
-    a: "7-day replacement guarantee. WhatsApp us a photo/video (+254 700 000 000) and we replace or refund fast. Warranty claims handled by us.",
+    a: "7-day replacement guarantee. WhatsApp us a photo/video (+254 703683152) and we replace or refund fast.",
   },
   {
     q: "Warranty and after-sale support?",
@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: "Can I verify you before paying?",
-    a: "Yes — visit us in Nairobi Mon-Sat 8-6, call +254 700 000 000, or video-call on WhatsApp to see stock. Registered business, proper invoices.",
+    a: "Yes — visit us in Nairobi Mon-Sat 8-6, call +254 703683152, or video-call on WhatsApp to see stock.",
   },
 ];
 
@@ -42,7 +42,7 @@ export default function FaqTrust() {
             <h2 className="mt-3 text-4xl sm:text-5xl font-black tracking-tight">Questions? <span className="text-yellow-400">Answered honestly.</span></h2>
             <p className="mt-4 text-slate-400 leading-7 max-w-md">Everything customers ask before their first order — answered openly. Still unsure? Talk to a real person.</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <a href="https://wa.me/254700000000?text=Hi%20ELEVATECH!" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 font-black text-white hover:bg-emerald-400 transition">
+              <a href="https://wa.me/254703683152?text=Hi%20ELEVATECH!" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 font-black text-white hover:bg-emerald-400 transition">
                 <MessageCircle size={18} /> Ask on WhatsApp
               </a>
               <Link to="/about" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3.5 font-bold text-white hover:bg-white/10 transition">About ELEVATECH</Link>

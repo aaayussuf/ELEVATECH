@@ -22,7 +22,7 @@ export default function FinalCta() {
               <Link to="/products" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-yellow-400 px-8 py-4 font-black text-black hover:bg-yellow-300 transition shadow-xl shadow-yellow-400/20">
                 Shop genuine tech <ArrowRight size={18} />
               </Link>
-              <a href="https://wa.me/254700000000" target="_blank" rel="noreferrer" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-8 py-4 font-bold text-white hover:bg-white/10 transition">
+              <a href="https://wa.me/254703683152" target="_blank" rel="noreferrer" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-8 py-4 font-bold text-white hover:bg-white/10 transition">
                 <MessageCircle size={18} /> Chat first
               </a>
             </div>

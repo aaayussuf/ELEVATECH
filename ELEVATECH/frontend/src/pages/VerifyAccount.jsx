@@ -311,6 +311,18 @@ return (
                         </>
                       )}
                     </button>
+                    {import.meta.env.DEV && (
+                      <p className="mt-3 text-center text-[11px] text-slate-500">
+                        Dev mode, no SMTP yet? Check the backend terminal for
+                        the code, or look in DevTools → Application →
+                        Session Storage
+                        <span className="text-slate-400">
+                          {" "}
+                          (elevatech_dev_email_…)
+                        </span>
+                        .
+                      </p>
+                    )}
 <div className="mt-5 text-center text-sm text-slate-400">
                       Didn't get it?{" "}
                       {resendIn > 0 ? (

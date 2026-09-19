@@ -481,7 +481,13 @@ def update_profile():
 @jwt_required()
 def change_password():
 
-    user_id = get_jwt_identity()
+    try:
+        raw = get_jwt_identity()
+        user_id = int(raw) if raw is not None else None
+    except (TypeError, ValueError):
+        return jsonify({
+            "message": "Invalid session. Please sign in again."
+        }), 401
 
     user = db.session.get(User, user_id)
 

@@ -85,14 +85,14 @@ export default function ShopWithConfidence() {
             <div>
               <p className="font-black text-white text-lg">Visit us or verify us — we are real.</p>
               <p className="mt-1 text-sm text-slate-400 leading-6">
-                Nairobi, Kenya • +254 700 000 000 • store.elevatech@gmail.com • Open Mon–Sat 8am–6pm.
+                Nairobi, Kenya • +254 703683152 • store.elevatech@gmail.com • Open Mon–Sat 8am–6pm.
                 Come see the product before you pay, or order online with full tracking.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-3 shrink-0">
             <a
-              href="https://wa.me/254700000000?text=Hi%20ELEVATECH!%20I%20need%20help%20choosing%20a%20product."
+              href="https://wa.me/254703683152?text=Hi%20ELEVATECH!%20I%20need%20help%20choosing%20a%20product."
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 font-black text-white hover:bg-emerald-400 transition"
@@ -100,7 +100,7 @@ export default function ShopWithConfidence() {
               <MessageCircle size={18} /> WhatsApp Us
             </a>
             <a
-              href="tel:+254700000000"
+              href="tel:+254703683152"
               className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3.5 font-bold text-white hover:bg-white/10 transition"
             >
               Call Store

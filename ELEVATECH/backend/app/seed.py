@@ -1,9 +1,21 @@
 from app.extensions import db
-from app.models import Category, Product
+from app.models import Category, Product, User
 
 
 def seed_database():
     """Seed the database with initial categories and at least 10 products."""
+
+    # ---- Primary admin account ----
+    primary_admin_email = "store.elevatech@gmail.com"
+
+    primary_admin = User.query.filter_by(
+        email=primary_admin_email
+    ).first()
+
+    if primary_admin and primary_admin.role != "admin":
+        primary_admin.role = "admin"
+        db.session.commit()
+        print(f"Primary admin enforced: {primary_admin_email}")
 
     # ---- Categories (create if missing) ----
     category_specs = [

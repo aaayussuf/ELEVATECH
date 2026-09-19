@@ -28,8 +28,11 @@ def create_checkout():
     """Create a Stripe Checkout Session for an existing order."""
 
     identity = get_jwt_identity()
-    # identity shape depends on your JWT setup; assume user_id is identity.
-    user_id = identity
+    # JWT identity is stored as str(user_id) — cast for DB comparisons.
+    try:
+        user_id = int(identity)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid session. Please sign in again."}), 401
 
     data = request.get_json() or {}
     order_id = data.get("order_id")

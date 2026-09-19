@@ -43,7 +43,7 @@ const valueProps = [
 ];
 
 export default function Login() {
-  const { login, savePendingVerification } = useContext(AuthContext);
+  const { login, refreshUser, setUser, savePendingVerification } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -68,7 +68,30 @@ export default function Login() {
       if (!token) throw new Error("No token returned");
       login(token, data.remember);
       toast.success("Welcome back to ELEVATECH!");
-      navigate(from, { replace: true });
+      // Fetch the profile right away so AdminRoute sees the real role
+      // instead of redirecting an admin to "/" on first login.
+      let me = null;
+      try {
+        me = await authService.me(token);
+        if (setUser) setUser(me);
+        else if (refreshUser) me = await refreshUser();
+      } catch {
+        if (refreshUser) {
+          try {
+            me = await refreshUser();
+          } catch {
+            me = null;
+          }
+        }
+      }
+      const role = me?.role || response?.role;
+      if (role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate(from === "/admin" ? "/account/dashboard" : from, {
+          replace: true,
+        });
+      }
     } catch (err) {
       setApiError(err?.message || "Login failed. Please try again.");
 

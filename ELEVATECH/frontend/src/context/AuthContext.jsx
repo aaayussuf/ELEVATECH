@@ -8,19 +8,19 @@ export const AuthContext = createContext(null);
 const TOKEN_KEY = "elevatech_token";
 const PENDING_VERIFICATION_KEY = "elevatech_pending_verification";
 
+function readStoredToken() {
+  try {
+    return (
+      sessionStorage.getItem(TOKEN_KEY) ||
+      localStorage.getItem(TOKEN_KEY)
+    );
+  } catch {
+    return null;
+  }
+}
+
 export default function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => {
-    try {
-      // Session token (remember me unchecked) takes priority, then the
-      // longer-lived persistent token.
-      return (
-        sessionStorage.getItem(TOKEN_KEY) ||
-        localStorage.getItem(TOKEN_KEY)
-      );
-    } catch {
-      return null;
-    }
-  });
+  const [token, setToken] = useState(() => readStoredToken());
 
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,11 +116,39 @@ export default function AuthProvider({ children }) {
     }
   }, [persistToken]);
 
+  const refreshUser = useCallback(async () => {
+    const currentToken =
+      token ||
+      (() => {
+        try {
+          return (
+            sessionStorage.getItem(TOKEN_KEY) ||
+            localStorage.getItem(TOKEN_KEY)
+          );
+        } catch {
+          return null;
+        }
+      })();
+    if (!currentToken) {
+      setUser(null);
+      return null;
+    }
+    try {
+      const me = await authService.me(currentToken);
+      setUser(me);
+      return me;
+    } catch {
+      return user;
+    }
+  }, [token, user]);
+
   const value = useMemo(
     () => ({
       token,
       user,
       isLoading,
+      setUser,
+      refreshUser,
       login: persistToken,
       logout,
       savePendingVerification,
@@ -131,6 +159,7 @@ export default function AuthProvider({ children }) {
       token,
       user,
       isLoading,
+      refreshUser,
       persistToken,
       logout,
       savePendingVerification,
